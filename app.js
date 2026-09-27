@@ -4,14 +4,30 @@ const config = window.APP_CONFIG || {};
 const online = Boolean(config.SUPABASE_URL && config.SUPABASE_PUBLISHABLE_KEY);
 const supabase = online ? createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY) : null;
 
+const GROUPS = [
+  "บุคลากรสำนักงานลูกเสือแห่งชาติ",
+  "บุคลากรทางการลูกเสือและผู้บังคับบัญชาลูกเสือ",
+  "วิทยากรฝึกอบรมด้านการบุกเบิกและผู้มีทักษะเฉพาะ",
+  "สโมสรลูกเสือ",
+  "สมาคม หรือ ชมรมลูกเสือ",
+  "อาสาสมัครและเครือข่ายสนับสนุนอื่น"
+];
+
+const TEAM_TYPES = {
+  relief_packing: ["ชุดจัดเตรียมและสนับสนุนสิ่งของช่วยเหลือ", "Scout Relief Packing", "รับ คัดแยก บรรจุ ตรวจนับ ติดป้ายปลายทาง และส่งมอบสิ่งของ"],
+  shelter_support: ["ชุดสนับสนุนศูนย์พักพิง", "Scout Shelter Support", "สนับสนุนการลงทะเบียน จัดพื้นที่ แจกอาหาร น้ำดื่ม และงานบริการในศูนย์พักพิง"],
+  child_friendly: ["ชุดสนับสนุนเด็กในพื้นที่ปลอดภัย", "Scout Child Friendly Space", "จัดกิจกรรมและพื้นที่ปลอดภัยสำหรับเด็กภายใต้การควบคุมดูแลของผู้ใหญ่"],
+  school_recovery: ["ชุดฟื้นฟูสถานศึกษา", "Scout School Recovery", "ขนย้าย คัดแยก ทำความสะอาด และเตรียมสถานศึกษาให้กลับมาเปิดเรียน"]
+};
+
 const STEP_CATALOG = [
   ["received", "รับคำร้อง", "รับและบันทึกข้อมูลคำร้องขอให้ครบถ้วน"],
-  ["verified", "ตรวจสอบ", "ตรวจสอบข้อมูลและยืนยันกับผู้ประสานงาน"],
-  ["safety", "ประเมินความปลอดภัย", "ประเมินความเสี่ยงของพื้นที่และภารกิจ"],
-  ["team_type", "กำหนดประเภททีม", "กำหนดชุดปฏิบัติการให้ตรงกับภารกิจ"],
-  ["staffing", "จัดกำลัง", "จัดจำนวนผู้ปฏิบัติงานตามภารกิจและช่วงเวลา"],
-  ["leader_notified", "แจ้งหัวหน้าทีม", "แจ้งสถานที่ ภารกิจ วันเวลา และข้อควรระวัง"],
-  ["operating", "เข้าปฏิบัติ", "ชุดปฏิบัติการเข้าพื้นที่ตามภารกิจ"],
+  ["verified", "ตรวจสอบ", "ตรวจสอบความครบถ้วนและยืนยันกับผู้ประสานงาน"],
+  ["safety", "ประเมินความปลอดภัย", "ประเมินความเสี่ยงของพื้นที่และภารกิจก่อนจัดส่งกำลัง"],
+  ["team_type", "กำหนดประเภททีม", "กำหนดชุดปฏิบัติการให้ตรงกับภารกิจที่ร้องขอ"],
+  ["staffing", "จัดกำลัง", "คัดเลือกและจัดจำนวนผู้ปฏิบัติงานตามภารกิจ พื้นที่ และช่วงเวลา"],
+  ["leader_notified", "แจ้งหัวหน้าทีม", "แจ้งสถานที่ ภารกิจ วันเวลา ผู้ประสานงาน และข้อควรระวัง"],
+  ["operating", "เข้าปฏิบัติ", "ชุดปฏิบัติการเข้าพื้นที่ตามภารกิจที่ได้รับมอบหมาย"],
   ["reported", "รายงานผล", "รายงานผล ปัญหา อุปสรรค และความต้องการเพิ่มเติม"]
 ];
 
@@ -23,211 +39,605 @@ const STATUS = {
 };
 const PRIORITY = { normal: "ปกติ", urgent: "เร่งด่วน", critical: "ฉุกเฉิน" };
 
+const now = Date.now();
 const demoRows = [
-  {id:"d1",request_no:"REQ-20260927-00004",received_at:new Date().toISOString(),location_name:"โรงเรียนบ้านหนองน้ำใส",organization:"สำนักงานเขตพื้นที่การศึกษา",mission:"สนับสนุนการจัดพื้นที่และขนย้ายสิ่งของ",personnel_required:12,operation_start_at:new Date(Date.now()+86400000).toISOString(),priority:"urgent",overall_status:"in_progress",current_step:"จัดกำลัง",completed_steps:4},
-  {id:"d2",request_no:"REQ-20260927-00003",received_at:new Date(Date.now()-7200000).toISOString(),location_name:"ชุมชนริมคลอง",organization:"เทศบาลตำบล",mission:"ช่วยจัดระเบียบพื้นที่และประสานจุดรับบริจาค",personnel_required:18,operation_start_at:new Date(Date.now()+18000000).toISOString(),priority:"critical",overall_status:"blocked",current_step:"ประเมินความปลอดภัย",completed_steps:2},
-  {id:"d3",request_no:"REQ-20260926-00002",received_at:new Date(Date.now()-86400000).toISOString(),location_name:"ศูนย์พักพิงชั่วคราว",organization:"องค์การบริหารส่วนตำบล",mission:"จัดชุดช่วยงานครัวและกระจายสิ่งของ",personnel_required:20,operation_start_at:new Date(Date.now()+172800000).toISOString(),priority:"normal",overall_status:"pending",current_step:"ตรวจสอบ",completed_steps:1},
-  {id:"d4",request_no:"REQ-20260925-00001",received_at:new Date(Date.now()-172800000).toISOString(),location_name:"วัดกลาง",organization:"เครือข่ายจิตอาสา",mission:"ทำความสะอาดและฟื้นฟูพื้นที่",personnel_required:25,operation_start_at:new Date(Date.now()-86400000).toISOString(),priority:"normal",overall_status:"completed",current_step:"รายงานผล",completed_steps:8}
+  {id:"d1",request_no:"REQ-20260927-00004",received_at:new Date().toISOString(),location_name:"โรงเรียนบ้านหนองน้ำใส",organization:"สำนักงานเขตพื้นที่การศึกษา",mission:"สนับสนุนการจัดพื้นที่และขนย้ายสิ่งของ",personnel_required:12,operation_start_at:new Date(now+86400000).toISOString(),priority:"urgent",overall_status:"in_progress",current_step:"จัดกำลัง",completed_steps:4,assigned_center_name:"ศูนย์ประสานงานจังหวัดตัวอย่าง"},
+  {id:"d2",request_no:"REQ-20260927-00003",received_at:new Date(now-7200000).toISOString(),location_name:"ชุมชนริมคลอง",organization:"เทศบาลตำบล",mission:"ช่วยจัดระเบียบพื้นที่และประสานจุดรับบริจาค",personnel_required:18,operation_start_at:new Date(now+18000000).toISOString(),priority:"critical",overall_status:"blocked",current_step:"ประเมินความปลอดภัย",completed_steps:2,assigned_center_name:"ยังไม่มอบหมาย"},
+  {id:"d3",request_no:"REQ-20260926-00002",received_at:new Date(now-86400000).toISOString(),location_name:"ศูนย์พักพิงชั่วคราว",organization:"องค์การบริหารส่วนตำบล",mission:"จัดชุดช่วยงานครัวและกระจายสิ่งของ",personnel_required:20,operation_start_at:new Date(now+172800000).toISOString(),priority:"normal",overall_status:"pending",current_step:"ตรวจสอบ",completed_steps:1,assigned_center_name:"ยังไม่มอบหมาย"}
 ];
 
-let rows = [];
-let demoCounter = demoRows.length + 1;
-const demoManage = new Map();
+const demoVolunteers = [
+  {id:"v1",registration_no:"VOL-20260927-00001",group_no:1,scoutdd_id:"SDD-1001",national_id:"1100000000001",full_name:"กิตติพงศ์ ใจอาสา",organization_network:"สำนักงานลูกเสือแห่งชาติ",phone:"081-111-1111",operational_areas:"กรุงเทพมหานครและปริมณฑล",skills:"ประสานงาน จัดการคลังสิ่งของ",vehicle:"รถยนต์",equipment:"วิทยุสื่อสาร",availability_details:"พร้อมวันทำการ",active:true},
+  {id:"v2",registration_no:"VOL-20260927-00002",group_no:2,scoutdd_id:"SDD-1024",national_id:"1100000000002",full_name:"ปภังกร พร้อมช่วย",organization_network:"กองลูกเสือจังหวัด",phone:"082-222-2222",operational_areas:"นนทบุรี ปทุมธานี",skills:"ปฐมพยาบาล งานครัว",vehicle:"รถกระบะ",equipment:"ชุดปฐมพยาบาล",availability_details:"เสาร์และอาทิตย์",active:true},
+  {id:"v3",registration_no:"VOL-20260927-00003",group_no:3,scoutdd_id:"",national_id:"1100000000003",full_name:"ณัฐวุฒิ นักบุกเบิก",organization_network:"เครือข่ายวิทยากร",phone:"083-333-3333",operational_areas:"ภาคกลาง",skills:"บุกเบิก กู้ภัยทางน้ำ",vehicle:"เรือท้องแบน",equipment:"เชือก เสื้อชูชีพ",availability_details:"แจ้งล่วงหน้า 1 วัน",active:true},
+  {id:"v4",registration_no:"VOL-20260927-00004",group_no:6,scoutdd_id:"",national_id:"1100000000004",full_name:"พรทิพย์ มีน้ำใจ",organization_network:"เครือข่ายจิตอาสา",phone:"084-444-4444",operational_areas:"กรุงเทพมหานคร",skills:"ดูแลเด็กและงานทะเบียน",vehicle:"",equipment:"โน้ตบุ๊ก",availability_details:"ทุกวันหลัง 17.00 น.",active:true}
+];
+
+let requestRows = [];
+let volunteerStats = [];
+let centralState = null;
+let centralToken = "";
+let subcenterSession = null;
 let realtimeChannel = null;
+let demoRequestCounter = 5;
+let demoVolunteerCounter = demoVolunteers.length + 1;
+const demoManage = new Map();
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const formatDate = value => value ? new Intl.DateTimeFormat("th-TH", {dateStyle:"medium",timeStyle:"short"}).format(new Date(value)) : "–";
-const toLocalInput = date => { const d = new Date(date); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
+const toLocalInput = date => { const value = new Date(date); value.setMinutes(value.getMinutes() - value.getTimezoneOffset()); return value.toISOString().slice(0,16); };
+const normalizeRpcResult = data => Array.isArray(data) ? data[0] : data;
 
 function showToast(message, error = false) {
-  const el = $("#toast"); el.textContent = message; el.style.background = error ? "#9d3131" : "#0b2f47"; el.hidden = false;
-  clearTimeout(showToast.timer); showToast.timer = setTimeout(() => el.hidden = true, 3400);
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.style.background = error ? "#9d3131" : "#0b2f47";
+  toast.hidden = false;
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => { toast.hidden = true; }, 3800);
 }
 
 function setConnectionState(state) {
-  const badge = $(".live-badge");
-  badge.classList.toggle("connected", state === "connected");
-  $("#live-label").textContent = state === "connected" ? "ข้อมูลสด" : online ? "กำลังเชื่อมต่อ" : "ข้อมูลตัวอย่าง";
+  $$(".live-badge").forEach(badge => badge.classList.toggle("connected", state === "connected"));
+  const label = $("#live-label");
+  if (label) label.textContent = state === "connected" ? "เชื่อมต่อฐานข้อมูลแล้ว" : online ? "กำลังเชื่อมต่อ" : "ข้อมูลตัวอย่าง";
+}
+
+function routeInfo() {
+  const raw = location.hash.replace(/^#/, "") || "home";
+  if (raw.startsWith("center/")) return {name:"center",raw};
+  if (raw.startsWith("subcenter/")) return {name:"subcenter",raw};
+  if (raw.startsWith("manage/")) return {name:"manage",raw};
+  return {name:raw,raw};
 }
 
 function route() {
-  const hash = location.hash.replace(/^#/, "") || "dashboard";
-  const name = hash.startsWith("manage/") ? "manage" : hash;
-  $$(".view").forEach(v => v.hidden = v.id !== `${name}-view`);
-  $$(".nav-link").forEach(a => a.classList.toggle("active", a.dataset.route === name));
+  const info = routeInfo();
+  const allowed = ["home","registry","dashboard","new","center","subcenter","manage"];
+  const name = allowed.includes(info.name) ? info.name : "home";
+  $$(".view").forEach(view => { view.hidden = view.id !== `${name}-view`; });
+  $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.route === name));
+  if (name === "registry") loadRegistry();
   if (name === "dashboard") loadDashboard();
-  if (name === "new") setFormDefaults();
-  if (name === "manage") loadManage(hash);
+  if (name === "new") setRequestDefaults();
+  if (name === "center") loadCentral(info.raw);
+  if (name === "subcenter") loadSubcenter(info.raw);
+  if (name === "manage") loadManage(info.raw);
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function setFormDefaults() {
+function initializeStaticOptions() {
+  $("#group-selector").innerHTML = GROUPS.map((group,index) => `<label class="group-option"><input type="radio" name="group_no" value="${index+1}" ${index===0?"checked":""} required><span><strong>กลุ่ม ${index+1}</strong>${escapeHtml(group)}</span></label>`).join("");
+  $("#volunteer-group-filter").innerHTML += GROUPS.map((group,index) => `<option value="${index+1}">กลุ่ม ${index+1} · ${escapeHtml(group)}</option>`).join("");
+  $("#team-type").innerHTML = Object.entries(TEAM_TYPES).map(([value,item]) => `<option value="${value}">${escapeHtml(item[0])}</option>`).join("");
+  setRequestDefaults();
+  $("#team-form").elements.operation_start_at.value = toLocalInput(new Date(now + 86400000));
+}
+
+function setRequestDefaults() {
   const form = $("#request-form");
   if (!form.elements.received_at.value) form.elements.received_at.value = toLocalInput(new Date());
-  if (!form.elements.operation_start_at.value) form.elements.operation_start_at.value = toLocalInput(new Date(Date.now() + 86400000));
+  if (!form.elements.operation_start_at.value) form.elements.operation_start_at.value = toLocalInput(new Date(now + 86400000));
+  if (!form.elements.received_by.value) form.elements.received_by.value = "ระบบรับคำร้องออนไลน์";
+}
+
+async function loadRegistry() {
+  try {
+    if (online) {
+      const {data,error} = await supabase.rpc("get_public_volunteer_stats");
+      if (error) throw error;
+      volunteerStats = data || [];
+    } else {
+      volunteerStats = GROUPS.map((_,index) => ({group_no:index+1,total:demoVolunteers.filter(item => item.group_no===index+1).length,available:demoVolunteers.filter(item => item.group_no===index+1 && item.active).length}));
+    }
+    renderRegistryStats();
+  } catch (error) {
+    showToast("โหลดสรุปทะเบียนไม่สำเร็จ: " + (error.message || error), true);
+  }
+}
+
+function renderRegistryStats() {
+  const root = $("#registry-stats");
+  root.innerHTML = GROUPS.map((group,index) => {
+    const row = volunteerStats.find(item => Number(item.group_no) === index+1) || {total:0,available:0};
+    return `<article class="registry-stat"><span>กลุ่ม ${index+1}</span><strong>${Number(row.total||0).toLocaleString("th-TH")}</strong><p>${escapeHtml(group)}</p><small>พร้อมจัดกำลัง ${Number(row.available||0).toLocaleString("th-TH")} คน</small></article>`;
+  }).join("");
+}
+
+function volunteerPayload(form) {
+  const payload = Object.fromEntries(new FormData(form));
+  delete payload.consent;
+  payload.group_no = Number(payload.group_no);
+  return payload;
+}
+
+async function registerVolunteer(payload) {
+  if (online) {
+    const {data,error} = await supabase.rpc("register_public_volunteer", {p_payload:payload});
+    if (error) throw error;
+    return normalizeRpcResult(data);
+  }
+  const record = {id:crypto.randomUUID(),registration_no:`VOL-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(demoVolunteerCounter++).padStart(5,"0")}`,...payload,active:true};
+  demoVolunteers.unshift(record);
+  return {volunteer_id:record.id,registration_no:record.registration_no,edit_token:crypto.randomUUID().replaceAll("-","")};
+}
+
+async function handleVolunteerSubmit(event) {
+  event.preventDefault();
+  const button = $("#volunteer-submit");
+  button.disabled = true;
+  button.textContent = "กำลังบันทึก…";
+  try {
+    const result = await registerVolunteer(volunteerPayload(event.currentTarget));
+    $("#success-registration-no").textContent = result.registration_no;
+    $("#volunteer-success-dialog").showModal();
+    event.currentTarget.reset();
+    $("#group-selector input").checked = true;
+    await loadRegistry();
+  } catch (error) {
+    showToast("ลงทะเบียนไม่สำเร็จ: " + (error.message || error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "ลงทะเบียนเข้าร่วมโครงการ";
+  }
 }
 
 async function loadDashboard() {
   setConnectionState(online ? "connecting" : "demo");
   if (online) {
-    const { data, error } = await supabase.from("public_requests").select("*").order("received_at", {ascending:false}).limit(500);
+    const {data,error} = await supabase.from("public_requests").select("*").order("received_at", {ascending:false}).limit(500);
     if (error) { showToast("โหลด Dashboard ไม่สำเร็จ: " + error.message, true); return; }
-    rows = data || [];
+    requestRows = data || [];
     setConnectionState("connected");
   } else {
-    rows = [...demoRows, ...[...demoManage.values()].map(x => x.public)];
+    requestRows = [...demoRows,...[...demoManage.values()].map(item => item.public)];
   }
   renderDashboard();
 }
 
 function renderDashboard() {
-  const total = rows.length;
-  $("#kpi-total").textContent = total.toLocaleString("th-TH");
-  $("#kpi-active").textContent = rows.filter(r => r.overall_status === "in_progress" || r.overall_status === "pending").length.toLocaleString("th-TH");
-  $("#kpi-blocked").textContent = rows.filter(r => r.overall_status === "blocked").length.toLocaleString("th-TH");
-  $("#kpi-done").textContent = rows.filter(r => r.overall_status === "completed").length.toLocaleString("th-TH");
-  $("#kpi-people").textContent = rows.reduce((n,r)=>n+Number(r.personnel_required||0),0).toLocaleString("th-TH");
-  renderStatusChart(); renderUrgentList(); renderTable();
+  $("#kpi-total").textContent = requestRows.length.toLocaleString("th-TH");
+  $("#kpi-active").textContent = requestRows.filter(row => ["pending","in_progress"].includes(row.overall_status)).length.toLocaleString("th-TH");
+  $("#kpi-blocked").textContent = requestRows.filter(row => row.overall_status === "blocked").length.toLocaleString("th-TH");
+  $("#kpi-done").textContent = requestRows.filter(row => row.overall_status === "completed").length.toLocaleString("th-TH");
+  $("#kpi-people").textContent = requestRows.reduce((sum,row) => sum + Number(row.personnel_required||0),0).toLocaleString("th-TH");
+  renderStatusChart();
+  renderUrgentList();
+  renderRequestTable();
 }
 
 function renderStatusChart() {
-  const root = $("#status-chart");
-  root.innerHTML = Object.keys(STATUS).map(key => {
-    const count = rows.filter(r => r.overall_status === key).length;
-    const pct = rows.length ? Math.round((count / rows.length) * 100) : 0;
-    return `<div class="bar-row"><span>${STATUS[key][0]}</span><div class="bar-track"><div class="bar-fill ${key}" style="width:${pct}%"></div></div><strong>${count}</strong></div>`;
+  $("#status-chart").innerHTML = Object.keys(STATUS).map(key => {
+    const count = requestRows.filter(row => row.overall_status === key).length;
+    const percent = requestRows.length ? Math.round((count/requestRows.length)*100) : 0;
+    return `<div class="bar-row"><span>${STATUS[key][0]}</span><div class="bar-track"><div class="bar-fill ${key}" style="width:${percent}%"></div></div><strong>${count}</strong></div>`;
   }).join("");
 }
 
 function renderUrgentList() {
-  const ordered = rows.filter(r => r.overall_status !== "completed").sort((a,b) => {
-    const rank = {critical:0,urgent:1,normal:2}; return (rank[a.priority] - rank[b.priority]) || new Date(a.operation_start_at) - new Date(b.operation_start_at);
+  const ordered = requestRows.filter(row => row.overall_status !== "completed").sort((a,b) => {
+    const rank = {critical:0,urgent:1,normal:2};
+    return (rank[a.priority]-rank[b.priority]) || new Date(a.operation_start_at)-new Date(b.operation_start_at);
   }).slice(0,4);
-  $("#urgent-list").innerHTML = ordered.length ? ordered.map(r => `<article class="urgent-item"><i class="urgency-mark ${escapeHtml(r.priority)}"></i><div><strong>${escapeHtml(r.location_name)}</strong><span>${escapeHtml(r.mission)}</span></div><time>${formatDate(r.operation_start_at)}</time></article>`).join("") : `<div class="empty-state"><strong>ไม่มีงานค้าง</strong><span>ทุกภารกิจเสร็จสิ้นแล้ว</span></div>`;
+  $("#urgent-list").innerHTML = ordered.length ? ordered.map(row => `<article class="urgent-item"><i class="urgency-mark ${escapeHtml(row.priority)}"></i><div><strong>${escapeHtml(row.location_name)}</strong><span>${escapeHtml(row.mission)}</span></div><time>${formatDate(row.operation_start_at)}</time></article>`).join("") : `<div class="empty-state"><strong>ไม่มีงานค้าง</strong><span>ทุกภารกิจเสร็จสิ้นแล้ว</span></div>`;
 }
 
-function renderTable() {
-  const q = $("#search-input").value.trim().toLowerCase();
+function renderRequestTable() {
+  const query = $("#search-input").value.trim().toLowerCase();
   const status = $("#status-filter").value;
-  const filtered = rows.filter(r => (status === "all" || r.overall_status === status) && (!q || [r.request_no,r.location_name,r.organization,r.mission].some(v => String(v||"").toLowerCase().includes(q))));
-  $("#result-summary").textContent = `แสดง ${filtered.length.toLocaleString("th-TH")} จาก ${rows.length.toLocaleString("th-TH")} รายการ`;
+  const filtered = requestRows.filter(row => (status === "all" || row.overall_status === status) && (!query || [row.request_no,row.location_name,row.organization,row.mission,row.assigned_center_name].some(value => String(value||"").toLowerCase().includes(query))));
+  $("#result-summary").textContent = `แสดง ${filtered.length.toLocaleString("th-TH")} จาก ${requestRows.length.toLocaleString("th-TH")} รายการ`;
   $("#empty-state").hidden = Boolean(filtered.length);
-  $("#request-table-body").innerHTML = filtered.map(r => {
-    const pct = Math.round((Number(r.completed_steps||0) / 8) * 100);
-    const statusInfo = STATUS[r.overall_status] || STATUS.pending;
-    return `<tr><td><strong>${escapeHtml(r.request_no)}</strong><span class="cell-sub">รับเมื่อ ${formatDate(r.received_at)}</span></td><td><strong>${escapeHtml(r.location_name)}</strong><span class="cell-sub">${escapeHtml(r.mission)}</span></td><td>${formatDate(r.operation_start_at)}</td><td><strong>${Number(r.personnel_required||0).toLocaleString("th-TH")} คน</strong><span class="cell-sub">${escapeHtml(PRIORITY[r.priority]||"ปกติ")}</span></td><td class="progress-cell"><span class="progress-label">${escapeHtml(r.current_step||"รับคำร้อง")} · ${pct}%</span><div class="mini-progress"><i style="width:${pct}%"></i></div></td><td><span class="status-chip ${statusInfo[1]}">${statusInfo[0]}</span></td></tr>`;
+  $("#request-table-body").innerHTML = filtered.map(row => {
+    const percent = Math.round((Number(row.completed_steps||0)/8)*100);
+    const statusInfo = STATUS[row.overall_status] || STATUS.pending;
+    return `<tr><td><strong>${escapeHtml(row.request_no)}</strong><span class="cell-sub">รับเมื่อ ${formatDate(row.received_at)}</span></td><td><strong>${escapeHtml(row.location_name)}</strong><span class="cell-sub">${escapeHtml(row.mission)}</span></td><td>${escapeHtml(row.assigned_center_name||"ยังไม่มอบหมาย")}</td><td>${formatDate(row.operation_start_at)}</td><td><strong>${Number(row.personnel_required||0).toLocaleString("th-TH")} คน</strong><span class="cell-sub">${escapeHtml(PRIORITY[row.priority]||"ปกติ")}</span></td><td class="progress-cell"><span class="progress-label">${escapeHtml(row.current_step||"รับคำร้อง")} · ${percent}%</span><div class="mini-progress"><i style="width:${percent}%"></i></div></td><td><span class="status-chip ${statusInfo[1]}">${statusInfo[0]}</span></td></tr>`;
   }).join("");
 }
 
-function formPayload(form) {
-  const fd = new FormData(form); const payload = Object.fromEntries(fd.entries());
+function requestPayload(form) {
+  const payload = Object.fromEntries(new FormData(form));
   payload.personnel_required = Number(payload.personnel_required);
-  ["received_at","operation_start_at","operation_end_at"].forEach(k => payload[k] = payload[k] ? new Date(payload[k]).toISOString() : null);
+  ["received_at","operation_start_at","operation_end_at"].forEach(key => { payload[key] = payload[key] ? new Date(payload[key]).toISOString() : null; });
   return payload;
 }
 
 async function createRequest(payload) {
   if (online) {
-    const { data, error } = await supabase.rpc("create_public_request", {p_payload:payload});
+    const {data,error} = await supabase.rpc("create_public_request", {p_payload:payload});
     if (error) throw error;
-    return Array.isArray(data) ? data[0] : data;
+    return normalizeRpcResult(data);
   }
-  const id = crypto.randomUUID(); const token = crypto.randomUUID().replaceAll("-","");
-  const number = `REQ-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(demoCounter++).padStart(5,"0")}`;
-  const steps = STEP_CATALOG.map(([code,name,detail],i)=>({step_code:code,step_order:i+1,step_name:name,step_detail:detail,status:i===0?"completed":"pending",assignee:"",note:"",action_at:i===0?new Date().toISOString():null}));
-  const publicRow = {...payload,id,request_no:number,overall_status:"in_progress",current_step:"ตรวจสอบ",completed_steps:1};
+  const id = crypto.randomUUID();
+  const token = crypto.randomUUID().replaceAll("-","");
+  const number = `REQ-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(demoRequestCounter++).padStart(5,"0")}`;
+  const steps = STEP_CATALOG.map(([code,name,detail],index) => ({step_code:code,step_order:index+1,step_name:name,step_detail:detail,status:index===0?"completed":"pending",assignee:"",note:"",action_at:index===0?new Date().toISOString():null}));
+  const publicRow = {...payload,id,request_no:number,overall_status:"in_progress",current_step:"ตรวจสอบ",completed_steps:1,assigned_center_name:"ยังไม่มอบหมาย"};
   demoManage.set(id,{token,request:{...payload,id,request_no:number,summary:"",recorder_name:"",recorder_position:""},steps,public:publicRow});
   return {request_id:id,request_no:number,edit_token:token};
 }
 
-async function handleSubmit(event) {
+async function handleRequestSubmit(event) {
   event.preventDefault();
-  const button = $("#submit-button"); button.disabled = true; button.textContent = "กำลังบันทึก…";
+  const button = $("#submit-button");
+  button.disabled = true;
+  button.textContent = "กำลังส่งคำร้อง…";
   try {
-    const result = await createRequest(formPayload(event.currentTarget));
-    const manageLink = `${location.origin}${location.pathname}#manage/${result.request_id}/${result.edit_token}`;
+    const result = await createRequest(requestPayload(event.currentTarget));
     $("#success-request-no").textContent = result.request_no;
-    $("#success-manage-link").value = manageLink;
-    $("#go-manage").dataset.link = manageLink;
-    $("#success-dialog").showModal();
-    event.currentTarget.reset(); setFormDefaults();
-  } catch (error) { showToast("บันทึกไม่สำเร็จ: " + (error.message || error), true); }
-  finally { button.disabled = false; button.textContent = "บันทึกคำร้อง"; }
+    $("#request-success-dialog").showModal();
+    event.currentTarget.reset();
+    setRequestDefaults();
+  } catch (error) {
+    showToast("ส่งคำร้องไม่สำเร็จ: " + (error.message || error), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "ส่งคำร้องเข้าสู่ศูนย์กลาง";
+  }
 }
 
-async function loadManage(hash) {
-  const [,requestId,token] = hash.split("/");
-  $("#manage-content").hidden = true; $("#manage-loading").hidden = false;
+function demoCentralWorkspace() {
+  const existingCenters = centralState?.centers || [{id:"c1",center_code:"CTR-001",name:"ศูนย์ประสานงานจังหวัดตัวอย่าง",service_areas:"พื้นที่ตัวอย่าง",contact_name:"ผู้ประสานงาน",contact_phone:"080-000-0000",active:true}];
+  return {label:"ศูนย์ส่วนกลาง (โหมดตัวอย่าง)",volunteers:demoVolunteers,teams:centralState?.teams||[],centers:existingCenters,requests:[...demoRows,...[...demoManage.values()].map(item=>item.request)].map(request => ({...request,assigned_center_id:request.id==="d1"?"c1":null,assigned_center_name:request.id==="d1"?"ศูนย์ประสานงานจังหวัดตัวอย่าง":null}))};
+}
+
+async function loadCentral(raw) {
+  const [,token] = raw.split("/");
+  centralToken = token || "";
+  $("#center-content").hidden = true;
+  $("#center-loading").hidden = false;
+  $("#center-loading").textContent = "กำลังโหลดข้อมูลศูนย์กลาง…";
+  if (!centralToken) { $("#center-loading").textContent = "ลิงก์ศูนย์ส่วนกลางไม่ครบถ้วน"; return; }
+  try {
+    if (online) {
+      const {data,error} = await supabase.rpc("get_central_workspace", {p_central_token:centralToken});
+      if (error) throw error;
+      centralState = data;
+    } else {
+      centralState = demoCentralWorkspace();
+    }
+    if (!centralState) throw new Error("ลิงก์ไม่ถูกต้องหรือถูกยกเลิกแล้ว");
+    $("#center-subtitle").textContent = centralState.label || "ศูนย์ส่วนกลาง";
+    renderCentral();
+    $("#center-loading").hidden = true;
+    $("#center-content").hidden = false;
+  } catch (error) {
+    $("#center-loading").textContent = "เปิดศูนย์ควบคุมไม่ได้: " + (error.message || error);
+  }
+}
+
+function renderCentral() {
+  const volunteers = centralState.volunteers || [];
+  const requests = centralState.requests || [];
+  const centers = centralState.centers || [];
+  const teams = centralState.teams || [];
+  const unassigned = requests.filter(request => !request.assigned_center_id).length;
+  $("#center-kpis").innerHTML = [
+    ["กำลังในทะเบียน",volunteers.length,"คน"],
+    ["ชุดปฏิบัติการ",teams.length,"ชุด"],
+    ["ศูนย์ย่อย",centers.length,"ศูนย์"],
+    ["คำร้องรอมอบหมาย",unassigned,"รายการ"]
+  ].map(([label,value,unit],index) => `<article class="kpi-card ${index===0?"kpi-accent":""}"><span>${label}</span><strong>${Number(value).toLocaleString("th-TH")}</strong><small>${unit}</small></article>`).join("");
+  renderCentralVolunteers();
+  renderMemberPicker();
+  renderTeams();
+  renderCenters();
+  renderAssignments();
+}
+
+function filteredCentralVolunteers() {
+  const query = $("#volunteer-search").value.trim().toLowerCase();
+  const group = $("#volunteer-group-filter").value;
+  return (centralState?.volunteers||[]).filter(item => (group === "all" || Number(item.group_no) === Number(group)) && (!query || [item.registration_no,item.full_name,item.organization_network,item.operational_areas,item.skills].some(value => String(value||"").toLowerCase().includes(query))));
+}
+
+function renderCentralVolunteers() {
+  $("#volunteer-table-body").innerHTML = filteredCentralVolunteers().map(item => `<tr><td><strong>${escapeHtml(item.registration_no)}</strong><span class="cell-sub">${escapeHtml(item.scoutdd_id||"ไม่มี ScoutDD ID")}</span><span class="cell-private">เลขประจำตัว ${escapeHtml(item.national_id)}</span></td><td><strong>${escapeHtml(item.full_name)}</strong><span class="cell-sub">${escapeHtml(item.organization_network)}</span><span class="cell-private">${escapeHtml(item.phone)}</span></td><td><span class="group-chip">กลุ่ม ${Number(item.group_no)}</span><span class="cell-sub">${escapeHtml(GROUPS[Number(item.group_no)-1]||"")}</span></td><td><strong>${escapeHtml(item.operational_areas)}</strong><span class="cell-sub">${escapeHtml(item.skills)}</span></td><td>${escapeHtml([item.vehicle,item.equipment].filter(Boolean).join(" · ")||"–")}</td><td><span class="status-chip ${item.active?"completed":"blocked"}">${item.active?"พร้อมจัดกำลัง":"ไม่พร้อม"}</span><span class="cell-sub">${escapeHtml(item.availability_details)}</span></td></tr>`).join("");
+}
+
+function renderMemberPicker() {
+  const volunteers = (centralState?.volunteers||[]).filter(item => item.active);
+  const selected = new Set($$("#team-member-picker input[type=checkbox]:checked").map(input => input.value));
+  const currentLeader = $("#team-leader").value;
+  $("#team-leader").innerHTML = `<option value="">เลือกหัวหน้าชุด</option>` + volunteers.map(item => `<option value="${item.id}" ${currentLeader===item.id?"selected":""}>${escapeHtml(item.full_name)} · กลุ่ม ${item.group_no}</option>`).join("");
+  $("#team-member-picker").innerHTML = volunteers.length ? volunteers.map(item => `<label class="member-option"><span class="member-check"><input type="checkbox" value="${item.id}" ${selected.has(item.id)?"checked":""}><span><strong>${escapeHtml(item.full_name)}</strong><small>กลุ่ม ${item.group_no} · ${escapeHtml(item.skills)}</small></span></span><input class="member-role" data-id="${item.id}" placeholder="หน้าที่ / ทักษะที่รับผิดชอบ"></label>`).join("") : `<div class="empty-state"><strong>ยังไม่มีกำลังพร้อมจัดชุด</strong><span>เปิดรับลงทะเบียนจากหน้าสาธารณะก่อน</span></div>`;
+  updateTeamMemberCount();
+}
+
+function updateTeamMemberCount() {
+  $("#team-member-count").value = `${$$("#team-member-picker input[type=checkbox]:checked").length.toLocaleString("th-TH")} คน`;
+}
+
+async function handleTeamSubmit(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form));
+  const members = $$("#team-member-picker input[type=checkbox]:checked").map(input => ({volunteer_id:input.value,role:$( `.member-role[data-id="${input.value}"]`, $("#team-member-picker")).value,notes:""}));
+  if (!members.some(member => member.volunteer_id === data.leader_volunteer_id)) members.unshift({volunteer_id:data.leader_volunteer_id,role:"หัวหน้าชุด",notes:""});
+  const payload = {...data,operation_start_at:new Date(data.operation_start_at).toISOString(),operation_end_at:data.operation_end_at?new Date(data.operation_end_at).toISOString():null,members};
+  const button = $("button[type=submit]",form);
+  button.disabled = true;
+  try {
+    if (online) {
+      const {error} = await supabase.rpc("create_operation_team", {p_central_token:centralToken,p_payload:payload});
+      if (error) throw error;
+    } else {
+      const leader = (centralState.volunteers||[]).find(item => item.id===payload.leader_volunteer_id);
+      centralState.teams.unshift({id:crypto.randomUUID(),team_no:`TEAM-${String(centralState.teams.length+1).padStart(4,"0")}`,team_type:payload.team_type,leader_name:leader?.full_name||"",operation_area:payload.operation_area,operation_start_at:payload.operation_start_at,operation_end_at:payload.operation_end_at,member_count:members.length,members:members.map(member=>({...member,full_name:(centralState.volunteers||[]).find(item=>item.id===member.volunteer_id)?.full_name||""}))});
+    }
+    showToast("บันทึกชุดปฏิบัติการแล้ว");
+    form.reset();
+    form.elements.operation_start_at.value = toLocalInput(new Date(Date.now()+86400000));
+    if (online) await loadCentral(`center/${centralToken}`); else renderCentral();
+  } catch (error) {
+    showToast("สร้างชุดไม่สำเร็จ: " + (error.message || error), true);
+  } finally { button.disabled = false; }
+}
+
+function renderTeams() {
+  const teams = centralState?.teams || [];
+  $("#team-list").innerHTML = teams.length ? `<h3 class="subheading">ชุดปฏิบัติการที่จัดแล้ว</h3>` + teams.map(team => {
+    const type = TEAM_TYPES[team.team_type] || [team.team_type||"ชุดปฏิบัติการ","",""];
+    const members = Array.isArray(team.members) ? team.members : [];
+    return `<article class="team-card"><div><span class="team-no">${escapeHtml(team.team_no)}</span><h3>${escapeHtml(type[0])}</h3><p>${escapeHtml(team.operation_area)} · ${formatDate(team.operation_start_at)}</p></div><div class="team-meta"><span>หัวหน้าชุด<strong>${escapeHtml(team.leader_name||"–")}</strong></span><span>สมาชิก<strong>${Number(team.member_count??members.length).toLocaleString("th-TH")} คน</strong></span></div>${members.length?`<details><summary>ดูรายชื่อสมาชิก</summary><ul>${members.map(member=>`<li>${escapeHtml(member.full_name||"")} ${member.role?`· ${escapeHtml(member.role)}`:""}</li>`).join("")}</ul></details>`:""}</article>`;
+  }).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่ได้จัดชุดปฏิบัติการ</strong><span>เลือกหัวหน้าชุดและสมาชิกจากทะเบียนด้านบน</span></div>`;
+}
+
+async function handleCenterCreate(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const payload = Object.fromEntries(new FormData(form));
+  const button = $("button[type=submit]",form);
+  button.disabled = true;
+  try {
+    let result;
+    if (online) {
+      const {data,error} = await supabase.rpc("create_subcenter", {p_central_token:centralToken,p_payload:payload});
+      if (error) throw error;
+      result = normalizeRpcResult(data);
+    } else {
+      result = {center_id:crypto.randomUUID(),center_code:`CTR-${String((centralState.centers||[]).length+1).padStart(3,"0")}`,access_token:crypto.randomUUID().replaceAll("-","")};
+      centralState.centers.push({id:result.center_id,center_code:result.center_code,...payload,active:true});
+    }
+    const link = `${location.origin}${location.pathname}#subcenter/${result.center_id}/${result.access_token}`;
+    $("#private-link-value").value = link;
+    $("#private-link-label").textContent = `${payload.name} · ${result.center_code}`;
+    $("#private-link-dialog").showModal();
+    form.reset();
+    if (online) await loadCentral(`center/${centralToken}`); else renderCentral();
+  } catch (error) {
+    showToast("สร้างศูนย์ย่อยไม่สำเร็จ: " + (error.message || error), true);
+  } finally { button.disabled = false; }
+}
+
+function renderCenters() {
+  const centers = centralState?.centers || [];
+  $("#subcenter-list").innerHTML = centers.length ? centers.map(center => `<article class="subcenter-card"><div><span>${escapeHtml(center.center_code)}</span><strong>${escapeHtml(center.name)}</strong><small>${escapeHtml(center.service_areas)}</small></div><div><span class="status-chip ${center.active?"completed":"blocked"}">${center.active?"เปิดใช้งาน":"ปิดใช้งาน"}</span><small>${escapeHtml([center.contact_name,center.contact_phone].filter(Boolean).join(" · ")||"ยังไม่ระบุผู้ประสานงาน")}</small></div></article>`).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่มีศูนย์ย่อย</strong><span>สร้างศูนย์ย่อยตามพื้นที่รับผิดชอบได้จากแบบฟอร์มด้านบน</span></div>`;
+}
+
+function renderAssignments() {
+  const requests = centralState?.requests || [];
+  const centers = (centralState?.centers||[]).filter(center => center.active);
+  $("#assignment-list").innerHTML = requests.length ? requests.map(request => {
+    const selected = request.assigned_center_id || "";
+    return `<article class="assignment-card" data-request-id="${request.id}"><div class="assignment-main"><span class="team-no">${escapeHtml(request.request_no)}</span><h3>${escapeHtml(request.location_name)}</h3><p>${escapeHtml(request.mission)}</p><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน · ${formatDate(request.operation_start_at)} · ผู้ประสานงาน ${escapeHtml(request.coordinator_name||"–")} ${escapeHtml(request.coordinator_phone||"")}</small></div><div class="assignment-control"><select class="assignment-center"><option value="">เลือกศูนย์ย่อย</option>${centers.map(center=>`<option value="${center.id}" ${selected===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("")}</select><input class="assignment-note" placeholder="ข้อสั่งการ / หมายเหตุ" value="${escapeHtml(request.assignment_note||"")}"><button class="button button-primary assign-request" type="button">${selected?"เปลี่ยนผู้รับผิดชอบ":"ส่งต่อคำร้อง"}</button>${selected?`<small>ปัจจุบัน: ${escapeHtml(request.assigned_center_name||"")}</small>`:""}</div></article>`;
+  }).join("") : `<div class="empty-state"><strong>ยังไม่มีคำร้อง</strong><span>คำร้องใหม่จากหน้าสาธารณะจะแสดงที่นี่</span></div>`;
+}
+
+async function assignRequest(button) {
+  const card = button.closest(".assignment-card");
+  const centerId = $(".assignment-center",card).value;
+  const note = $(".assignment-note",card).value;
+  if (!centerId) { showToast("กรุณาเลือกศูนย์ย่อย", true); return; }
+  button.disabled = true;
+  try {
+    if (online) {
+      const {error} = await supabase.rpc("assign_request_to_subcenter", {p_central_token:centralToken,p_request_id:card.dataset.requestId,p_center_id:centerId,p_note:note});
+      if (error) throw error;
+      await loadCentral(`center/${centralToken}`);
+    } else {
+      const request = centralState.requests.find(item => item.id===card.dataset.requestId);
+      const center = centralState.centers.find(item => item.id===centerId);
+      Object.assign(request,{assigned_center_id:centerId,assigned_center_name:center.name,assignment_note:note});
+      renderCentral();
+    }
+    showToast("ส่งต่อคำร้องให้ศูนย์ย่อยแล้ว");
+  } catch (error) {
+    showToast("ส่งต่อคำร้องไม่สำเร็จ: " + (error.message || error), true);
+  } finally { button.disabled = false; }
+}
+
+async function loadSubcenter(raw) {
+  const [,centerId,token] = raw.split("/");
+  $("#subcenter-content").hidden = true;
+  $("#subcenter-loading").hidden = false;
+  $("#subcenter-loading").textContent = "กำลังโหลดคำร้องที่ได้รับมอบหมาย…";
+  if (!centerId || !token) { $("#subcenter-loading").textContent = "ลิงก์ศูนย์ย่อยไม่ครบถ้วน"; return; }
+  try {
+    let data;
+    if (online) {
+      const result = await supabase.rpc("get_subcenter_workspace", {p_center_id:centerId,p_access_token:token});
+      if (result.error) throw result.error;
+      data = result.data;
+    } else {
+      const source = centralState || demoCentralWorkspace();
+      const center = (source.centers||[]).find(item => item.id===centerId) || {id:centerId,name:"ศูนย์ย่อยตัวอย่าง",service_areas:"พื้นที่ตัวอย่าง"};
+      const assigned = (source.requests||[]).filter(item => item.assigned_center_id===centerId).map(request => ({request,steps:demoManage.get(request.id)?.steps||STEP_CATALOG.map(([code,name,detail],index)=>({step_code:code,step_order:index+1,step_name:name,step_detail:detail,status:index===0?"completed":"pending",assignee:"",note:""}))}));
+      data = {center,requests:assigned};
+    }
+    if (!data) throw new Error("ลิงก์ไม่ถูกต้องหรือศูนย์นี้ถูกปิดใช้งาน");
+    subcenterSession = {centerId,token,data};
+    $("#subcenter-title").textContent = data.center.name;
+    $("#subcenter-subtitle").textContent = `พื้นที่รับผิดชอบ: ${data.center.service_areas}`;
+    renderSubcenter();
+    $("#subcenter-loading").hidden = true;
+    $("#subcenter-content").hidden = false;
+  } catch (error) {
+    $("#subcenter-loading").textContent = "เปิดพื้นที่ศูนย์ย่อยไม่ได้: " + (error.message || error);
+  }
+}
+
+function renderSubcenter() {
+  const records = subcenterSession?.data?.requests || [];
+  $("#subcenter-request-list").innerHTML = records.length ? records.map((record,index) => {
+    const request = record.request;
+    const steps = record.steps || [];
+    return `<details class="subcenter-request" ${index===0?"open":""} data-request-id="${request.id}"><summary><div><span class="team-no">${escapeHtml(request.request_no)}</span><strong>${escapeHtml(request.location_name)}</strong><small>${escapeHtml(request.mission)}</small></div><span class="status-chip ${escapeHtml(request.overall_status||"pending")}">${escapeHtml((STATUS[request.overall_status]||STATUS.pending)[0])}</span></summary><div class="request-private-grid"><span>ผู้ประสานงาน<strong>${escapeHtml(request.coordinator_name||"–")}</strong><small>${escapeHtml(request.coordinator_org||"")} · ${escapeHtml(request.coordinator_phone||"")}</small></span><span>วันปฏิบัติงาน<strong>${formatDate(request.operation_start_at)}</strong><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน</small></span><span>สถานการณ์<strong>${escapeHtml(request.situation||"–")}</strong><small>${escapeHtml(request.impact||"")}</small></span></div><div class="step-editor sub-step-editor">${steps.sort((a,b)=>a.step_order-b.step_order).map(step=>stepEditorHtml(step,"sub")).join("")}</div><form class="sub-summary-form summary-editor-inline"><label><span>สรุปผลการดำเนินงาน / ข้อสั่งการเพิ่มเติม</span><textarea name="summary" rows="3">${escapeHtml(request.summary||"")}</textarea></label><div class="form-grid cols-2"><label><span>ผู้บันทึก</span><input name="recorder_name" value="${escapeHtml(request.recorder_name||"")}"></label><label><span>ตำแหน่ง</span><input name="recorder_position" value="${escapeHtml(request.recorder_position||"")}"></label></div><div class="align-end"><button class="button button-primary" type="submit">บันทึกสรุปผล</button></div></form></div></details>`;
+  }).join("") : `<div class="panel empty-state"><strong>ยังไม่มีคำร้องที่ได้รับมอบหมาย</strong><span>เมื่อศูนย์ส่วนกลางส่งต่อคำร้อง รายการจะแสดงที่หน้านี้</span></div>`;
+}
+
+function stepEditorHtml(step,mode="legacy") {
+  return `<div class="step-row" data-code="${escapeHtml(step.step_code)}"><span class="step-no">${step.step_order}</span><div class="step-name"><strong>${escapeHtml(step.step_name)}</strong><span>${escapeHtml(step.step_detail)}</span></div><input class="step-assignee" value="${escapeHtml(step.assignee||"")}" placeholder="ผู้รับผิดชอบ"><select class="step-status">${Object.entries(STATUS).map(([value,item])=>`<option value="${value}" ${step.status===value?"selected":""}>${item[0]}</option>`).join("")}</select><input class="step-note" value="${escapeHtml(step.note||"")}" placeholder="ผล / หมายเหตุ"><button class="button button-ghost ${mode==="sub"?"save-sub-step":"save-step"}" type="button">บันทึก</button></div>`;
+}
+
+async function saveSubcenterStep(button) {
+  const requestRoot = button.closest(".subcenter-request");
+  const row = button.closest(".step-row");
+  const payload = {requestId:requestRoot.dataset.requestId,stepCode:row.dataset.code,status:$(".step-status",row).value,assignee:$(".step-assignee",row).value,note:$(".step-note",row).value};
+  button.disabled = true;
+  try {
+    if (online) {
+      const {error} = await supabase.rpc("update_workflow_step_by_subcenter", {p_center_id:subcenterSession.centerId,p_access_token:subcenterSession.token,p_request_id:payload.requestId,p_step_code:payload.stepCode,p_status:payload.status,p_assignee:payload.assignee,p_note:payload.note});
+      if (error) throw error;
+    } else {
+      const record = subcenterSession.data.requests.find(item=>item.request.id===payload.requestId);
+      Object.assign(record.steps.find(item=>item.step_code===payload.stepCode),{status:payload.status,assignee:payload.assignee,note:payload.note});
+    }
+    showToast("บันทึกขั้นตอนแล้ว");
+  } catch (error) { showToast("บันทึกไม่สำเร็จ: " + (error.message||error),true); }
+  finally { button.disabled = false; }
+}
+
+async function saveSubcenterSummary(form) {
+  const requestId = form.closest(".subcenter-request").dataset.requestId;
+  const payload = Object.fromEntries(new FormData(form));
+  const button = $("button[type=submit]",form);
+  button.disabled = true;
+  try {
+    if (online) {
+      const {error} = await supabase.rpc("update_request_summary_by_subcenter", {p_center_id:subcenterSession.centerId,p_access_token:subcenterSession.token,p_request_id:requestId,p_summary:payload.summary,p_recorder_name:payload.recorder_name,p_recorder_position:payload.recorder_position});
+      if (error) throw error;
+    } else {
+      Object.assign(subcenterSession.data.requests.find(item=>item.request.id===requestId).request,payload);
+    }
+    showToast("บันทึกสรุปผลแล้ว");
+  } catch (error) { showToast("บันทึกไม่สำเร็จ: " + (error.message||error),true); }
+  finally { button.disabled = false; }
+}
+
+async function loadManage(raw) {
+  const [,requestId,token] = raw.split("/");
+  $("#manage-content").hidden = true;
+  $("#manage-loading").hidden = false;
   if (!requestId || !token) { $("#manage-loading").textContent = "ลิงก์จัดการไม่ครบถ้วน"; return; }
   try {
     let record;
     if (online) {
       const {data,error} = await supabase.rpc("get_request_by_token", {p_request_id:requestId,p_edit_token:token});
-      if (error) throw error; record = data;
+      if (error) throw error;
+      record = data;
     } else {
-      record = demoManage.get(requestId); if (!record || record.token !== token) throw new Error("ไม่พบข้อมูลในโหมดตัวอย่าง");
+      record = demoManage.get(requestId);
+      if (!record || record.token !== token) throw new Error("ไม่พบข้อมูลในโหมดตัวอย่าง");
     }
     if (!record) throw new Error("ลิงก์ไม่ถูกต้องหรือหมดอายุ");
-    renderManage(record, requestId, token);
-    $("#manage-loading").hidden = true; $("#manage-content").hidden = false;
-  } catch(error) { $("#manage-loading").textContent = "เปิดคำร้องไม่ได้: " + (error.message || error); }
+    renderManage(record,requestId,token);
+    $("#manage-loading").hidden = true;
+    $("#manage-content").hidden = false;
+  } catch (error) { $("#manage-loading").textContent = "เปิดคำร้องไม่ได้: " + (error.message||error); }
 }
 
-function renderManage(record, requestId, token) {
-  const req = record.request || record; const steps = record.steps || [];
-  $("#manage-title").textContent = req.request_no;
-  $("#manage-subtitle").textContent = `${req.location_name} · ${req.mission}`;
-  $("#manage-summary").innerHTML = `<div class="summary-tile"><span>สถานที่และภารกิจ</span><strong>${escapeHtml(req.location_name)}</strong><small>${escapeHtml(req.mission)}</small></div><div class="summary-tile"><span>วันปฏิบัติงาน</span><strong>${formatDate(req.operation_start_at)}</strong></div><div class="summary-tile"><span>กำลังพลที่ต้องการ</span><strong>${Number(req.personnel_required).toLocaleString("th-TH")} คน</strong></div>`;
-  $("#step-editor").innerHTML = steps.sort((a,b)=>a.step_order-b.step_order).map(s => `<div class="step-row" data-code="${escapeHtml(s.step_code)}"><span class="step-no">${s.step_order}</span><div class="step-name"><strong>${escapeHtml(s.step_name)}</strong><span>${escapeHtml(s.step_detail)}</span></div><input class="step-assignee" value="${escapeHtml(s.assignee||"")}" placeholder="ผู้รับผิดชอบ" aria-label="ผู้รับผิดชอบ ${escapeHtml(s.step_name)}"><select class="step-status" aria-label="สถานะ ${escapeHtml(s.step_name)}">${Object.entries(STATUS).map(([v,x])=>`<option value="${v}" ${s.status===v?"selected":""}>${x[0]}</option>`).join("")}</select><input class="step-note" value="${escapeHtml(s.note||"")}" placeholder="ผล / หมายเหตุ" aria-label="หมายเหตุ ${escapeHtml(s.step_name)}"><button class="button button-ghost save-step" type="button">บันทึก</button></div>`).join("");
-  const sf = $("#summary-form"); sf.elements.summary.value = req.summary || ""; sf.elements.recorder_name.value = req.recorder_name || ""; sf.elements.recorder_position.value = req.recorder_position || "";
-  $("#manage-content").dataset.requestId = requestId; $("#manage-content").dataset.token = token;
+function renderManage(record,requestId,token) {
+  const request = record.request || record;
+  const steps = record.steps || [];
+  $("#manage-title").textContent = request.request_no;
+  $("#manage-subtitle").textContent = `${request.location_name} · ${request.mission}`;
+  $("#manage-summary").innerHTML = `<div class="summary-tile"><span>สถานที่และภารกิจ</span><strong>${escapeHtml(request.location_name)}</strong><small>${escapeHtml(request.mission)}</small></div><div class="summary-tile"><span>วันปฏิบัติงาน</span><strong>${formatDate(request.operation_start_at)}</strong></div><div class="summary-tile"><span>กำลังพลที่ต้องการ</span><strong>${Number(request.personnel_required).toLocaleString("th-TH")} คน</strong></div>`;
+  $("#step-editor").innerHTML = steps.sort((a,b)=>a.step_order-b.step_order).map(step=>stepEditorHtml(step)).join("");
+  const form = $("#summary-form");
+  form.elements.summary.value = request.summary||"";
+  form.elements.recorder_name.value = request.recorder_name||"";
+  form.elements.recorder_position.value = request.recorder_position||"";
+  $("#manage-content").dataset.requestId = requestId;
+  $("#manage-content").dataset.token = token;
 }
 
-async function saveStep(button) {
-  const row = button.closest(".step-row"); const {requestId,token} = $("#manage-content").dataset;
-  const payload = {requestId,token,stepCode:row.dataset.code,status:$(".step-status",row).value,assignee:$(".step-assignee",row).value,note:$(".step-note",row).value};
-  button.disabled=true; button.textContent="กำลังบันทึก";
+async function saveLegacyStep(button) {
+  const row = button.closest(".step-row");
+  const {requestId,token} = $("#manage-content").dataset;
+  const payload = {stepCode:row.dataset.code,status:$(".step-status",row).value,assignee:$(".step-assignee",row).value,note:$(".step-note",row).value};
+  button.disabled = true;
   try {
     if (online) {
-      const {error}=await supabase.rpc("update_workflow_step_by_token",{p_request_id:payload.requestId,p_edit_token:payload.token,p_step_code:payload.stepCode,p_status:payload.status,p_assignee:payload.assignee,p_note:payload.note}); if(error) throw error;
+      const {error} = await supabase.rpc("update_workflow_step_by_token", {p_request_id:requestId,p_edit_token:token,p_step_code:payload.stepCode,p_status:payload.status,p_assignee:payload.assignee,p_note:payload.note});
+      if (error) throw error;
     } else {
-      const rec=demoManage.get(requestId); const step=rec.steps.find(s=>s.step_code===payload.stepCode); Object.assign(step,{status:payload.status,assignee:payload.assignee,note:payload.note,action_at:new Date().toISOString()}); const done=rec.steps.filter(s=>s.status==="completed").length; rec.public.completed_steps=done; rec.public.overall_status=rec.steps.some(s=>s.status==="blocked")?"blocked":done===8?"completed":"in_progress"; rec.public.current_step=(rec.steps.find(s=>s.status!=="completed")||rec.steps[7]).step_name;
+      Object.assign(demoManage.get(requestId).steps.find(step=>step.step_code===payload.stepCode),payload);
     }
     showToast("บันทึกขั้นตอนแล้ว");
-  } catch(error){showToast("บันทึกไม่สำเร็จ: "+(error.message||error),true)} finally{button.disabled=false;button.textContent="บันทึก"}
+  } catch (error) { showToast("บันทึกไม่สำเร็จ: " + (error.message||error),true); }
+  finally { button.disabled = false; }
 }
 
-async function saveSummary(event) {
-  event.preventDefault(); const {requestId,token}=$("#manage-content").dataset; const data=Object.fromEntries(new FormData(event.currentTarget));
+async function saveLegacySummary(event) {
+  event.preventDefault();
+  const {requestId,token} = $("#manage-content").dataset;
+  const payload = Object.fromEntries(new FormData(event.currentTarget));
   try {
-    if(online){const {error}=await supabase.rpc("update_request_summary_by_token",{p_request_id:requestId,p_edit_token:token,p_summary:data.summary,p_recorder_name:data.recorder_name,p_recorder_position:data.recorder_position});if(error)throw error}
-    else Object.assign(demoManage.get(requestId).request,data);
+    if (online) {
+      const {error} = await supabase.rpc("update_request_summary_by_token", {p_request_id:requestId,p_edit_token:token,p_summary:payload.summary,p_recorder_name:payload.recorder_name,p_recorder_position:payload.recorder_position});
+      if (error) throw error;
+    } else Object.assign(demoManage.get(requestId).request,payload);
     showToast("บันทึกสรุปผลแล้ว");
-  }catch(error){showToast("บันทึกไม่สำเร็จ: "+(error.message||error),true)}
-}
-
-function registerWebMcpTools() {
-  const context = document.modelContext; if (!context?.registerTool) return;
-  const lifecycle = new AbortController();
-  Promise.resolve(context.registerTool({name:"create_service_request",title:"สร้างคำร้องช่วยเหลือ",description:"สร้างคำร้องใหม่จากข้อมูลที่ครบถ้วนและคืนเลขที่คำร้องพร้อมลิงก์จัดการ",inputSchema:{type:"object",properties:{received_by:{type:"string"},location_name:{type:"string"},situation:{type:"string"},mission:{type:"string"},personnel_required:{type:"integer",minimum:1},operation_start_at:{type:"string"},coordinator_name:{type:"string"},coordinator_org:{type:"string"},coordinator_phone:{type:"string"},priority:{type:"string",enum:["normal","urgent","critical"]}},required:["received_by","location_name","situation","mission","personnel_required","operation_start_at","coordinator_name","coordinator_org","coordinator_phone"],additionalProperties:true},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){const result=await createRequest({...input,received_at:new Date().toISOString()});await loadDashboard();return{request_no:result.request_no,manage_hash:`#manage/${result.request_id}/${result.edit_token}`}}},{signal:lifecycle.signal})).catch(()=>{});
+  } catch (error) { showToast("บันทึกไม่สำเร็จ: " + (error.message||error),true); }
 }
 
 function subscribeRealtime() {
-  if(!online) return;
-  realtimeChannel=supabase.channel("public-dashboard").on("postgres_changes",{event:"*",schema:"public",table:"public_requests"},()=>loadDashboard()).subscribe(status=>{if(status==="SUBSCRIBED")setConnectionState("connected")});
+  if (!online) return;
+  realtimeChannel = supabase.channel("public-dashboard-v2").on("postgres_changes",{event:"*",schema:"public",table:"public_requests"},() => {
+    if (routeInfo().name === "dashboard") loadDashboard();
+  }).subscribe(status => { if (status === "SUBSCRIBED") setConnectionState("connected"); });
 }
 
-$("#request-form").addEventListener("submit",handleSubmit);
-$("#search-input").addEventListener("input",renderTable);
-$("#status-filter").addEventListener("change",renderTable);
-$("#step-editor").addEventListener("click",e=>{const b=e.target.closest(".save-step");if(b)saveStep(b)});
-$("#summary-form").addEventListener("submit",saveSummary);
-$("#copy-manage-link").addEventListener("click",async()=>{await navigator.clipboard.writeText($("#success-manage-link").value);showToast("คัดลอกลิงก์แล้ว")});
-$("#go-dashboard").addEventListener("click",()=>{$("#success-dialog").close();location.hash="dashboard"});
-$("#go-manage").addEventListener("click",e=>{$("#success-dialog").close();location.href=e.currentTarget.dataset.link});
+function registerWebMcpTools() {
+  const context = document.modelContext;
+  if (!context?.registerTool) return;
+  const lifecycle = new AbortController();
+  Promise.resolve(context.registerTool({name:"create_service_request",title:"สร้างคำร้องช่วยเหลือ",description:"สร้างคำร้องใหม่จากข้อมูลที่ครบถ้วนและคืนเลขที่คำร้อง",inputSchema:{type:"object",properties:{requester_type:{type:"string",enum:["citizen","agency"]},requester_name:{type:"string"},received_by:{type:"string"},location_name:{type:"string"},situation:{type:"string"},mission:{type:"string"},personnel_required:{type:"integer",minimum:1},operation_start_at:{type:"string"},coordinator_name:{type:"string"},coordinator_org:{type:"string"},coordinator_phone:{type:"string"},priority:{type:"string",enum:["normal","urgent","critical"]}},required:["requester_name","received_by","location_name","situation","mission","personnel_required","operation_start_at","coordinator_name","coordinator_org","coordinator_phone"],additionalProperties:true},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){const result=await createRequest({...input,requester_type:input.requester_type||"citizen",received_at:new Date().toISOString()});return{request_no:result.request_no}}},{signal:lifecycle.signal})).catch(()=>{});
+}
+
+$("#volunteer-form").addEventListener("submit",handleVolunteerSubmit);
+$("#request-form").addEventListener("submit",handleRequestSubmit);
+$("#search-input").addEventListener("input",renderRequestTable);
+$("#status-filter").addEventListener("change",renderRequestTable);
+$("#volunteer-search").addEventListener("input",renderCentralVolunteers);
+$("#volunteer-group-filter").addEventListener("change",renderCentralVolunteers);
+$("#team-member-picker").addEventListener("change",updateTeamMemberCount);
+$("#team-leader").addEventListener("change",event => {
+  const checkbox = $(`#team-member-picker input[value="${event.target.value}"]`);
+  if (checkbox) checkbox.checked = true;
+  updateTeamMemberCount();
+});
+$("#team-form").addEventListener("submit",handleTeamSubmit);
+$("#center-form").addEventListener("submit",handleCenterCreate);
+$("#assignment-list").addEventListener("click",event => { const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
+$("#subcenter-request-list").addEventListener("click",event => { const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });
+$("#subcenter-request-list").addEventListener("submit",event => { const form=event.target.closest(".sub-summary-form"); if (form) { event.preventDefault(); saveSubcenterSummary(form); } });
+$("#step-editor").addEventListener("click",event => { const button=event.target.closest(".save-step"); if (button) saveLegacyStep(button); });
+$("#summary-form").addEventListener("submit",saveLegacySummary);
+$("#request-another").addEventListener("click",() => { $("#request-success-dialog").close(); location.hash="new"; });
+$("#go-dashboard").addEventListener("click",() => { $("#request-success-dialog").close(); location.hash="dashboard"; });
+$("#register-another").addEventListener("click",() => $("#volunteer-success-dialog").close());
+$("#go-home").addEventListener("click",() => { $("#volunteer-success-dialog").close(); location.hash="home"; });
+$("#copy-private-link").addEventListener("click",async () => { await navigator.clipboard.writeText($("#private-link-value").value); showToast("คัดลอกลิงก์ศูนย์ย่อยแล้ว"); });
+$("#close-private-link").addEventListener("click",() => $("#private-link-dialog").close());
 window.addEventListener("hashchange",route);
-window.addEventListener("beforeunload",()=>{if(realtimeChannel)supabase.removeChannel(realtimeChannel)});
-$("#connection-banner").hidden=online;
-setFormDefaults();subscribeRealtime();registerWebMcpTools();route();
+window.addEventListener("beforeunload",() => { if (realtimeChannel) supabase.removeChannel(realtimeChannel); });
+
+$("#connection-banner").hidden = online;
+initializeStaticOptions();
+subscribeRealtime();
+registerWebMcpTools();
+route();

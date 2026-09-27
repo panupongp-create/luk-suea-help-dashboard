@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="ระบบรับคำร้องและติดตามการช่วยเหลือ ลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ">
+  <meta name="description" content="ระบบทะเบียนกำลัง จัดชุดปฏิบัติการ รับคำร้อง และติดตามการช่วยเหลือ">
   <meta name="theme-color" content="#0b2f47">
   <title>ศูนย์ประสานงานลูกเสือช่วยเหลือ</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -11,16 +11,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles-v2.css">
 </head>
 <body>
   <header class="app-header">
-    <a class="brand" href="#dashboard" aria-label="หน้าหลัก">
+    <a class="brand" href="#home" aria-label="หน้าหลัก">
       <span class="brand-mark" aria-hidden="true">ลช</span>
       <span><strong>ศูนย์ประสานงานช่วยเหลือ</strong><small>ลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ</small></span>
     </a>
     <nav class="main-nav" aria-label="เมนูหลัก">
-      <a class="nav-link" data-route="dashboard" href="#dashboard">ภาพรวม</a>
-      <a class="nav-link nav-primary" data-route="new" href="#new">+ รับคำร้องใหม่</a>
+      <a class="nav-link" data-route="home" href="#home">หน้าหลัก</a>
+      <a class="nav-link" data-route="registry" href="#registry">ระบบจัดชุด</a>
+      <a class="nav-link" data-route="dashboard" href="#dashboard">ระบบรับคำร้อง</a>
+      <a class="nav-link nav-primary" data-route="new" href="#new">+ แจ้งขอความช่วยเหลือ</a>
     </nav>
   </header>
 
@@ -29,14 +32,70 @@
   </div>
 
   <main>
-    <section id="dashboard-view" class="view" aria-labelledby="dashboard-title">
-      <div class="page-heading dashboard-heading">
-        <div>
-          <p class="eyebrow">ศูนย์ควบคุมสถานการณ์</p>
-          <h1 id="dashboard-title">Dashboard การช่วยเหลือ</h1>
-          <p>ติดตามคำร้อง กำลังพล และความคืบหน้าล่าสุดจากทุกพื้นที่</p>
-        </div>
+    <section id="home-view" class="view" aria-labelledby="home-title">
+      <div class="hero-panel">
+        <p class="eyebrow">ระบบกลางเพื่อการประสานงาน</p>
+        <h1 id="home-title">ลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ</h1>
+        <p>ลงทะเบียนกำลัง จัดชุดปฏิบัติการ รับคำร้องจากประชาชนและหน่วยงาน แล้วติดตามผลจากศูนย์ย่อยในระบบเดียว</p>
         <div class="live-badge"><span class="live-dot"></span><span id="live-label">กำลังเชื่อมต่อ</span></div>
+      </div>
+
+      <div class="system-grid">
+        <article class="system-card system-card-one">
+          <span class="system-number">ระบบ 1</span>
+          <h2>ทะเบียนกำลังและจัดชุดปฏิบัติการ</h2>
+          <p>เปิดรับบุคลากรและอาสาสมัคร 6 กลุ่ม เพื่อให้ศูนย์ส่วนกลางค้นหาและจัดชุดตามภารกิจ</p>
+          <ul><li>ลงทะเบียนกำลังและทรัพยากร</li><li>ระบุทักษะ พื้นที่ ยานพาหนะ และอุปกรณ์</li><li>ศูนย์กลางเลือกหัวหน้าชุดและสมาชิก</li></ul>
+          <a class="button button-primary" href="#registry">เข้าสู่ระบบจัดชุด</a>
+        </article>
+        <article class="system-card system-card-two">
+          <span class="system-number">ระบบ 2</span>
+          <h2>รับคำร้องและประสานศูนย์ย่อย</h2>
+          <p>ประชาชนหรือหน่วยงานแจ้งเรื่อง ศูนย์กลางตรวจสอบและส่งต่อให้ศูนย์ย่อยรับผิดชอบ</p>
+          <ul><li>รับคำร้องสาธารณะโดยไม่ต้อง Login</li><li>มอบหมายพื้นที่ให้ศูนย์ย่อย</li><li>ติดตามกระบวนการดำเนินงาน 8 ขั้นตอน</li></ul>
+          <div class="button-row"><a class="button button-primary" href="#new">ส่งคำร้อง</a><a class="button button-ghost" href="#dashboard">ดู Dashboard</a></div>
+        </article>
+      </div>
+      <p class="privacy-note portal-note"><strong>การคุ้มครองข้อมูล:</strong> เลขประจำตัวประชาชน เบอร์โทร และข้อมูลผู้ประสานงานไม่แสดงบน Dashboard สาธารณะ</p>
+    </section>
+
+    <section id="registry-view" class="view" hidden aria-labelledby="registry-title">
+      <div class="page-heading">
+        <div><p class="eyebrow">ระบบ 1</p><h1 id="registry-title">ทะเบียนกำลังและทรัพยากร</h1><p>ลงทะเบียนผู้พร้อมสนับสนุนภารกิจ เพื่อให้ศูนย์ส่วนกลางจัดชุดปฏิบัติการ</p></div>
+        <a class="text-link" href="#home">← กลับหน้าหลัก</a>
+      </div>
+
+      <div id="registry-stats" class="registry-stats" aria-label="สรุปจำนวนผู้ลงทะเบียน"></div>
+
+      <form id="volunteer-form" class="request-form">
+        <section class="form-card">
+          <div class="section-title"><span>01</span><div><h2>เลือกกลุ่มทะเบียน</h2><p>เลือกประเภทที่ตรงกับสถานะหรือเครือข่ายของผู้สมัคร</p></div></div>
+          <div id="group-selector" class="group-selector"></div>
+        </section>
+        <section class="form-card">
+          <div class="section-title"><span>02</span><div><h2>ข้อมูลผู้ลงทะเบียน</h2><p>ช่องข้อมูลตามแบบทะเบียนกำลังและทรัพยากร</p></div></div>
+          <div class="form-grid cols-2">
+            <label><span>ScoutDD ID</span><input name="scoutdd_id" maxlength="80" placeholder="ถ้ามี"></label>
+            <label><span>เลขประจำตัวประชาชน *</span><input name="national_id" required inputmode="numeric" maxlength="13" pattern="[0-9]{13}" placeholder="13 หลัก"></label>
+            <label><span>ชื่อ–นามสกุล *</span><input name="full_name" required maxlength="160"></label>
+            <label><span>หน่วยงานหรือเครือข่าย *</span><input name="organization_network" required maxlength="200"></label>
+            <label><span>หมายเลขโทรศัพท์ *</span><input name="phone" required maxlength="30" inputmode="tel" autocomplete="tel"></label>
+            <label><span>วันและเวลาที่พร้อมปฏิบัติงาน *</span><input name="availability_details" required maxlength="240" placeholder="เช่น จันทร์–ศุกร์ หลัง 17.00 น."></label>
+            <label class="full"><span>พื้นที่ที่สามารถปฏิบัติงาน *</span><input name="operational_areas" required maxlength="400" placeholder="จังหวัด อำเภอ หรือพื้นที่ที่เดินทางไปได้"></label>
+            <label class="full"><span>ทักษะ *</span><textarea name="skills" required maxlength="1200" rows="3" placeholder="เช่น ปฐมพยาบาล งานครัว การบุกเบิก สื่อสาร"></textarea></label>
+            <label><span>ยานพาหนะ</span><textarea name="vehicle" maxlength="600" rows="2" placeholder="ชนิด จำนวน หรือรายละเอียด"></textarea></label>
+            <label><span>อุปกรณ์</span><textarea name="equipment" maxlength="600" rows="2" placeholder="อุปกรณ์ที่สามารถนำมาสนับสนุน"></textarea></label>
+          </div>
+          <label class="consent-row"><input name="consent" type="checkbox" required><span>ยืนยันว่าข้อมูลเป็นความจริง และยินยอมให้ศูนย์ส่วนกลางใช้ข้อมูลเพื่อจัดกำลังตามภารกิจ *</span></label>
+        </section>
+        <div class="form-actions"><a href="#home" class="button button-ghost">ยกเลิก</a><button id="volunteer-submit" class="button button-primary" type="submit">ลงทะเบียนเข้าร่วมโครงการ</button></div>
+      </form>
+    </section>
+
+    <section id="dashboard-view" class="view" hidden aria-labelledby="dashboard-title">
+      <div class="page-heading dashboard-heading">
+        <div><p class="eyebrow">ระบบ 2</p><h1 id="dashboard-title">Dashboard คำร้องช่วยเหลือ</h1><p>ติดตามคำร้องและความคืบหน้าจากศูนย์ย่อย โดยไม่แสดงข้อมูลส่วนบุคคล</p></div>
+        <a class="button button-primary" href="#new">+ ส่งคำร้องใหม่</a>
       </div>
 
       <div class="kpi-grid" aria-label="ตัวเลขสรุป">
@@ -48,109 +107,113 @@
       </div>
 
       <div class="dashboard-grid">
-        <section class="panel status-panel">
-          <div class="panel-heading"><div><h2>สถานะคำร้อง</h2><p>สัดส่วนงานที่อยู่ในแต่ละช่วง</p></div></div>
-          <div id="status-chart" class="status-chart" aria-label="กราฟสถานะคำร้อง"></div>
-        </section>
-        <section class="panel urgency-panel">
-          <div class="panel-heading"><div><h2>งานที่ต้องจับตา</h2><p>เรียงจากงานเร่งด่วนและใกล้ถึงกำหนด</p></div></div>
-          <div id="urgent-list" class="urgent-list"></div>
-        </section>
+        <section class="panel status-panel"><div class="panel-heading"><div><h2>สถานะคำร้อง</h2><p>สัดส่วนงานที่อยู่ในแต่ละช่วง</p></div></div><div id="status-chart" class="status-chart"></div></section>
+        <section class="panel urgency-panel"><div class="panel-heading"><div><h2>งานที่ต้องจับตา</h2><p>เรียงจากงานเร่งด่วนและใกล้ถึงกำหนด</p></div></div><div id="urgent-list" class="urgent-list"></div></section>
       </div>
 
       <section class="panel table-panel">
         <div class="panel-heading table-heading">
           <div><h2>รายการคำร้องล่าสุด</h2><p id="result-summary">กำลังโหลดข้อมูล</p></div>
-          <div class="table-tools">
-            <label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="ค้นหาเลขที่ สถานที่ หรือภารกิจ" aria-label="ค้นหาคำร้อง"></label>
-            <select id="status-filter" aria-label="กรองตามสถานะ">
-              <option value="all">ทุกสถานะ</option><option value="pending">รอดำเนินการ</option><option value="in_progress">กำลังดำเนินการ</option><option value="blocked">ติดปัญหา</option><option value="completed">เสร็จสิ้น</option>
-            </select>
-          </div>
+          <div class="table-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="ค้นหาเลขที่ สถานที่ หรือภารกิจ"></label><select id="status-filter"><option value="all">ทุกสถานะ</option><option value="pending">รอดำเนินการ</option><option value="in_progress">กำลังดำเนินการ</option><option value="blocked">ติดปัญหา</option><option value="completed">เสร็จสิ้น</option></select></div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>เลขที่คำร้อง</th><th>สถานที่ / ภารกิจ</th><th>วันปฏิบัติงาน</th><th>กำลังพล</th><th>ความคืบหน้า</th><th>สถานะ</th></tr></thead>
-            <tbody id="request-table-body"></tbody>
-          </table>
-        </div>
+        <div class="table-wrap"><table><thead><tr><th>เลขที่คำร้อง</th><th>สถานที่ / ภารกิจ</th><th>ศูนย์รับผิดชอบ</th><th>วันปฏิบัติงาน</th><th>กำลังพล</th><th>ความคืบหน้า</th><th>สถานะ</th></tr></thead><tbody id="request-table-body"></tbody></table></div>
         <div id="empty-state" class="empty-state" hidden><strong>ยังไม่พบคำร้อง</strong><span>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</span></div>
       </section>
     </section>
 
     <section id="new-view" class="view" hidden aria-labelledby="form-title">
-      <div class="page-heading form-heading">
-        <div><p class="eyebrow">บันทึกข้อมูล</p><h1 id="form-title">แบบฟอร์มรับคำร้องขอ</h1><p>กรอกข้อมูลที่จำเป็นเพื่อส่งต่อให้ทีมปฏิบัติการ</p></div>
-        <a class="text-link" href="#dashboard">← กลับไป Dashboard</a>
-      </div>
+      <div class="page-heading form-heading"><div><p class="eyebrow">ระบบ 2</p><h1 id="form-title">แบบฟอร์มรับคำร้องขอ</h1><p>ประชาชนหรือหน่วยงานสามารถส่งเรื่องให้ศูนย์กลางตรวจสอบและส่งต่อไปยังศูนย์ย่อย</p></div><a class="text-link" href="#dashboard">← กลับไป Dashboard</a></div>
       <form id="request-form" class="request-form">
         <section class="form-card">
-          <div class="section-title"><span>01</span><div><h2>ข้อมูลรับคำร้อง</h2><p>ข้อมูลสำหรับอ้างอิงและผู้บันทึกรายการ</p></div></div>
+          <div class="section-title"><span>01</span><div><h2>ข้อมูลผู้แจ้งและการรับเรื่อง</h2><p>ใช้สำหรับยืนยันและประสานข้อมูลคำร้อง</p></div></div>
           <div class="form-grid cols-2">
+            <label><span>ประเภทผู้แจ้ง *</span><select name="requester_type" required><option value="citizen">ประชาชน</option><option value="agency">หน่วยงาน</option></select></label>
+            <label><span>ชื่อผู้แจ้ง / ชื่อหน่วยงาน *</span><input name="requester_name" required maxlength="180"></label>
             <label><span>วันและเวลารับคำร้อง *</span><input name="received_at" type="datetime-local" required></label>
-            <label><span>ผู้รับคำร้อง *</span><input name="received_by" required maxlength="120" placeholder="ชื่อผู้รับเรื่อง"></label>
+            <label><span>ผู้รับคำร้อง *</span><input name="received_by" required maxlength="120" value="ระบบรับคำร้องออนไลน์"></label>
           </div>
         </section>
-
         <section class="form-card">
-          <div class="section-title"><span>02</span><div><h2>ส่วนที่ 1 ข้อมูลคำร้องขอ</h2><p>รายละเอียดสถานที่ สถานการณ์ และภารกิจที่ต้องการ</p></div></div>
+          <div class="section-title"><span>02</span><div><h2>ส่วนที่ 1 ข้อมูลคำร้องขอ</h2><p>รายละเอียดอย่างน้อย 6 รายการตามแบบฟอร์ม</p></div></div>
           <div class="form-grid cols-2">
             <label><span>ชื่อสถานที่ *</span><input name="location_name" required maxlength="180" placeholder="เช่น โรงเรียน บ้าน ชุมชน"></label>
-            <label><span>หน่วยงาน / สถานศึกษา</span><input name="organization" maxlength="180" placeholder="ชื่อหน่วยงานที่เกี่ยวข้อง"></label>
-            <label class="full"><span>จุดปฏิบัติงาน</span><input name="operation_point" maxlength="240" placeholder="รายละเอียดจุดนัดหมายหรือบริเวณปฏิบัติงาน"></label>
-            <label class="full"><span>สถานการณ์ปัจจุบัน *</span><textarea name="situation" required maxlength="1600" rows="3" placeholder="อธิบายเหตุการณ์ที่เกิดขึ้น"></textarea></label>
-            <label class="full"><span>ผลกระทบ</span><textarea name="impact" maxlength="1200" rows="2" placeholder="ผลกระทบต่อบุคคล พื้นที่ หรือการดำเนินงาน"></textarea></label>
-            <label class="full"><span>ภารกิจหรือความช่วยเหลือที่ต้องการ *</span><textarea name="mission" required maxlength="1600" rows="3" placeholder="ระบุงานที่ต้องการให้ทีมเข้าช่วยเหลือ"></textarea></label>
-            <label><span>จำนวนกำลังพลที่ต้องการ *</span><input name="personnel_required" type="number" min="1" max="9999" required inputmode="numeric" placeholder="0"></label>
+            <label><span>หน่วยงาน / สถานศึกษา</span><input name="organization" maxlength="180"></label>
+            <label class="full"><span>จุดปฏิบัติงาน</span><input name="operation_point" maxlength="240"></label>
+            <label class="full"><span>สถานการณ์ปัจจุบัน *</span><textarea name="situation" required maxlength="1600" rows="3"></textarea></label>
+            <label class="full"><span>ผลกระทบ</span><textarea name="impact" maxlength="1200" rows="2"></textarea></label>
+            <label class="full"><span>ภารกิจหรือความช่วยเหลือที่ต้องการ *</span><textarea name="mission" required maxlength="1600" rows="3"></textarea></label>
+            <label><span>จำนวนกำลังพลที่ต้องการ *</span><input name="personnel_required" type="number" min="1" max="9999" required inputmode="numeric"></label>
             <label><span>ระดับความเร่งด่วน *</span><select name="priority" required><option value="normal">ปกติ</option><option value="urgent">เร่งด่วน</option><option value="critical">ฉุกเฉิน</option></select></label>
             <label><span>วันและเวลาเริ่มปฏิบัติงาน *</span><input name="operation_start_at" type="datetime-local" required></label>
             <label><span>สิ้นสุดโดยประมาณ</span><input name="operation_end_at" type="datetime-local"></label>
           </div>
-          <fieldset>
-            <legend>ผู้ประสานงาน</legend>
-            <div class="form-grid cols-3">
-              <label><span>ชื่อ–นามสกุล *</span><input name="coordinator_name" required maxlength="140"></label>
-              <label><span>หน่วยงาน *</span><input name="coordinator_org" required maxlength="180"></label>
-              <label><span>หมายเลขโทรศัพท์ *</span><input name="coordinator_phone" required maxlength="30" inputmode="tel" autocomplete="tel" placeholder="0xx-xxx-xxxx"></label>
-            </div>
-          </fieldset>
+          <fieldset><legend>ผู้ประสานงานพร้อมหมายเลขโทรศัพท์</legend><div class="form-grid cols-3"><label><span>ชื่อ–นามสกุล *</span><input name="coordinator_name" required maxlength="140"></label><label><span>หน่วยงาน *</span><input name="coordinator_org" required maxlength="180"></label><label><span>หมายเลขโทรศัพท์ *</span><input name="coordinator_phone" required maxlength="30" inputmode="tel" autocomplete="tel"></label></div></fieldset>
         </section>
-
         <section class="form-card workflow-preview-card">
-          <div class="section-title"><span>03</span><div><h2>ส่วนที่ 2 กระบวนการดำเนินงาน</h2><p>ระบบจะสร้าง 8 ขั้นตอนให้อัตโนมัติหลังบันทึกคำร้อง</p></div></div>
-          <ol class="workflow-strip" aria-label="ขั้นตอนดำเนินงาน">
-            <li>รับคำร้อง</li><li>ตรวจสอบ</li><li>ประเมินความปลอดภัย</li><li>กำหนดประเภททีม</li><li>จัดกำลัง</li><li>แจ้งหัวหน้าทีม</li><li>เข้าปฏิบัติ</li><li>รายงานผล</li>
-          </ol>
+          <div class="section-title"><span>03</span><div><h2>หลังส่งคำร้อง</h2><p>ศูนย์กลางจะตรวจสอบ มอบหมายศูนย์ย่อย และติดตาม 8 ขั้นตอน</p></div></div>
+          <ol class="workflow-strip"><li>รับคำร้อง</li><li>ตรวจสอบ</li><li>ประเมินความปลอดภัย</li><li>กำหนดประเภททีม</li><li>จัดกำลัง</li><li>แจ้งหัวหน้าทีม</li><li>เข้าปฏิบัติ</li><li>รายงานผล</li></ol>
           <p class="privacy-note"><strong>ข้อมูลส่วนบุคคล:</strong> ชื่อและเบอร์โทรผู้ประสานงานจะไม่แสดงบน Dashboard สาธารณะ</p>
         </section>
-
-        <div class="form-actions"><a href="#dashboard" class="button button-ghost">ยกเลิก</a><button id="submit-button" class="button button-primary" type="submit">บันทึกคำร้อง</button></div>
+        <div class="form-actions"><a href="#dashboard" class="button button-ghost">ยกเลิก</a><button id="submit-button" class="button button-primary" type="submit">ส่งคำร้องเข้าสู่ศูนย์กลาง</button></div>
       </form>
     </section>
 
-    <section id="manage-view" class="view" hidden aria-labelledby="manage-title">
-      <div class="page-heading"><div><p class="eyebrow">ลิงก์จัดการคำร้อง</p><h1 id="manage-title">ติดตามและอัปเดตการดำเนินงาน</h1><p id="manage-subtitle">กำลังตรวจสอบลิงก์</p></div><a class="text-link" href="#dashboard">ดู Dashboard →</a></div>
-      <div id="manage-loading" class="panel loading-panel">กำลังโหลดข้อมูลคำร้อง…</div>
-      <div id="manage-content" hidden>
-        <section id="manage-summary" class="request-summary"></section>
-        <section class="panel"><div class="panel-heading"><div><h2>ความคืบหน้า 8 ขั้นตอน</h2><p>บันทึกผู้รับผิดชอบ สถานะ และผลการดำเนินงาน</p></div></div><div id="step-editor" class="step-editor"></div></section>
-        <section class="panel summary-editor"><div class="panel-heading"><div><h2>สรุปผลและข้อสั่งการเพิ่มเติม</h2></div></div>
-          <form id="summary-form" class="form-grid cols-2">
-            <label class="full"><span>สรุปผล / ข้อสั่งการ</span><textarea name="summary" rows="4"></textarea></label>
-            <label><span>ผู้บันทึก</span><input name="recorder_name"></label><label><span>ตำแหน่ง</span><input name="recorder_position"></label>
-            <div class="full align-end"><button class="button button-primary" type="submit">บันทึกสรุปผล</button></div>
+    <section id="center-view" class="view" hidden aria-labelledby="center-title">
+      <div class="page-heading"><div><p class="eyebrow">ลิงก์เฉพาะศูนย์ส่วนกลาง</p><h1 id="center-title">ศูนย์ควบคุมและจัดชุดปฏิบัติการ</h1><p id="center-subtitle">กำลังตรวจสอบสิทธิ์การเข้าถึง</p></div><a class="text-link" href="#home">หน้าสาธารณะ →</a></div>
+      <div id="center-loading" class="panel loading-panel">กำลังโหลดข้อมูลศูนย์กลาง…</div>
+      <div id="center-content" hidden>
+        <div id="center-kpis" class="kpi-grid center-kpis"></div>
+        <section class="panel admin-section">
+          <div class="panel-heading"><div><h2>ทะเบียนกำลัง 6 กลุ่ม</h2><p>ค้นหา ตรวจสอบความพร้อม และเลือกสมาชิกเพื่อจัดชุด</p></div><div class="table-tools"><input id="volunteer-search" type="search" placeholder="ค้นหาชื่อ ทักษะ หรือพื้นที่"><select id="volunteer-group-filter"><option value="all">ทุกกลุ่ม</option></select></div></div>
+          <div class="table-wrap"><table><thead><tr><th>เลขทะเบียน</th><th>ชื่อ–นามสกุล</th><th>กลุ่ม</th><th>พื้นที่ / ทักษะ</th><th>ยานพาหนะ / อุปกรณ์</th><th>ความพร้อม</th></tr></thead><tbody id="volunteer-table-body"></tbody></table></div>
+        </section>
+        <section class="panel admin-section">
+          <div class="panel-heading"><div><h2>จัดชุดปฏิบัติการ</h2><p>กำหนดหัวหน้าชุด สมาชิก พื้นที่ และวันปฏิบัติงานตามแบบฟอร์มที่ 2</p></div></div>
+          <form id="team-form" class="admin-form">
+            <div class="form-grid cols-3">
+              <label><span>ประเภทชุด *</span><select name="team_type" id="team-type" required></select></label>
+              <label><span>หัวหน้าชุด *</span><select name="leader_volunteer_id" id="team-leader" required><option value="">เลือกหัวหน้าชุด</option></select></label>
+              <label><span>จำนวนผู้ปฏิบัติงาน</span><input id="team-member-count" value="0 คน" readonly></label>
+              <label><span>พื้นที่ / จุดปฏิบัติงาน *</span><input name="operation_area" required maxlength="300"></label>
+              <label><span>วันและเวลาเริ่ม *</span><input name="operation_start_at" type="datetime-local" required></label>
+              <label><span>วันและเวลาสิ้นสุด</span><input name="operation_end_at" type="datetime-local"></label>
+              <label class="full"><span>หมายเหตุ / ข้อสั่งการ</span><textarea name="notes" rows="2" maxlength="1000"></textarea></label>
+            </div>
+            <h3 class="subheading">เลือกสมาชิกและกำหนดหน้าที่</h3>
+            <div id="team-member-picker" class="member-picker"></div>
+            <div class="align-end"><button class="button button-primary" type="submit">บันทึกชุดปฏิบัติการ</button></div>
           </form>
+          <div id="team-list" class="team-list"></div>
+        </section>
+        <section class="panel admin-section">
+          <div class="panel-heading"><div><h2>ศูนย์ย่อยตามพื้นที่</h2><p>สร้างศูนย์ย่อยและคัดลอกลิงก์เฉพาะให้ผู้รับผิดชอบ โดยไม่ต้องสร้างบัญชี</p></div></div>
+          <form id="center-form" class="form-grid cols-3 inline-admin-form"><label><span>ชื่อศูนย์ย่อย *</span><input name="name" required maxlength="180"></label><label><span>พื้นที่รับผิดชอบ *</span><input name="service_areas" required maxlength="400"></label><label><span>ผู้ประสานงาน</span><input name="contact_name" maxlength="160"></label><label><span>หมายเลขโทรศัพท์</span><input name="contact_phone" maxlength="30"></label><label class="full"><span>หมายเหตุ</span><input name="notes" maxlength="500"></label><div class="full align-end"><button class="button button-primary" type="submit">สร้างศูนย์ย่อยและลิงก์</button></div></form>
+          <div id="subcenter-list" class="subcenter-list"></div>
+        </section>
+        <section class="panel admin-section">
+          <div class="panel-heading"><div><h2>รับเรื่องและส่งต่อศูนย์ย่อย</h2><p>ตรวจสอบคำร้อง แล้วมอบหมายให้ศูนย์ย่อยที่รับผิดชอบพื้นที่</p></div></div>
+          <div id="assignment-list" class="assignment-list"></div>
         </section>
       </div>
+    </section>
+
+    <section id="subcenter-view" class="view" hidden aria-labelledby="subcenter-title">
+      <div class="page-heading"><div><p class="eyebrow">ลิงก์เฉพาะศูนย์ย่อย</p><h1 id="subcenter-title">พื้นที่ปฏิบัติงานของศูนย์ย่อย</h1><p id="subcenter-subtitle">กำลังตรวจสอบลิงก์</p></div><a class="text-link" href="#dashboard">ดู Dashboard สาธารณะ →</a></div>
+      <div id="subcenter-loading" class="panel loading-panel">กำลังโหลดคำร้องที่ได้รับมอบหมาย…</div>
+      <div id="subcenter-content" hidden><div id="subcenter-request-list" class="subcenter-request-list"></div></div>
+    </section>
+
+    <section id="manage-view" class="view" hidden aria-labelledby="manage-title">
+      <div class="page-heading"><div><p class="eyebrow">ลิงก์จัดการคำร้องเดิม</p><h1 id="manage-title">ติดตามและอัปเดตการดำเนินงาน</h1><p id="manage-subtitle">กำลังตรวจสอบลิงก์</p></div><a class="text-link" href="#dashboard">ดู Dashboard →</a></div>
+      <div id="manage-loading" class="panel loading-panel">กำลังโหลดข้อมูลคำร้อง…</div>
+      <div id="manage-content" hidden><section id="manage-summary" class="request-summary"></section><section class="panel"><div class="panel-heading"><div><h2>ความคืบหน้า 8 ขั้นตอน</h2><p>บันทึกผู้รับผิดชอบ สถานะ และผลการดำเนินงาน</p></div></div><div id="step-editor" class="step-editor"></div></section><section class="panel summary-editor"><div class="panel-heading"><div><h2>สรุปผลและข้อสั่งการเพิ่มเติม</h2></div></div><form id="summary-form" class="form-grid cols-2"><label class="full"><span>สรุปผล / ข้อสั่งการ</span><textarea name="summary" rows="4"></textarea></label><label><span>ผู้บันทึก</span><input name="recorder_name"></label><label><span>ตำแหน่ง</span><input name="recorder_position"></label><div class="full align-end"><button class="button button-primary" type="submit">บันทึกสรุปผล</button></div></form></section></div>
     </section>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-  <dialog id="success-dialog" class="success-dialog">
-    <div class="success-icon" aria-hidden="true">✓</div><h2>บันทึกคำร้องเรียบร้อย</h2><p>เลขที่คำร้อง</p><strong id="success-request-no"></strong>
-    <div class="manage-link-box"><span>เก็บลิงก์นี้ไว้สำหรับอัปเดตสถานะ</span><input id="success-manage-link" readonly><button id="copy-manage-link" type="button">คัดลอก</button></div>
-    <div class="dialog-actions"><button id="go-dashboard" class="button button-ghost" type="button">ดู Dashboard</button><button id="go-manage" class="button button-primary" type="button">อัปเดตคำร้อง</button></div>
-  </dialog>
+  <dialog id="request-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ส่งคำร้องเรียบร้อย</h2><p>เลขที่คำร้องสำหรับติดตาม</p><strong id="success-request-no"></strong><p class="dialog-note">ศูนย์กลางจะตรวจสอบและมอบหมายศูนย์ย่อย ข้อมูลสถานะจะแสดงบน Dashboard สาธารณะ</p><div class="dialog-actions"><button id="request-another" class="button button-ghost" type="button">ส่งคำร้องอีก</button><button id="go-dashboard" class="button button-primary" type="button">ดู Dashboard</button></div></dialog>
+  <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์ส่วนกลางจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
+  <dialog id="private-link-dialog" class="success-dialog"><div class="link-icon" aria-hidden="true">↗</div><h2>สร้างลิงก์ศูนย์ย่อยแล้ว</h2><p id="private-link-label">คัดลอกและส่งให้ผู้รับผิดชอบศูนย์ย่อยเท่านั้น</p><div class="manage-link-box"><input id="private-link-value" readonly><button id="copy-private-link" type="button">คัดลอก</button></div><p class="dialog-note warning-text">ระบบแสดงลิงก์ลับนี้เพียงครั้งเดียว โปรดเก็บไว้ในที่ปลอดภัย</p><div class="dialog-actions"><button id="close-private-link" class="button button-primary" type="button">ปิด</button></div></dialog>
 
   <script src="config.js"></script>
   <script type="module" src="app.js"></script>

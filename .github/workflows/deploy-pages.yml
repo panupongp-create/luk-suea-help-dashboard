@@ -25,7 +25,7 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js config.js _site/
+          cp index.html styles.css styles-v2.css app.js config.js _site/
           cp -R assets _site/assets
           node scripts/write-config.mjs _site/config.js
           touch _site/.nojekyll
