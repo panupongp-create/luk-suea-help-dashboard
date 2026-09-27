@@ -1,4 +1,4 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
 
 const config = window.APP_CONFIG || {};
 const online = Boolean(config.SUPABASE_URL && config.SUPABASE_PUBLISHABLE_KEY);
