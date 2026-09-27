@@ -21,8 +21,6 @@
     </a>
     <nav class="main-nav" aria-label="เมนูหลัก">
       <a class="nav-link" data-route="home" href="#home">หน้าหลัก</a>
-      <a class="nav-link" data-route="registry" href="#registry">ลงทะเบียนโครงการ</a>
-      <a class="nav-link" data-route="dashboard" href="#dashboard">Dashboard</a>
       <a id="login-nav" class="nav-link" data-route="login" href="#login">เข้าสู่ระบบเจ้าหน้าที่</a>
       <button id="logout-button" class="nav-link nav-button" type="button" hidden>ออกจากระบบ</button>
       <a class="nav-link nav-primary" data-route="new" href="#new">+ แจ้งขอความช่วยเหลือ</a>
@@ -149,8 +147,6 @@
           <div class="form-grid cols-2">
             <label><span>ประเภทผู้แจ้ง *</span><select name="requester_type" required><option value="citizen">ประชาชน</option><option value="agency">หน่วยงาน</option></select></label>
             <label><span>ชื่อผู้แจ้ง / ชื่อหน่วยงาน *</span><input name="requester_name" required maxlength="180"></label>
-            <label><span>วันและเวลารับคำร้อง *</span><input name="received_at" type="datetime-local" required></label>
-            <label><span>ผู้รับคำร้อง *</span><input name="received_by" required maxlength="120" value="ระบบรับคำร้องออนไลน์"></label>
           </div>
         </section>
         <section class="form-card">
@@ -168,11 +164,6 @@
             <label><span>สิ้นสุดโดยประมาณ</span><input name="operation_end_at" type="datetime-local"></label>
           </div>
           <fieldset><legend>ผู้ประสานงานพร้อมหมายเลขโทรศัพท์</legend><div class="form-grid cols-3"><label><span>ชื่อ–นามสกุล *</span><input name="coordinator_name" required maxlength="140"></label><label><span>หน่วยงาน *</span><input name="coordinator_org" required maxlength="180"></label><label><span>หมายเลขโทรศัพท์ *</span><input name="coordinator_phone" required maxlength="30" inputmode="tel" autocomplete="tel"></label></div></fieldset>
-        </section>
-        <section class="form-card workflow-preview-card">
-          <div class="section-title"><span>03</span><div><h2>หลังส่งคำร้อง</h2><p>ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะตรวจสอบ มอบหมายศูนย์ย่อย และติดตาม 8 ขั้นตอน</p></div></div>
-          <ol class="workflow-strip"><li>รับคำร้อง</li><li>ตรวจสอบ</li><li>ประเมินความปลอดภัย</li><li>กำหนดประเภททีม</li><li>จัดกำลัง</li><li>แจ้งหัวหน้าทีม</li><li>เข้าปฏิบัติ</li><li>รายงานผล</li></ol>
-          <p class="privacy-note"><strong>ข้อมูลส่วนบุคคล:</strong> ชื่อและเบอร์โทรผู้ประสานงานจะไม่แสดงบน Dashboard สาธารณะ</p>
         </section>
         <div class="form-actions"><a href="#dashboard" class="button button-ghost">ยกเลิก</a><button id="submit-button" class="button button-primary" type="submit">ส่งคำร้องเข้าสู่ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ</button></div>
       </form>
@@ -254,6 +245,6 @@
   <dialog id="request-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ส่งคำร้องเรียบร้อย</h2><p>เลขที่คำร้องสำหรับติดตาม</p><strong id="success-request-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะตรวจสอบและมอบหมายศูนย์ย่อย ข้อมูลสถานะจะแสดงบน Dashboard สาธารณะ</p><div class="dialog-actions"><button id="request-another" class="button button-ghost" type="button">ส่งคำร้องอีก</button><button id="go-dashboard" class="button button-primary" type="button">ดู Dashboard</button></div></dialog>
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
-  <script type="module" src="app.js?v=4"></script>
+  <script type="module" src="app.js?v=5"></script>
 </body>
 </html>

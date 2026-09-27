@@ -229,9 +229,7 @@ function initializeStaticOptions() {
 
 function setRequestDefaults() {
   const form = $("#request-form");
-  if (!form.elements.received_at.value) form.elements.received_at.value = toLocalInput(new Date());
   if (!form.elements.operation_start_at.value) form.elements.operation_start_at.value = toLocalInput(new Date(now + 86400000));
-  if (!form.elements.received_by.value) form.elements.received_by.value = "ระบบรับคำร้องออนไลน์";
 }
 
 async function loadRegistry() {
@@ -350,8 +348,10 @@ function renderRequestTable() {
 
 function requestPayload(form) {
   const payload = Object.fromEntries(new FormData(form));
+  payload.received_at = new Date().toISOString();
+  payload.received_by = "ระบบรับคำร้องออนไลน์";
   payload.personnel_required = Number(payload.personnel_required);
-  ["received_at","operation_start_at","operation_end_at"].forEach(key => { payload[key] = payload[key] ? new Date(payload[key]).toISOString() : null; });
+  ["operation_start_at","operation_end_at"].forEach(key => { payload[key] = payload[key] ? new Date(payload[key]).toISOString() : null; });
   return payload;
 }
 
