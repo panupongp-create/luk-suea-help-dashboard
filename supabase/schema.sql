@@ -203,10 +203,19 @@ revoke all on function public.update_workflow_step_by_token(uuid,text,text,text,
 revoke all on function public.update_request_summary_by_token(uuid,text,text,text,text) from public;
 revoke all on function public.refresh_public_request(uuid) from public;
 revoke all on function public.trigger_refresh_public_request() from public;
-grant execute on function public.create_public_request(jsonb) to anon,authenticated;
-grant execute on function public.get_request_by_token(uuid,text) to anon,authenticated;
-grant execute on function public.update_workflow_step_by_token(uuid,text,text,text,text,text) to anon,authenticated;
-grant execute on function public.update_request_summary_by_token(uuid,text,text,text,text) to anon,authenticated;
+revoke all on function public.create_public_request(jsonb) from authenticated;
+revoke all on function public.get_request_by_token(uuid,text) from authenticated;
+revoke all on function public.update_workflow_step_by_token(uuid,text,text,text,text,text) from authenticated;
+revoke all on function public.update_request_summary_by_token(uuid,text,text,text,text) from authenticated;
+grant execute on function public.create_public_request(jsonb) to anon;
+grant execute on function public.get_request_by_token(uuid,text) to anon;
+grant execute on function public.update_workflow_step_by_token(uuid,text,text,text,text,text) to anon;
+grant execute on function public.update_request_summary_by_token(uuid,text,text,text,text) to anon;
+
+-- Supabase's automatic-RLS helper is trigger-only and needs no Data API access.
+do $$ begin
+  execute 'revoke all on function public.rls_auto_enable() from public';
+exception when undefined_function then null; end $$;
 
 do $$ begin
   alter publication supabase_realtime add table public.public_requests;
