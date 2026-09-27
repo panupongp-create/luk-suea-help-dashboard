@@ -248,8 +248,8 @@ begin
 
   v_password:=encode(extensions.gen_random_bytes(12),'hex');
   insert into public.app_users(username,display_name,role,password_hash)
-  values('central','ศูนย์ส่วนกลาง','central',extensions.crypt(v_password,extensions.gen_salt('bf',12)));
-  account_role:='central'; center_name:='ศูนย์ส่วนกลาง'; username:='central'; temporary_password:=v_password; return next;
+  values('central','ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ','central',extensions.crypt(v_password,extensions.gen_salt('bf',12)));
+  account_role:='central'; center_name:='ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ'; username:='central'; temporary_password:=v_password; return next;
 
   for v_item in select * from (values
     ('SUB-01','ศูนย์ผินแจ่มวิชาสอน','phinjam'),
@@ -259,7 +259,7 @@ begin
   ) as centers(center_code,center_name,account_username)
   loop
     insert into public.subcenters(center_code,name,service_areas,notes,access_token_hash,active)
-    values(v_item.center_code,v_item.center_name,'พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย','บัญชีศูนย์ย่อยที่กำหนดในระบบ',extensions.digest(encode(extensions.gen_random_bytes(32),'hex'),'sha256'),true)
+    values(v_item.center_code,v_item.center_name,'พื้นที่รับผิดชอบตามที่ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อมอบหมาย','บัญชีศูนย์ย่อยที่กำหนดในระบบ',extensions.digest(encode(extensions.gen_random_bytes(32),'hex'),'sha256'),true)
     on conflict(center_code) do update set name=excluded.name,active=true,updated_at=now()
     returning id into v_center_id;
 

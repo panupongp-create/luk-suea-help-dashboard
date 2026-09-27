@@ -3,6 +3,8 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const config = window.APP_CONFIG || {};
 const online = Boolean(config.SUPABASE_URL && config.SUPABASE_PUBLISHABLE_KEY);
 const supabase = online ? createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY) : null;
+const CENTRAL_NAME = "ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ";
+const normalizeCentralName = value => String(value ?? "").replaceAll("ศูนย์ส่วนกลาง", CENTRAL_NAME).replaceAll("ศูนย์กลาง", CENTRAL_NAME);
 
 const GROUPS = [
   "บุคลากรสำนักงานลูกเสือแห่งชาติ",
@@ -129,12 +131,14 @@ function applyAuthUi() {
   const loginLink = $("#login-nav");
   const logoutButton = $("#logout-button");
   if (authSession) {
-    loginLink.textContent = authSession.display_name;
+    loginLink.textContent = authSession.role === "central" ? CENTRAL_NAME : authSession.display_name;
+    loginLink.title = loginLink.textContent;
     loginLink.href = authSession.role === "central" ? "#center" : "#subcenter";
     loginLink.dataset.route = authSession.role === "central" ? "center" : "subcenter";
     logoutButton.hidden = false;
   } else {
     loginLink.textContent = "เข้าสู่ระบบเจ้าหน้าที่";
+    loginLink.removeAttribute("title");
     loginLink.href = "#login";
     loginLink.dataset.route = "login";
     logoutButton.hidden = true;
@@ -184,9 +188,10 @@ async function handleLogin(event) {
       };
       if (!password || (username !== "central" && !demoCenters[username])) throw new Error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
       result = username === "central"
-        ? {session_token:"demo-central",username,display_name:"ศูนย์ส่วนกลาง",role:"central"}
+        ? {session_token:"demo-central",username,display_name:CENTRAL_NAME,role:"central"}
         : {session_token:`demo-${username}`,username,display_name:demoCenters[username][1],role:"subcenter",center_id:demoCenters[username][0],center_name:demoCenters[username][1]};
     }
+    if (result.role === "central") result.display_name = CENTRAL_NAME;
     authSession = result;
     localStorage.setItem(SESSION_KEY, JSON.stringify(result));
     applyAuthUi();
@@ -380,24 +385,24 @@ async function handleRequestSubmit(event) {
     showToast("ส่งคำร้องไม่สำเร็จ: " + (error.message || error), true);
   } finally {
     button.disabled = false;
-    button.textContent = "ส่งคำร้องเข้าสู่ศูนย์กลาง";
+    button.textContent = `ส่งคำร้องเข้าสู่${CENTRAL_NAME}`;
   }
 }
 
 function demoCentralWorkspace() {
   const existingCenters = centralState?.centers || [
-    {id:"c1",center_code:"SUB-01",name:"ศูนย์ผินแจ่มวิชาสอน",service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true},
-    {id:"c2",center_code:"SUB-02",name:'ศูนย์พัฒนาบุคลากรทางการลูกเสือ ยุวกาชาดและกิจกรรมเยาวชน "กฐิน กุยยกานนท์"',service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true},
-    {id:"c3",center_code:"SUB-03",name:"มัธยมวัดหนองจอก",service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true},
-    {id:"c4",center_code:"SUB-04",name:"วิทยาลัยเทคนิคดอนเมือง",service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true}
+    {id:"c1",center_code:"SUB-01",name:"ศูนย์ผินแจ่มวิชาสอน",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
+    {id:"c2",center_code:"SUB-02",name:'ศูนย์พัฒนาบุคลากรทางการลูกเสือ ยุวกาชาดและกิจกรรมเยาวชน "กฐิน กุยยกานนท์"',service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
+    {id:"c3",center_code:"SUB-03",name:"มัธยมวัดหนองจอก",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
+    {id:"c4",center_code:"SUB-04",name:"วิทยาลัยเทคนิคดอนเมือง",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true}
   ];
-  return {label:"ศูนย์ส่วนกลาง (โหมดตัวอย่าง)",volunteers:demoVolunteers,teams:centralState?.teams||[],centers:existingCenters,requests:[...demoRows,...[...demoManage.values()].map(item=>item.request)].map(request => ({...request,assigned_center_id:request.id==="d1"?"c1":null,assigned_center_name:request.id==="d1"?"ศูนย์ประสานงานจังหวัดตัวอย่าง":null}))};
+  return {label:`${CENTRAL_NAME} (โหมดตัวอย่าง)`,volunteers:demoVolunteers,teams:centralState?.teams||[],centers:existingCenters,requests:[...demoRows,...[...demoManage.values()].map(item=>item.request)].map(request => ({...request,assigned_center_id:request.id==="d1"?"c1":null,assigned_center_name:request.id==="d1"?"ศูนย์ประสานงานจังหวัดตัวอย่าง":null}))};
 }
 
 async function loadCentral() {
   $("#center-content").hidden = true;
   $("#center-loading").hidden = false;
-  $("#center-loading").textContent = "กำลังโหลดข้อมูลศูนย์กลาง…";
+  $("#center-loading").textContent = `กำลังโหลดข้อมูล${CENTRAL_NAME}…`;
   if (!authSession || authSession.role !== "central") { location.hash="login"; return; }
   try {
     if (online) {
@@ -408,7 +413,7 @@ async function loadCentral() {
       centralState = demoCentralWorkspace();
     }
     if (!centralState) throw new Error("บัญชีไม่มีสิทธิ์หรือเซสชันหมดอายุ");
-    $("#center-subtitle").textContent = centralState.label || "ศูนย์ส่วนกลาง";
+    $("#center-subtitle").textContent = CENTRAL_NAME;
     renderCentral();
     $("#center-loading").hidden = true;
     $("#center-content").hidden = false;
@@ -501,7 +506,7 @@ function renderTeams() {
 
 function renderCenters() {
   const centers = centralState?.centers || [];
-  $("#subcenter-list").innerHTML = centers.length ? centers.map(center => `<article class="subcenter-card"><div><span>${escapeHtml(center.center_code)}</span><strong>${escapeHtml(center.name)}</strong><small>${escapeHtml(center.service_areas)}</small></div><div><span class="status-chip ${center.active?"completed":"blocked"}">${center.active?"เปิดใช้งาน":"ปิดใช้งาน"}</span><small>บัญชีศูนย์ย่อย · ${escapeHtml([center.contact_name,center.contact_phone].filter(Boolean).join(" · ")||"พร้อมรับมอบหมาย")}</small></div></article>`).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่มีศูนย์ย่อย</strong><span>ศูนย์ย่อยที่กำหนดไว้จะแสดงหลังสร้างบัญชีเจ้าหน้าที่</span></div>`;
+  $("#subcenter-list").innerHTML = centers.length ? centers.map(center => `<article class="subcenter-card"><div><span>${escapeHtml(center.center_code)}</span><strong>${escapeHtml(center.name)}</strong><small>${escapeHtml(normalizeCentralName(center.service_areas))}</small></div><div><span class="status-chip ${center.active?"completed":"blocked"}">${center.active?"เปิดใช้งาน":"ปิดใช้งาน"}</span><small>บัญชีศูนย์ย่อย · ${escapeHtml([center.contact_name,center.contact_phone].filter(Boolean).join(" · ")||"พร้อมรับมอบหมาย")}</small></div></article>`).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่มีศูนย์ย่อย</strong><span>ศูนย์ย่อยที่กำหนดไว้จะแสดงหลังสร้างบัญชีเจ้าหน้าที่</span></div>`;
 }
 
 function renderAssignments() {
@@ -549,14 +554,14 @@ async function loadSubcenter() {
       data = result.data;
     } else {
       const source = centralState || demoCentralWorkspace();
-      const center = (source.centers||[]).find(item => item.id===authSession.center_id) || {id:authSession.center_id,name:authSession.center_name,service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย"};
+      const center = (source.centers||[]).find(item => item.id===authSession.center_id) || {id:authSession.center_id,name:authSession.center_name,service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`};
       const assigned = (source.requests||[]).filter(item => item.assigned_center_id===authSession.center_id).map(request => ({request,steps:demoManage.get(request.id)?.steps||STEP_CATALOG.map(([code,name,detail],index)=>({step_code:code,step_order:index+1,step_name:name,step_detail:detail,status:index===0?"completed":"pending",assignee:"",note:""}))}));
       data = {center,requests:assigned};
     }
     if (!data) throw new Error("บัญชีไม่มีสิทธิ์หรือศูนย์นี้ถูกปิดใช้งาน");
     subcenterSession = {data};
     $("#subcenter-title").textContent = data.center.name;
-    $("#subcenter-subtitle").textContent = `พื้นที่รับผิดชอบ: ${data.center.service_areas}`;
+    $("#subcenter-subtitle").textContent = `พื้นที่รับผิดชอบ: ${normalizeCentralName(data.center.service_areas)}`;
     renderSubcenter();
     $("#subcenter-loading").hidden = true;
     $("#subcenter-content").hidden = false;
@@ -576,7 +581,7 @@ function renderSubcenter() {
     const request = record.request;
     const steps = record.steps || [];
     return `<details class="subcenter-request" ${index===0?"open":""} data-request-id="${request.id}"><summary><div><span class="team-no">${escapeHtml(request.request_no)}</span><strong>${escapeHtml(request.location_name)}</strong><small>${escapeHtml(request.mission)}</small></div><span class="status-chip ${escapeHtml(request.overall_status||"pending")}">${escapeHtml((STATUS[request.overall_status]||STATUS.pending)[0])}</span></summary><div class="request-private-grid"><span>ผู้ประสานงาน<strong>${escapeHtml(request.coordinator_name||"–")}</strong><small>${escapeHtml(request.coordinator_org||"")} · ${escapeHtml(request.coordinator_phone||"")}</small></span><span>วันปฏิบัติงาน<strong>${formatDate(request.operation_start_at)}</strong><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน</small></span><span>สถานการณ์<strong>${escapeHtml(request.situation||"–")}</strong><small>${escapeHtml(request.impact||"")}</small></span></div><div class="step-editor sub-step-editor">${steps.sort((a,b)=>a.step_order-b.step_order).map(step=>stepEditorHtml(step,"sub")).join("")}</div><form class="sub-summary-form summary-editor-inline"><label><span>สรุปผลการดำเนินงาน / ข้อสั่งการเพิ่มเติม</span><textarea name="summary" rows="3">${escapeHtml(request.summary||"")}</textarea></label><div class="form-grid cols-2"><label><span>ผู้บันทึก</span><input name="recorder_name" value="${escapeHtml(request.recorder_name||"")}"></label><label><span>ตำแหน่ง</span><input name="recorder_position" value="${escapeHtml(request.recorder_position||"")}"></label></div><div class="align-end"><button class="button button-primary" type="submit">บันทึกสรุปผล</button></div></form></div></details>`;
-  }).join("") : `<div class="panel empty-state"><strong>ยังไม่มีคำร้องที่ได้รับมอบหมาย</strong><span>เมื่อศูนย์ส่วนกลางส่งต่อคำร้อง รายการจะแสดงที่หน้านี้</span></div>`;
+  }).join("") : `<div class="panel empty-state"><strong>ยังไม่มีคำร้องที่ได้รับมอบหมาย</strong><span>เมื่อ${CENTRAL_NAME}ส่งต่อคำร้อง รายการจะแสดงที่หน้านี้</span></div>`;
 }
 
 function stepEditorHtml(step,mode="legacy") {

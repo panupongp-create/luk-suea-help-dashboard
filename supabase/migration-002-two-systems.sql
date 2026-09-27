@@ -125,7 +125,7 @@ returns boolean language sql stable security definer set search_path=public as $
   );
 $$;
 
-create or replace function public.provision_central_access(p_label text default 'ศูนย์ส่วนกลาง')
+create or replace function public.provision_central_access(p_label text default 'ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ')
 returns text language plpgsql security definer set search_path=public as $$
 declare
   v_token text:=encode(extensions.gen_random_bytes(32),'hex');
@@ -134,7 +134,7 @@ begin
     raise exception 'ฟังก์ชันนี้เรียกได้จาก SQL Editor โดยผู้ดูแลเท่านั้น';
   end if;
   insert into public.central_access_keys(label,token_hash)
-  values(coalesce(nullif(trim(p_label),''),'ศูนย์ส่วนกลาง'),extensions.digest(v_token,'sha256'));
+  values(coalesce(nullif(trim(p_label),''),'ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ'),extensions.digest(v_token,'sha256'));
   return v_token;
 end $$;
 
@@ -192,7 +192,7 @@ declare
   v_member jsonb;
   v_count integer:=0;
 begin
-  if not public.is_central_token(p_central_token) then raise exception 'ลิงก์ศูนย์ส่วนกลางไม่ถูกต้อง'; end if;
+  if not public.is_central_token(p_central_token) then raise exception 'ลิงก์ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อไม่ถูกต้อง'; end if;
   if v_type not in ('relief_packing','shelter_support','child_friendly','school_recovery') then raise exception 'ประเภทชุดไม่ถูกต้อง'; end if;
   if not exists(select 1 from public.volunteers where id=v_leader and active) then raise exception 'ไม่พบหัวหน้าชุดในทะเบียน'; end if;
   if nullif(trim(p_payload->>'operation_area'),'') is null or nullif(p_payload->>'operation_start_at','') is null then raise exception 'กรุณาระบุพื้นที่และวันปฏิบัติงาน'; end if;
@@ -224,7 +224,7 @@ declare
   v_code text;
   v_token text:=encode(extensions.gen_random_bytes(32),'hex');
 begin
-  if not public.is_central_token(p_central_token) then raise exception 'ลิงก์ศูนย์ส่วนกลางไม่ถูกต้อง'; end if;
+  if not public.is_central_token(p_central_token) then raise exception 'ลิงก์ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อไม่ถูกต้อง'; end if;
   if nullif(trim(p_payload->>'name'),'') is null or nullif(trim(p_payload->>'service_areas'),'') is null then raise exception 'กรุณาระบุชื่อและพื้นที่รับผิดชอบ'; end if;
   v_code:='CTR-'||lpad(nextval('public.center_number_seq')::text,4,'0');
   insert into public.subcenters(id,center_code,name,service_areas,contact_name,contact_phone,notes,access_token_hash)
@@ -238,7 +238,7 @@ declare
   v_key_id uuid;
 begin
   select id into v_key_id from public.central_access_keys where active and token_hash=extensions.digest(coalesce(p_central_token,''),'sha256') limit 1;
-  if v_key_id is null then raise exception 'ลิงก์ศูนย์ส่วนกลางไม่ถูกต้อง'; end if;
+  if v_key_id is null then raise exception 'ลิงก์ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อไม่ถูกต้อง'; end if;
   if not exists(select 1 from public.requests where id=p_request_id) then raise exception 'ไม่พบคำร้อง'; end if;
   if not exists(select 1 from public.subcenters where id=p_center_id and active) then raise exception 'ไม่พบศูนย์ย่อยหรือศูนย์ถูกปิดใช้งาน'; end if;
   insert into public.request_assignments(request_id,center_id,assigned_by_key,note)

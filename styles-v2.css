@@ -18,6 +18,7 @@ body{overflow-x:hidden}
 .app-header{height:76px;background:rgba(255,253,249,.97);border-bottom:1px solid rgba(117,54,35,.12);box-shadow:0 5px 22px rgba(73,39,27,.08)}
 .brand{color:#672513}.brand-mark{width:46px;height:46px;background:transparent;color:#7c2d18;box-shadow:none;border-radius:0;font-family:Georgia,serif;font-size:2.2rem;line-height:1}.brand strong{font-size:1.08rem;color:#672513}.brand small{color:#873621;font-weight:700}
 .nav-link{color:#2d2825}.nav-link:hover,.nav-link.active{background:#f7e9dc;color:#712815}.nav-primary{background:linear-gradient(135deg,#8d3e26,#742815);color:#fff;box-shadow:0 8px 20px rgba(116,40,21,.18)}.nav-primary:hover,.nav-primary.active{background:#64200f;color:#fff}
+.main-nav #login-nav{max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #home-view{width:100vw;margin:-34px 0 0 calc(50% - 50vw);padding-bottom:0;background:#f9f5ef;overflow:hidden}
 #home-view .hero-panel{min-height:510px;margin:0;border-radius:0;padding:0;background-image:url("assets/hero-scout-relief-v1.png");background-size:cover;background-position:center 45%;box-shadow:none;color:#3d302b;isolation:isolate}
 #home-view .hero-panel:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,252,247,.97) 0%,rgba(255,250,243,.88) 33%,rgba(255,250,243,.18) 58%,rgba(255,250,243,0) 75%);z-index:-1}
