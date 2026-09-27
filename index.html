@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="ระบบทะเบียนกำลัง จัดชุดปฏิบัติการ รับคำร้อง และติดตามการช่วยเหลือ">
-  <meta name="theme-color" content="#0b2f47">
+  <meta name="theme-color" content="#6f2817">
   <title>ศูนย์ประสานงานลูกเสือช่วยเหลือ</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Noto+Serif+Thai:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=4">
+  <link rel="stylesheet" href="styles-v2.css?v=6">
 </head>
 <body>
   <header class="app-header">
     <a class="brand" href="#home" aria-label="หน้าหลัก">
-      <span class="brand-mark" aria-hidden="true">ลช</span>
-      <span><strong>ศูนย์ประสานงานช่วยเหลือ</strong><small>ลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ</small></span>
+      <span class="brand-mark" aria-hidden="true">⚜</span>
+      <span><strong>ศูนย์อำนวยการลูกเสือ</strong><small>ช่วยเหลือผู้อื่นทุกเมื่อ</small></span>
     </a>
     <nav class="main-nav" aria-label="เมนูหลัก">
       <a class="nav-link" data-route="home" href="#home">หน้าหลัก</a>
@@ -36,29 +36,44 @@
   <main>
     <section id="home-view" class="view" aria-labelledby="home-title">
       <div class="hero-panel">
-        <p class="eyebrow">ระบบกลางเพื่อการประสานงาน</p>
-        <h1 id="home-title">ลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ</h1>
-        <p>ลงทะเบียนกำลัง จัดชุดปฏิบัติการ รับคำร้องจากประชาชนและหน่วยงาน แล้วติดตามผลจากศูนย์ย่อยในระบบเดียว</p>
-        <div class="live-badge"><span class="live-dot"></span><span id="live-label">กำลังเชื่อมต่อ</span></div>
+        <div class="hero-content">
+          <p class="eyebrow">ระบบกลางเพื่อการประสานงาน</p>
+          <h1 id="home-title">ลูกเสือช่วยเหลือ<br>ผู้อื่นทุกเมื่อ</h1>
+          <p class="hero-lead">ลงทะเบียนกำลัง จัดชุดปฏิบัติการ รับคำร้องจากประชาชนและหน่วยงาน แล้วติดตามผลจากศูนย์ย่อยในระบบเดียว</p>
+          <div class="live-badge"><span class="live-dot"></span><span id="live-label">กำลังเชื่อมต่อ</span></div>
+          <p class="hero-quote">“จิตอาสา พร้อมช่วยเหลือ เพื่อสังคมที่เข้มแข็ง”</p>
+        </div>
       </div>
 
-      <div class="system-grid">
+      <div class="system-grid home-system-grid">
         <article class="system-card system-card-one">
-          <span class="system-number">ระบบ 1</span>
-          <h2>ทะเบียนกำลังและจัดชุดปฏิบัติการ</h2>
-          <p>เปิดรับบุคลากรและอาสาสมัคร 6 กลุ่ม เพื่อให้ศูนย์ส่วนกลางค้นหาและจัดชุดตามภารกิจ</p>
-          <ul><li>ลงทะเบียนกำลังและทรัพยากร</li><li>ระบุทักษะ พื้นที่ ยานพาหนะ และอุปกรณ์</li><li>ศูนย์กลางเลือกหัวหน้าชุดและสมาชิก</li></ul>
-          <a class="button button-primary" href="#registry">เข้าสู่ระบบจัดชุด</a>
+          <div class="system-card-heading">
+            <span class="system-number">01</span>
+            <span class="system-main-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <div><h2>ทะเบียนกำลังและจัดชุดปฏิบัติการ</h2><p>เปิดรับบุคลากรและอาสาสมัคร 6 กลุ่ม เพื่อให้ศูนย์ส่วนกลางค้นหาและจัดชุดตามภารกิจ</p></div>
+          </div>
+          <div class="system-features">
+            <div><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2"/></svg><span>ลงทะเบียนกำลัง<br>และทรัพยากร</span></div>
+            <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2l2 3 3.5-.5.5 3.5 3 2-2 3 1.5 3-3.5 1-.5 3.5-3.5-.5L9 22l-2-3-3.5.5L3 16l-3-2 2-3L.5 8 4 7l.5-3.5L8 4z"/><circle cx="12" cy="12" r="3"/></svg><span>ระบุทักษะ พื้นที่<br>ยานพาหนะ และอุปกรณ์</span></div>
+            <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>ศูนย์กลางเลือกหัวหน้า<br>ชุดและสมาชิก</span></div>
+          </div>
+          <a class="button button-primary home-card-cta" href="#registry">เข้าสู่ระบบจัดชุด <span aria-hidden="true">→</span></a>
         </article>
         <article class="system-card system-card-two">
-          <span class="system-number">ระบบ 2</span>
-          <h2>รับคำร้องและประสานศูนย์ย่อย</h2>
-          <p>ประชาชนหรือหน่วยงานแจ้งเรื่อง ศูนย์กลางตรวจสอบและส่งต่อให้ศูนย์ย่อยรับผิดชอบ</p>
-          <ul><li>รับคำร้องสาธารณะโดยไม่ต้อง Login</li><li>มอบหมายพื้นที่ให้ศูนย์ย่อย</li><li>ติดตามกระบวนการดำเนินงาน 8 ขั้นตอน</li></ul>
-          <div class="button-row"><a class="button button-primary" href="#new">ส่งคำร้อง</a><a class="button button-ghost" href="#dashboard">ดู Dashboard</a></div>
+          <div class="system-card-heading">
+            <span class="system-number">02</span>
+            <span class="system-main-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h4M8 17h3M16.5 12.5l3 3"/></svg></span>
+            <div><h2>รับคำร้องและประสานศูนย์ย่อย</h2><p>ประชาชนหรือหน่วยงานแจ้งเรื่อง ศูนย์กลางตรวจสอบและส่งต่อให้ศูนย์ย่อยรับผิดชอบ</p></div>
+          </div>
+          <div class="system-features">
+            <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 2h12v20H6zM9 6h6M9 10h6M9 14h4"/></svg><span>รับคำร้องสาธารณะ<br>โดยไม่ต้อง Login</span></div>
+            <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4zM22 2 11 13"/></svg><span>มอบหมายพื้นที่<br>ให้ศูนย์ย่อย</span></div>
+            <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 21h18M5 17l4-4 3 3 6-8M15 8h3v3"/></svg><span>ติดตามกระบวนการ<br>ดำเนินงาน 8 ขั้นตอน</span></div>
+          </div>
+          <div class="button-row"><a class="button button-primary home-card-cta" href="#new">ส่งคำร้อง <span aria-hidden="true">→</span></a><a class="button button-ghost home-dashboard-cta" href="#dashboard"><span aria-hidden="true">▥</span> ดู Dashboard</a></div>
         </article>
       </div>
-      <p class="privacy-note portal-note"><strong>การคุ้มครองข้อมูล:</strong> เลขประจำตัวประชาชน เบอร์โทร และข้อมูลผู้ประสานงานไม่แสดงบน Dashboard สาธารณะ</p>
+      <p class="privacy-note portal-note"><span aria-hidden="true">⚜</span> <strong>การคุ้มครองข้อมูล:</strong> เลขประจำตัวประชาชน เบอร์โทร และข้อมูลผู้ประสานงานไม่แสดงบน Dashboard สาธารณะ</p>
     </section>
 
     <section id="registry-view" class="view" hidden aria-labelledby="registry-title">
