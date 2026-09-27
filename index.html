@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Noto+Serif+Thai:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=7">
+  <link rel="stylesheet" href="styles-v2.css?v=8">
 </head>
 <body>
   <header class="app-header">
@@ -21,8 +21,8 @@
     </a>
     <nav class="main-nav" aria-label="เมนูหลัก">
       <a class="nav-link" data-route="home" href="#home">หน้าหลัก</a>
-      <a class="nav-link" data-route="registry" href="#registry">ระบบจัดชุด</a>
-      <a class="nav-link" data-route="dashboard" href="#dashboard">ระบบรับคำร้อง</a>
+      <a class="nav-link" data-route="registry" href="#registry">ลงทะเบียนโครงการ</a>
+      <a class="nav-link" data-route="dashboard" href="#dashboard">Dashboard</a>
       <a id="login-nav" class="nav-link" data-route="login" href="#login">เข้าสู่ระบบเจ้าหน้าที่</a>
       <button id="logout-button" class="nav-link nav-button" type="button" hidden>ออกจากระบบ</button>
       <a class="nav-link nav-primary" data-route="new" href="#new">+ แจ้งขอความช่วยเหลือ</a>
@@ -57,7 +57,10 @@
             <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2l2 3 3.5-.5.5 3.5 3 2-2 3 1.5 3-3.5 1-.5 3.5-3.5-.5L9 22l-2-3-3.5.5L3 16l-3-2 2-3L.5 8 4 7l.5-3.5L8 4z"/><circle cx="12" cy="12" r="3"/></svg><span>ระบุทักษะ พื้นที่<br>ยานพาหนะ และอุปกรณ์</span></div>
             <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span>ศูนย์กลางเลือกหัวหน้า<br>ชุดและสมาชิก</span></div>
           </div>
-          <a class="button button-primary home-card-cta" href="#registry">เข้าสู่ระบบจัดชุด <span aria-hidden="true">→</span></a>
+          <div class="button-row">
+            <a class="button button-primary home-card-cta" href="#registry">ลงทะเบียนโครงการ <span aria-hidden="true">→</span></a>
+            <a class="button button-ghost home-dashboard-cta" href="#login">เข้าระบบเจ้าหน้าที่ <span aria-hidden="true">→</span></a>
+          </div>
         </article>
         <article class="system-card system-card-two">
           <div class="system-card-heading">
