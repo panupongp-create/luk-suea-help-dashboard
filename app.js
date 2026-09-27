@@ -60,6 +60,8 @@ let volunteerStats = [];
 let centralState = null;
 let subcenterSession = null;
 let realtimeChannel = null;
+let operationMap = null;
+let operationMarker = null;
 let demoRequestCounter = 5;
 let demoVolunteerCounter = demoVolunteers.length + 1;
 const demoManage = new Map();
@@ -120,7 +122,13 @@ function route() {
   $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.route === name));
   if (name === "registry") loadRegistry();
   if (name === "dashboard") loadDashboard();
-  if (name === "new") setRequestDefaults();
+  if (name === "new") {
+    setRequestDefaults();
+    requestAnimationFrame(() => {
+      initializeOperationMap();
+      operationMap?.invalidateSize();
+    });
+  }
   if (name === "center") loadCentral();
   if (name === "subcenter") loadSubcenter();
   if (name === "manage") loadManage(info.raw);
@@ -229,7 +237,57 @@ function initializeStaticOptions() {
 
 function setRequestDefaults() {
   const form = $("#request-form");
+  if (!form.elements.received_at.value) form.elements.received_at.value = toLocalInput(new Date());
   if (!form.elements.operation_start_at.value) form.elements.operation_start_at.value = toLocalInput(new Date(now + 86400000));
+}
+
+function initializeOperationMap() {
+  if (operationMap || !window.L) return;
+  operationMap = L.map("operation-map", {scrollWheelZoom:false}).setView([13.7563,100.5018], 6);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+  }).addTo(operationMap);
+  operationMap.on("click", event => setOperationPin(event.latlng.lat,event.latlng.lng,true));
+}
+
+function setOperationPin(latitude,longitude,focus=false) {
+  const lat = Number(latitude).toFixed(6);
+  const lng = Number(longitude).toFixed(6);
+  const form = $("#request-form");
+  form.elements.operation_latitude.value = lat;
+  form.elements.operation_longitude.value = lng;
+  if (!operationMarker) operationMarker = L.marker([Number(lat),Number(lng)]).addTo(operationMap);
+  else operationMarker.setLatLng([Number(lat),Number(lng)]);
+  if (focus) operationMap.setView([Number(lat),Number(lng)], Math.max(operationMap.getZoom(),15));
+  $("#map-coordinate").textContent = `พิกัด ${lat}, ${lng}`;
+  const link = $("#map-open-link");
+  link.href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
+  link.hidden = false;
+  $("#clear-operation-pin").hidden = false;
+}
+
+function clearOperationPin() {
+  const form = $("#request-form");
+  form.elements.operation_latitude.value = "";
+  form.elements.operation_longitude.value = "";
+  if (operationMarker) operationMap.removeLayer(operationMarker);
+  operationMarker = null;
+  $("#map-coordinate").textContent = "ยังไม่ได้ปักหมุด";
+  $("#map-open-link").hidden = true;
+  $("#clear-operation-pin").hidden = true;
+}
+
+function useCurrentLocation() {
+  if (!navigator.geolocation) { showToast("อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง",true); return; }
+  const button = $("#use-current-location");
+  button.disabled = true;
+  button.textContent = "กำลังหาตำแหน่ง…";
+  navigator.geolocation.getCurrentPosition(
+    position => { setOperationPin(position.coords.latitude,position.coords.longitude,true); button.disabled=false; button.textContent="ใช้ตำแหน่งปัจจุบัน"; },
+    () => { showToast("ไม่สามารถอ่านตำแหน่งได้ กรุณาอนุญาตตำแหน่งหรือคลิกบนแผนที่",true); button.disabled=false; button.textContent="ใช้ตำแหน่งปัจจุบัน"; },
+    {enableHighAccuracy:true,timeout:12000,maximumAge:60000}
+  );
 }
 
 async function loadRegistry() {
@@ -348,8 +406,16 @@ function renderRequestTable() {
 
 function requestPayload(form) {
   const payload = Object.fromEntries(new FormData(form));
-  payload.received_at = new Date().toISOString();
+  payload.received_at = payload.received_at ? new Date(payload.received_at).toISOString() : new Date().toISOString();
   payload.received_by = "ระบบรับคำร้องออนไลน์";
+  const latitude = payload.operation_latitude;
+  const longitude = payload.operation_longitude;
+  if (latitude && longitude) {
+    const mapUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`;
+    payload.operation_point = [payload.operation_point,`พิกัด: ${latitude}, ${longitude}`,`แผนที่: ${mapUrl}`].filter(Boolean).join(" | ");
+  }
+  delete payload.operation_latitude;
+  delete payload.operation_longitude;
   payload.personnel_required = Number(payload.personnel_required);
   ["operation_start_at","operation_end_at"].forEach(key => { payload[key] = payload[key] ? new Date(payload[key]).toISOString() : null; });
   return payload;
@@ -380,6 +446,7 @@ async function handleRequestSubmit(event) {
     $("#success-request-no").textContent = result.request_no;
     $("#request-success-dialog").showModal();
     event.currentTarget.reset();
+    clearOperationPin();
     setRequestDefaults();
   } catch (error) {
     showToast("ส่งคำร้องไม่สำเร็จ: " + (error.message || error), true);
@@ -706,6 +773,8 @@ function registerWebMcpTools() {
 
 $("#volunteer-form").addEventListener("submit",handleVolunteerSubmit);
 $("#request-form").addEventListener("submit",handleRequestSubmit);
+$("#use-current-location").addEventListener("click",useCurrentLocation);
+$("#clear-operation-pin").addEventListener("click",clearOperationPin);
 $("#search-input").addEventListener("input",renderRequestTable);
 $("#status-filter").addEventListener("change",renderRequestTable);
 $("#volunteer-search").addEventListener("input",renderCentralVolunteers);
