@@ -139,7 +139,7 @@ returns table(request_id uuid,request_no text,edit_token text)
 language plpgsql security definer set search_path=public as $$
 declare
   v_id uuid:=gen_random_uuid();
-  v_token text:=encode(gen_random_bytes(24),'hex');
+  v_token text:=encode(extensions.gen_random_bytes(24),'hex');
   v_no text;
 begin
   if nullif(trim(p_payload->>'received_by'),'') is null
@@ -154,7 +154,7 @@ begin
 
   v_no:='REQ-'||to_char(now() at time zone 'Asia/Bangkok','YYYYMMDD')||'-'||lpad(nextval('public.request_number_seq')::text,5,'0');
   insert into public.requests(id,request_no,received_at,received_by,location_name,organization,operation_point,situation,impact,mission,personnel_required,operation_start_at,operation_end_at,priority,coordinator_name,coordinator_org,coordinator_phone,edit_token_hash)
-  values(v_id,v_no,coalesce(nullif(p_payload->>'received_at','')::timestamptz,now()),trim(p_payload->>'received_by'),trim(p_payload->>'location_name'),nullif(trim(p_payload->>'organization'),''),nullif(trim(p_payload->>'operation_point'),''),trim(p_payload->>'situation'),nullif(trim(p_payload->>'impact'),''),trim(p_payload->>'mission'),(p_payload->>'personnel_required')::integer,(p_payload->>'operation_start_at')::timestamptz,nullif(p_payload->>'operation_end_at','')::timestamptz,coalesce(nullif(p_payload->>'priority',''),'normal')::public.request_priority,trim(p_payload->>'coordinator_name'),trim(p_payload->>'coordinator_org'),trim(p_payload->>'coordinator_phone'),digest(v_token,'sha256'));
+  values(v_id,v_no,coalesce(nullif(p_payload->>'received_at','')::timestamptz,now()),trim(p_payload->>'received_by'),trim(p_payload->>'location_name'),nullif(trim(p_payload->>'organization'),''),nullif(trim(p_payload->>'operation_point'),''),trim(p_payload->>'situation'),nullif(trim(p_payload->>'impact'),''),trim(p_payload->>'mission'),(p_payload->>'personnel_required')::integer,(p_payload->>'operation_start_at')::timestamptz,nullif(p_payload->>'operation_end_at','')::timestamptz,coalesce(nullif(p_payload->>'priority',''),'normal')::public.request_priority,trim(p_payload->>'coordinator_name'),trim(p_payload->>'coordinator_org'),trim(p_payload->>'coordinator_phone'),extensions.digest(v_token,'sha256'));
 
   insert into public.workflow_steps(request_id,step_code,step_order,step_name,step_detail,status,action_at,completed_at)
   values
@@ -175,13 +175,13 @@ returns jsonb language sql security definer set search_path=public as $$
   select jsonb_build_object(
     'request',to_jsonb(r)-'edit_token_hash',
     'steps',coalesce((select jsonb_agg(to_jsonb(s) order by s.step_order) from public.workflow_steps s where s.request_id=r.id),'[]'::jsonb)
-  ) from public.requests r where r.id=p_request_id and r.edit_token_hash=digest(p_edit_token,'sha256');
+  ) from public.requests r where r.id=p_request_id and r.edit_token_hash=extensions.digest(p_edit_token,'sha256');
 $$;
 
 create or replace function public.update_workflow_step_by_token(p_request_id uuid,p_edit_token text,p_step_code text,p_status text,p_assignee text,p_note text)
 returns void language plpgsql security definer set search_path=public as $$
 begin
-  if not exists(select 1 from public.requests where id=p_request_id and edit_token_hash=digest(p_edit_token,'sha256')) then raise exception 'ลิงก์จัดการไม่ถูกต้อง'; end if;
+  if not exists(select 1 from public.requests where id=p_request_id and edit_token_hash=extensions.digest(p_edit_token,'sha256')) then raise exception 'ลิงก์จัดการไม่ถูกต้อง'; end if;
   if p_status not in ('pending','in_progress','blocked','completed') then raise exception 'สถานะไม่ถูกต้อง'; end if;
   update public.workflow_steps set status=p_status::public.workflow_status,assignee=nullif(trim(p_assignee),''),note=nullif(trim(p_note),''),action_at=now(),completed_at=case when p_status='completed' then coalesce(completed_at,now()) else null end,updated_at=now()
    where request_id=p_request_id and step_code=p_step_code;
@@ -193,7 +193,7 @@ create or replace function public.update_request_summary_by_token(p_request_id u
 returns void language plpgsql security definer set search_path=public as $$
 begin
   update public.requests set summary=nullif(trim(p_summary),''),recorder_name=nullif(trim(p_recorder_name),''),recorder_position=nullif(trim(p_recorder_position),''),recorded_at=now(),updated_at=now()
-   where id=p_request_id and edit_token_hash=digest(p_edit_token,'sha256');
+   where id=p_request_id and edit_token_hash=extensions.digest(p_edit_token,'sha256');
   if not found then raise exception 'ลิงก์จัดการไม่ถูกต้อง'; end if;
 end $$;
 
