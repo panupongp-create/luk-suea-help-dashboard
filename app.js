@@ -56,12 +56,13 @@ const demoVolunteers = [
 let requestRows = [];
 let volunteerStats = [];
 let centralState = null;
-let centralToken = "";
 let subcenterSession = null;
 let realtimeChannel = null;
 let demoRequestCounter = 5;
 let demoVolunteerCounter = demoVolunteers.length + 1;
 const demoManage = new Map();
+const SESSION_KEY = "luk_suea_staff_session";
+let authSession = null;
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -87,25 +88,130 @@ function setConnectionState(state) {
 
 function routeInfo() {
   const raw = location.hash.replace(/^#/, "") || "home";
-  if (raw.startsWith("center/")) return {name:"center",raw};
-  if (raw.startsWith("subcenter/")) return {name:"subcenter",raw};
+  if (raw === "center" || raw.startsWith("center/")) return {name:"center",raw};
+  if (raw === "subcenter" || raw.startsWith("subcenter/")) return {name:"subcenter",raw};
   if (raw.startsWith("manage/")) return {name:"manage",raw};
   return {name:raw,raw};
 }
 
 function route() {
   const info = routeInfo();
-  const allowed = ["home","registry","dashboard","new","center","subcenter","manage"];
-  const name = allowed.includes(info.name) ? info.name : "home";
+  const allowed = ["home","registry","dashboard","new","login","center","subcenter","manage"];
+  let name = allowed.includes(info.name) ? info.name : "home";
+  if (["center","subcenter"].includes(name) && !authSession) {
+    location.hash = "login";
+    return;
+  }
+  if (name === "center" && authSession?.role !== "central") {
+    location.hash = "subcenter";
+    return;
+  }
+  if (name === "subcenter" && authSession?.role !== "subcenter") {
+    location.hash = "center";
+    return;
+  }
+  if (name === "login" && authSession) {
+    location.hash = authSession.role === "central" ? "center" : "subcenter";
+    return;
+  }
   $$(".view").forEach(view => { view.hidden = view.id !== `${name}-view`; });
   $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.route === name));
   if (name === "registry") loadRegistry();
   if (name === "dashboard") loadDashboard();
   if (name === "new") setRequestDefaults();
-  if (name === "center") loadCentral(info.raw);
-  if (name === "subcenter") loadSubcenter(info.raw);
+  if (name === "center") loadCentral();
+  if (name === "subcenter") loadSubcenter();
   if (name === "manage") loadManage(info.raw);
   window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function applyAuthUi() {
+  const loginLink = $("#login-nav");
+  const logoutButton = $("#logout-button");
+  if (authSession) {
+    loginLink.textContent = authSession.display_name;
+    loginLink.href = authSession.role === "central" ? "#center" : "#subcenter";
+    loginLink.dataset.route = authSession.role === "central" ? "center" : "subcenter";
+    logoutButton.hidden = false;
+  } else {
+    loginLink.textContent = "เข้าสู่ระบบเจ้าหน้าที่";
+    loginLink.href = "#login";
+    loginLink.dataset.route = "login";
+    logoutButton.hidden = true;
+  }
+}
+
+async function restoreSession() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch { saved = null; }
+  if (!saved?.session_token) { applyAuthUi(); return; }
+  try {
+    if (online) {
+      const {data,error} = await supabase.rpc("get_staff_session", {p_session_token:saved.session_token});
+      if (error || !data) throw error || new Error("ไม่พบเซสชัน");
+      authSession = {...data,session_token:saved.session_token};
+    } else authSession = saved;
+  } catch {
+    localStorage.removeItem(SESSION_KEY);
+    authSession = null;
+  }
+  applyAuthUi();
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = $("#login-button");
+  const errorBox = $("#login-error");
+  const username = form.elements.username.value.trim();
+  const password = form.elements.password.value;
+  button.disabled = true;
+  button.textContent = "กำลังตรวจสอบ…";
+  errorBox.hidden = true;
+  try {
+    let result;
+    if (online) {
+      const response = await supabase.rpc("login_staff", {p_username:username,p_password:password});
+      if (response.error) throw response.error;
+      result = response.data;
+      if (result?.error) throw new Error(result.error);
+    } else {
+      const demoCenters = {
+        phinjam:["c1","ศูนย์ผินแจ่มวิชาสอน"],
+        kathin:["c2",'ศูนย์พัฒนาบุคลากรทางการลูกเสือ ยุวกาชาดและกิจกรรมเยาวชน "กฐิน กุยยกานนท์"'],
+        nongchok:["c3","มัธยมวัดหนองจอก"],
+        donmueang:["c4","วิทยาลัยเทคนิคดอนเมือง"]
+      };
+      if (!password || (username !== "central" && !demoCenters[username])) throw new Error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      result = username === "central"
+        ? {session_token:"demo-central",username,display_name:"ศูนย์ส่วนกลาง",role:"central"}
+        : {session_token:`demo-${username}`,username,display_name:demoCenters[username][1],role:"subcenter",center_id:demoCenters[username][0],center_name:demoCenters[username][1]};
+    }
+    authSession = result;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(result));
+    applyAuthUi();
+    form.reset();
+    location.hash = result.role === "central" ? "center" : "subcenter";
+    showToast(`เข้าสู่ระบบแล้ว · ${result.display_name}`);
+  } catch (error) {
+    errorBox.textContent = error.message || "เข้าสู่ระบบไม่สำเร็จ";
+    errorBox.hidden = false;
+  } finally {
+    button.disabled = false;
+    button.textContent = "เข้าสู่ระบบ";
+  }
+}
+
+async function logoutStaff() {
+  const token = authSession?.session_token;
+  authSession = null;
+  centralState = null;
+  subcenterSession = null;
+  localStorage.removeItem(SESSION_KEY);
+  applyAuthUi();
+  location.hash = "home";
+  if (online && token) await supabase.rpc("logout_staff", {p_session_token:token});
+  showToast("ออกจากระบบแล้ว");
 }
 
 function initializeStaticOptions() {
@@ -279,32 +385,40 @@ async function handleRequestSubmit(event) {
 }
 
 function demoCentralWorkspace() {
-  const existingCenters = centralState?.centers || [{id:"c1",center_code:"CTR-001",name:"ศูนย์ประสานงานจังหวัดตัวอย่าง",service_areas:"พื้นที่ตัวอย่าง",contact_name:"ผู้ประสานงาน",contact_phone:"080-000-0000",active:true}];
+  const existingCenters = centralState?.centers || [
+    {id:"c1",center_code:"SUB-01",name:"ศูนย์ผินแจ่มวิชาสอน",service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true},
+    {id:"c2",center_code:"SUB-02",name:'ศูนย์พัฒนาบุคลากรทางการลูกเสือ ยุวกาชาดและกิจกรรมเยาวชน "กฐิน กุยยกานนท์"',service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true},
+    {id:"c3",center_code:"SUB-03",name:"มัธยมวัดหนองจอก",service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true},
+    {id:"c4",center_code:"SUB-04",name:"วิทยาลัยเทคนิคดอนเมือง",service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย",active:true}
+  ];
   return {label:"ศูนย์ส่วนกลาง (โหมดตัวอย่าง)",volunteers:demoVolunteers,teams:centralState?.teams||[],centers:existingCenters,requests:[...demoRows,...[...demoManage.values()].map(item=>item.request)].map(request => ({...request,assigned_center_id:request.id==="d1"?"c1":null,assigned_center_name:request.id==="d1"?"ศูนย์ประสานงานจังหวัดตัวอย่าง":null}))};
 }
 
-async function loadCentral(raw) {
-  const [,token] = raw.split("/");
-  centralToken = token || "";
+async function loadCentral() {
   $("#center-content").hidden = true;
   $("#center-loading").hidden = false;
   $("#center-loading").textContent = "กำลังโหลดข้อมูลศูนย์กลาง…";
-  if (!centralToken) { $("#center-loading").textContent = "ลิงก์ศูนย์ส่วนกลางไม่ครบถ้วน"; return; }
+  if (!authSession || authSession.role !== "central") { location.hash="login"; return; }
   try {
     if (online) {
-      const {data,error} = await supabase.rpc("get_central_workspace", {p_central_token:centralToken});
+      const {data,error} = await supabase.rpc("get_central_workspace_by_session", {p_session_token:authSession.session_token});
       if (error) throw error;
       centralState = data;
     } else {
       centralState = demoCentralWorkspace();
     }
-    if (!centralState) throw new Error("ลิงก์ไม่ถูกต้องหรือถูกยกเลิกแล้ว");
+    if (!centralState) throw new Error("บัญชีไม่มีสิทธิ์หรือเซสชันหมดอายุ");
     $("#center-subtitle").textContent = centralState.label || "ศูนย์ส่วนกลาง";
     renderCentral();
     $("#center-loading").hidden = true;
     $("#center-content").hidden = false;
   } catch (error) {
     $("#center-loading").textContent = "เปิดศูนย์ควบคุมไม่ได้: " + (error.message || error);
+    if (/เซสชัน|สิทธิ์/.test(error.message||"")) {
+      localStorage.removeItem(SESSION_KEY);
+      authSession = null;
+      applyAuthUi();
+    }
   }
 }
 
@@ -361,7 +475,7 @@ async function handleTeamSubmit(event) {
   button.disabled = true;
   try {
     if (online) {
-      const {error} = await supabase.rpc("create_operation_team", {p_central_token:centralToken,p_payload:payload});
+      const {error} = await supabase.rpc("create_operation_team_by_session", {p_session_token:authSession.session_token,p_payload:payload});
       if (error) throw error;
     } else {
       const leader = (centralState.volunteers||[]).find(item => item.id===payload.leader_volunteer_id);
@@ -370,7 +484,7 @@ async function handleTeamSubmit(event) {
     showToast("บันทึกชุดปฏิบัติการแล้ว");
     form.reset();
     form.elements.operation_start_at.value = toLocalInput(new Date(Date.now()+86400000));
-    if (online) await loadCentral(`center/${centralToken}`); else renderCentral();
+    if (online) await loadCentral(); else renderCentral();
   } catch (error) {
     showToast("สร้างชุดไม่สำเร็จ: " + (error.message || error), true);
   } finally { button.disabled = false; }
@@ -385,36 +499,9 @@ function renderTeams() {
   }).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่ได้จัดชุดปฏิบัติการ</strong><span>เลือกหัวหน้าชุดและสมาชิกจากทะเบียนด้านบน</span></div>`;
 }
 
-async function handleCenterCreate(event) {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const payload = Object.fromEntries(new FormData(form));
-  const button = $("button[type=submit]",form);
-  button.disabled = true;
-  try {
-    let result;
-    if (online) {
-      const {data,error} = await supabase.rpc("create_subcenter", {p_central_token:centralToken,p_payload:payload});
-      if (error) throw error;
-      result = normalizeRpcResult(data);
-    } else {
-      result = {center_id:crypto.randomUUID(),center_code:`CTR-${String((centralState.centers||[]).length+1).padStart(3,"0")}`,access_token:crypto.randomUUID().replaceAll("-","")};
-      centralState.centers.push({id:result.center_id,center_code:result.center_code,...payload,active:true});
-    }
-    const link = `${location.origin}${location.pathname}#subcenter/${result.center_id}/${result.access_token}`;
-    $("#private-link-value").value = link;
-    $("#private-link-label").textContent = `${payload.name} · ${result.center_code}`;
-    $("#private-link-dialog").showModal();
-    form.reset();
-    if (online) await loadCentral(`center/${centralToken}`); else renderCentral();
-  } catch (error) {
-    showToast("สร้างศูนย์ย่อยไม่สำเร็จ: " + (error.message || error), true);
-  } finally { button.disabled = false; }
-}
-
 function renderCenters() {
   const centers = centralState?.centers || [];
-  $("#subcenter-list").innerHTML = centers.length ? centers.map(center => `<article class="subcenter-card"><div><span>${escapeHtml(center.center_code)}</span><strong>${escapeHtml(center.name)}</strong><small>${escapeHtml(center.service_areas)}</small></div><div><span class="status-chip ${center.active?"completed":"blocked"}">${center.active?"เปิดใช้งาน":"ปิดใช้งาน"}</span><small>${escapeHtml([center.contact_name,center.contact_phone].filter(Boolean).join(" · ")||"ยังไม่ระบุผู้ประสานงาน")}</small></div></article>`).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่มีศูนย์ย่อย</strong><span>สร้างศูนย์ย่อยตามพื้นที่รับผิดชอบได้จากแบบฟอร์มด้านบน</span></div>`;
+  $("#subcenter-list").innerHTML = centers.length ? centers.map(center => `<article class="subcenter-card"><div><span>${escapeHtml(center.center_code)}</span><strong>${escapeHtml(center.name)}</strong><small>${escapeHtml(center.service_areas)}</small></div><div><span class="status-chip ${center.active?"completed":"blocked"}">${center.active?"เปิดใช้งาน":"ปิดใช้งาน"}</span><small>บัญชีศูนย์ย่อย · ${escapeHtml([center.contact_name,center.contact_phone].filter(Boolean).join(" · ")||"พร้อมรับมอบหมาย")}</small></div></article>`).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่มีศูนย์ย่อย</strong><span>ศูนย์ย่อยที่กำหนดไว้จะแสดงหลังสร้างบัญชีเจ้าหน้าที่</span></div>`;
 }
 
 function renderAssignments() {
@@ -434,9 +521,9 @@ async function assignRequest(button) {
   button.disabled = true;
   try {
     if (online) {
-      const {error} = await supabase.rpc("assign_request_to_subcenter", {p_central_token:centralToken,p_request_id:card.dataset.requestId,p_center_id:centerId,p_note:note});
+      const {error} = await supabase.rpc("assign_request_to_subcenter_by_session", {p_session_token:authSession.session_token,p_request_id:card.dataset.requestId,p_center_id:centerId,p_note:note});
       if (error) throw error;
-      await loadCentral(`center/${centralToken}`);
+      await loadCentral();
     } else {
       const request = centralState.requests.find(item => item.id===card.dataset.requestId);
       const center = centralState.centers.find(item => item.id===centerId);
@@ -449,26 +536,25 @@ async function assignRequest(button) {
   } finally { button.disabled = false; }
 }
 
-async function loadSubcenter(raw) {
-  const [,centerId,token] = raw.split("/");
+async function loadSubcenter() {
   $("#subcenter-content").hidden = true;
   $("#subcenter-loading").hidden = false;
   $("#subcenter-loading").textContent = "กำลังโหลดคำร้องที่ได้รับมอบหมาย…";
-  if (!centerId || !token) { $("#subcenter-loading").textContent = "ลิงก์ศูนย์ย่อยไม่ครบถ้วน"; return; }
+  if (!authSession || authSession.role !== "subcenter") { location.hash="login"; return; }
   try {
     let data;
     if (online) {
-      const result = await supabase.rpc("get_subcenter_workspace", {p_center_id:centerId,p_access_token:token});
+      const result = await supabase.rpc("get_subcenter_workspace_by_session", {p_session_token:authSession.session_token});
       if (result.error) throw result.error;
       data = result.data;
     } else {
       const source = centralState || demoCentralWorkspace();
-      const center = (source.centers||[]).find(item => item.id===centerId) || {id:centerId,name:"ศูนย์ย่อยตัวอย่าง",service_areas:"พื้นที่ตัวอย่าง"};
-      const assigned = (source.requests||[]).filter(item => item.assigned_center_id===centerId).map(request => ({request,steps:demoManage.get(request.id)?.steps||STEP_CATALOG.map(([code,name,detail],index)=>({step_code:code,step_order:index+1,step_name:name,step_detail:detail,status:index===0?"completed":"pending",assignee:"",note:""}))}));
+      const center = (source.centers||[]).find(item => item.id===authSession.center_id) || {id:authSession.center_id,name:authSession.center_name,service_areas:"พื้นที่รับผิดชอบตามที่ศูนย์ส่วนกลางมอบหมาย"};
+      const assigned = (source.requests||[]).filter(item => item.assigned_center_id===authSession.center_id).map(request => ({request,steps:demoManage.get(request.id)?.steps||STEP_CATALOG.map(([code,name,detail],index)=>({step_code:code,step_order:index+1,step_name:name,step_detail:detail,status:index===0?"completed":"pending",assignee:"",note:""}))}));
       data = {center,requests:assigned};
     }
-    if (!data) throw new Error("ลิงก์ไม่ถูกต้องหรือศูนย์นี้ถูกปิดใช้งาน");
-    subcenterSession = {centerId,token,data};
+    if (!data) throw new Error("บัญชีไม่มีสิทธิ์หรือศูนย์นี้ถูกปิดใช้งาน");
+    subcenterSession = {data};
     $("#subcenter-title").textContent = data.center.name;
     $("#subcenter-subtitle").textContent = `พื้นที่รับผิดชอบ: ${data.center.service_areas}`;
     renderSubcenter();
@@ -476,6 +562,11 @@ async function loadSubcenter(raw) {
     $("#subcenter-content").hidden = false;
   } catch (error) {
     $("#subcenter-loading").textContent = "เปิดพื้นที่ศูนย์ย่อยไม่ได้: " + (error.message || error);
+    if (/เซสชัน|สิทธิ์/.test(error.message||"")) {
+      localStorage.removeItem(SESSION_KEY);
+      authSession = null;
+      applyAuthUi();
+    }
   }
 }
 
@@ -499,7 +590,7 @@ async function saveSubcenterStep(button) {
   button.disabled = true;
   try {
     if (online) {
-      const {error} = await supabase.rpc("update_workflow_step_by_subcenter", {p_center_id:subcenterSession.centerId,p_access_token:subcenterSession.token,p_request_id:payload.requestId,p_step_code:payload.stepCode,p_status:payload.status,p_assignee:payload.assignee,p_note:payload.note});
+      const {error} = await supabase.rpc("update_workflow_step_by_staff", {p_session_token:authSession.session_token,p_request_id:payload.requestId,p_step_code:payload.stepCode,p_status:payload.status,p_assignee:payload.assignee,p_note:payload.note});
       if (error) throw error;
     } else {
       const record = subcenterSession.data.requests.find(item=>item.request.id===payload.requestId);
@@ -517,7 +608,7 @@ async function saveSubcenterSummary(form) {
   button.disabled = true;
   try {
     if (online) {
-      const {error} = await supabase.rpc("update_request_summary_by_subcenter", {p_center_id:subcenterSession.centerId,p_access_token:subcenterSession.token,p_request_id:requestId,p_summary:payload.summary,p_recorder_name:payload.recorder_name,p_recorder_position:payload.recorder_position});
+      const {error} = await supabase.rpc("update_request_summary_by_staff", {p_session_token:authSession.session_token,p_request_id:requestId,p_summary:payload.summary,p_recorder_name:payload.recorder_name,p_recorder_position:payload.recorder_position});
       if (error) throw error;
     } else {
       Object.assign(subcenterSession.data.requests.find(item=>item.request.id===requestId).request,payload);
@@ -621,7 +712,8 @@ $("#team-leader").addEventListener("change",event => {
   updateTeamMemberCount();
 });
 $("#team-form").addEventListener("submit",handleTeamSubmit);
-$("#center-form").addEventListener("submit",handleCenterCreate);
+$("#login-form").addEventListener("submit",handleLogin);
+$("#logout-button").addEventListener("click",logoutStaff);
 $("#assignment-list").addEventListener("click",event => { const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
 $("#subcenter-request-list").addEventListener("click",event => { const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });
 $("#subcenter-request-list").addEventListener("submit",event => { const form=event.target.closest(".sub-summary-form"); if (form) { event.preventDefault(); saveSubcenterSummary(form); } });
@@ -631,13 +723,15 @@ $("#request-another").addEventListener("click",() => { $("#request-success-dialo
 $("#go-dashboard").addEventListener("click",() => { $("#request-success-dialog").close(); location.hash="dashboard"; });
 $("#register-another").addEventListener("click",() => $("#volunteer-success-dialog").close());
 $("#go-home").addEventListener("click",() => { $("#volunteer-success-dialog").close(); location.hash="home"; });
-$("#copy-private-link").addEventListener("click",async () => { await navigator.clipboard.writeText($("#private-link-value").value); showToast("คัดลอกลิงก์ศูนย์ย่อยแล้ว"); });
-$("#close-private-link").addEventListener("click",() => $("#private-link-dialog").close());
 window.addEventListener("hashchange",route);
 window.addEventListener("beforeunload",() => { if (realtimeChannel) supabase.removeChannel(realtimeChannel); });
 
 $("#connection-banner").hidden = online;
-initializeStaticOptions();
-subscribeRealtime();
-registerWebMcpTools();
-route();
+async function bootstrap() {
+  initializeStaticOptions();
+  await restoreSession();
+  subscribeRealtime();
+  registerWebMcpTools();
+  route();
+}
+bootstrap();

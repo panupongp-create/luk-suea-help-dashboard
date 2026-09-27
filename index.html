@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=2">
+  <link rel="stylesheet" href="styles-v2.css?v=3">
 </head>
 <body>
   <header class="app-header">
@@ -23,6 +23,8 @@
       <a class="nav-link" data-route="home" href="#home">หน้าหลัก</a>
       <a class="nav-link" data-route="registry" href="#registry">ระบบจัดชุด</a>
       <a class="nav-link" data-route="dashboard" href="#dashboard">ระบบรับคำร้อง</a>
+      <a id="login-nav" class="nav-link" data-route="login" href="#login">เข้าสู่ระบบเจ้าหน้าที่</a>
+      <button id="logout-button" class="nav-link nav-button" type="button" hidden>ออกจากระบบ</button>
       <a class="nav-link nav-primary" data-route="new" href="#new">+ แจ้งขอความช่วยเหลือ</a>
     </nav>
   </header>
@@ -158,8 +160,29 @@
       </form>
     </section>
 
+    <section id="login-view" class="view" hidden aria-labelledby="login-title">
+      <div class="login-shell">
+        <section class="login-intro">
+          <p class="eyebrow">สำหรับเจ้าหน้าที่</p>
+          <h1 id="login-title">เข้าสู่ระบบศูนย์ประสานงาน</h1>
+          <p>บัญชีศูนย์ส่วนกลางใช้จัดชุด รับเรื่อง และมอบหมายงาน ส่วนบัญชีศูนย์ย่อยใช้เปิดงานที่ได้รับมอบหมายและรายงานผล</p>
+          <ul><li>ศูนย์ส่วนกลาง 1 บัญชี</li><li>ศูนย์ย่อย 4 บัญชี แยกข้อมูลตามหน่วย</li><li>ประชาชนไม่ต้องเข้าสู่ระบบ</li></ul>
+        </section>
+        <form id="login-form" class="login-card">
+          <div class="login-mark" aria-hidden="true">ลช</div>
+          <h2>บัญชีเจ้าหน้าที่</h2>
+          <p>กรอกชื่อผู้ใช้และรหัสผ่านที่ได้รับจากผู้ดูแลระบบ</p>
+          <label><span>ชื่อผู้ใช้</span><input name="username" required autocomplete="username" autocapitalize="none"></label>
+          <label><span>รหัสผ่าน</span><input name="password" type="password" required autocomplete="current-password"></label>
+          <p id="login-error" class="form-error" hidden></p>
+          <button id="login-button" class="button button-primary" type="submit">เข้าสู่ระบบ</button>
+          <a class="text-link login-public-link" href="#home">← กลับหน้าสาธารณะ</a>
+        </form>
+      </div>
+    </section>
+
     <section id="center-view" class="view" hidden aria-labelledby="center-title">
-      <div class="page-heading"><div><p class="eyebrow">ลิงก์เฉพาะศูนย์ส่วนกลาง</p><h1 id="center-title">ศูนย์ควบคุมและจัดชุดปฏิบัติการ</h1><p id="center-subtitle">กำลังตรวจสอบสิทธิ์การเข้าถึง</p></div><a class="text-link" href="#home">หน้าสาธารณะ →</a></div>
+      <div class="page-heading"><div><p class="eyebrow">บัญชีศูนย์ส่วนกลาง</p><h1 id="center-title">ศูนย์ควบคุมและจัดชุดปฏิบัติการ</h1><p id="center-subtitle">กำลังตรวจสอบสิทธิ์การเข้าถึง</p></div><a class="text-link" href="#home">หน้าสาธารณะ →</a></div>
       <div id="center-loading" class="panel loading-panel">กำลังโหลดข้อมูลศูนย์กลาง…</div>
       <div id="center-content" hidden>
         <div id="center-kpis" class="kpi-grid center-kpis"></div>
@@ -186,8 +209,7 @@
           <div id="team-list" class="team-list"></div>
         </section>
         <section class="panel admin-section">
-          <div class="panel-heading"><div><h2>ศูนย์ย่อยตามพื้นที่</h2><p>สร้างศูนย์ย่อยและคัดลอกลิงก์เฉพาะให้ผู้รับผิดชอบ โดยไม่ต้องสร้างบัญชี</p></div></div>
-          <form id="center-form" class="form-grid cols-3 inline-admin-form"><label><span>ชื่อศูนย์ย่อย *</span><input name="name" required maxlength="180"></label><label><span>พื้นที่รับผิดชอบ *</span><input name="service_areas" required maxlength="400"></label><label><span>ผู้ประสานงาน</span><input name="contact_name" maxlength="160"></label><label><span>หมายเลขโทรศัพท์</span><input name="contact_phone" maxlength="30"></label><label class="full"><span>หมายเหตุ</span><input name="notes" maxlength="500"></label><div class="full align-end"><button class="button button-primary" type="submit">สร้างศูนย์ย่อยและลิงก์</button></div></form>
+          <div class="panel-heading"><div><h2>ศูนย์ย่อย 4 แห่ง</h2><p>แสดงหน่วยย่อยที่มีบัญชีเฉพาะ และพร้อมรับงานจากศูนย์ส่วนกลาง</p></div></div>
           <div id="subcenter-list" class="subcenter-list"></div>
         </section>
         <section class="panel admin-section">
@@ -198,7 +220,7 @@
     </section>
 
     <section id="subcenter-view" class="view" hidden aria-labelledby="subcenter-title">
-      <div class="page-heading"><div><p class="eyebrow">ลิงก์เฉพาะศูนย์ย่อย</p><h1 id="subcenter-title">พื้นที่ปฏิบัติงานของศูนย์ย่อย</h1><p id="subcenter-subtitle">กำลังตรวจสอบลิงก์</p></div><a class="text-link" href="#dashboard">ดู Dashboard สาธารณะ →</a></div>
+      <div class="page-heading"><div><p class="eyebrow">บัญชีศูนย์ย่อย</p><h1 id="subcenter-title">พื้นที่ปฏิบัติงานของศูนย์ย่อย</h1><p id="subcenter-subtitle">กำลังตรวจสอบบัญชี</p></div><a class="text-link" href="#dashboard">ดู Dashboard สาธารณะ →</a></div>
       <div id="subcenter-loading" class="panel loading-panel">กำลังโหลดคำร้องที่ได้รับมอบหมาย…</div>
       <div id="subcenter-content" hidden><div id="subcenter-request-list" class="subcenter-request-list"></div></div>
     </section>
@@ -213,9 +235,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <dialog id="request-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ส่งคำร้องเรียบร้อย</h2><p>เลขที่คำร้องสำหรับติดตาม</p><strong id="success-request-no"></strong><p class="dialog-note">ศูนย์กลางจะตรวจสอบและมอบหมายศูนย์ย่อย ข้อมูลสถานะจะแสดงบน Dashboard สาธารณะ</p><div class="dialog-actions"><button id="request-another" class="button button-ghost" type="button">ส่งคำร้องอีก</button><button id="go-dashboard" class="button button-primary" type="button">ดู Dashboard</button></div></dialog>
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์ส่วนกลางจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
-  <dialog id="private-link-dialog" class="success-dialog"><div class="link-icon" aria-hidden="true">↗</div><h2>สร้างลิงก์ศูนย์ย่อยแล้ว</h2><p id="private-link-label">คัดลอกและส่งให้ผู้รับผิดชอบศูนย์ย่อยเท่านั้น</p><div class="manage-link-box"><input id="private-link-value" readonly><button id="copy-private-link" type="button">คัดลอก</button></div><p class="dialog-note warning-text">ระบบแสดงลิงก์ลับนี้เพียงครั้งเดียว โปรดเก็บไว้ในที่ปลอดภัย</p><div class="dialog-actions"><button id="close-private-link" class="button button-primary" type="button">ปิด</button></div></dialog>
-
   <script src="config.js?v=2"></script>
-  <script type="module" src="app.js?v=2"></script>
+  <script type="module" src="app.js?v=3"></script>
 </body>
 </html>
