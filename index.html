@@ -197,7 +197,7 @@
             <div class="map-field full">
               <div class="map-toolbar"><div><strong>ปักหมุดจุดปฏิบัติงาน</strong><span>คลิกบนแผนที่เพื่อระบุตำแหน่ง</span></div><div class="map-actions"><button id="use-current-location" class="button button-ghost map-button" type="button">ใช้ตำแหน่งปัจจุบัน</button><button id="clear-operation-pin" class="button button-ghost map-button" type="button" hidden>ล้างหมุด</button></div></div>
               <div id="operation-map" role="application" aria-label="แผนที่สำหรับปักหมุดจุดปฏิบัติงาน"></div>
-              <div class="map-meta"><span id="map-coordinate">ยังไม่ได้ปักหมุด</span><a id="map-open-link" href="#" target="_blank" rel="noopener noreferrer" hidden>เปิดตำแหน่งใน OpenStreetMap ↗</a></div>
+              <div class="map-meta"><span id="map-coordinate">ยังไม่ได้ปักหมุด</span><a id="map-open-link" href="#" target="_blank" rel="noopener noreferrer" hidden>ดูพิกัดใน Google Maps ↗</a></div>
               <input name="operation_latitude" type="hidden"><input name="operation_longitude" type="hidden">
             </div>
             <label class="full"><span>สถานการณ์ปัจจุบัน *</span><textarea name="situation" required maxlength="1600" rows="3"></textarea></label>
@@ -372,7 +372,7 @@
     </div>
     <div id="request-detail-content"></div>
     <section class="request-detail-section request-detail-map-section">
-      <div class="request-detail-section-heading"><div><h3>พิกัดจุดปฏิบัติงาน</h3><p id="request-detail-location-text"></p></div><a id="request-detail-map-link" class="text-link" href="#" target="_blank" rel="noopener noreferrer" hidden>เปิดแผนที่เต็ม ↗</a></div>
+      <div class="request-detail-section-heading"><div><h3>พิกัดจุดปฏิบัติงาน</h3><p id="request-detail-location-text"></p></div><a id="request-detail-map-link" class="text-link" href="#" target="_blank" rel="noopener noreferrer" hidden>ดูพิกัดใน Google Maps ↗</a></div>
       <div id="request-detail-map" role="img" aria-label="แผนที่แสดงพิกัดจุดปฏิบัติงาน"></div>
       <div id="request-detail-map-empty" class="detail-map-empty" hidden>คำร้องนี้ยังไม่ได้ปักหมุดพิกัดบนแผนที่</div>
     </section>
@@ -382,6 +382,6 @@
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="app.js?v=18"></script>
+  <script type="module" src="app.js?v=19"></script>
 </body>
 </html>

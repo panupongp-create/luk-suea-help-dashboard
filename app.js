@@ -50,7 +50,7 @@ const PRIORITY = { normal: "ปกติ", urgent: "เร่งด่วน", c
 
 const now = Date.now();
 const demoRows = [
-  {id:"d1",request_no:"REQ-20260927-00004",requester_type:"agency",requester_name:"โรงเรียนบ้านหนองน้ำใส",received_at:new Date().toISOString(),received_by:"ระบบรับคำร้องออนไลน์",location_name:"โรงเรียนบ้านหนองน้ำใส",organization:"สำนักงานเขตพื้นที่การศึกษา",operation_point:"อาคารอเนกประสงค์ด้านทิศตะวันออก | พิกัด: 13.756300, 100.501800 | แผนที่: https://www.openstreetmap.org/?mlat=13.756300&mlon=100.501800#map=16/13.756300/100.501800",situation:"มีสิ่งของช่วยเหลือเข้ามาจำนวนมากและต้องจัดพื้นที่รับมอบ",impact:"ทางเดินและพื้นที่ใช้งานบางส่วนไม่เพียงพอ",mission:"สนับสนุนการจัดพื้นที่และขนย้ายสิ่งของ",personnel_required:12,operation_start_at:new Date(now+86400000).toISOString(),operation_end_at:new Date(now+118800000).toISOString(),priority:"urgent",coordinator_name:"ผู้ประสานงานโรงเรียน",coordinator_org:"โรงเรียนบ้านหนองน้ำใส",coordinator_phone:"081-000-0001",overall_status:"in_progress",current_step:"จัดกำลัง",completed_steps:4,assigned_center_name:"ศูนย์ประสานงานจังหวัดตัวอย่าง",assigned_team_name:"TEAM-20260928-0001 · ชุดจัดเตรียมและสนับสนุนสิ่งของช่วยเหลือ"},
+  {id:"d1",request_no:"REQ-20260927-00004",requester_type:"agency",requester_name:"โรงเรียนบ้านหนองน้ำใส",received_at:new Date().toISOString(),received_by:"ระบบรับคำร้องออนไลน์",location_name:"โรงเรียนบ้านหนองน้ำใส",organization:"สำนักงานเขตพื้นที่การศึกษา",operation_point:"อาคารอเนกประสงค์ด้านทิศตะวันออก | พิกัด: 13.756300, 100.501800 | แผนที่: https://www.google.com/maps/search/?api=1&query=13.756300%2C100.501800",situation:"มีสิ่งของช่วยเหลือเข้ามาจำนวนมากและต้องจัดพื้นที่รับมอบ",impact:"ทางเดินและพื้นที่ใช้งานบางส่วนไม่เพียงพอ",mission:"สนับสนุนการจัดพื้นที่และขนย้ายสิ่งของ",personnel_required:12,operation_start_at:new Date(now+86400000).toISOString(),operation_end_at:new Date(now+118800000).toISOString(),priority:"urgent",coordinator_name:"ผู้ประสานงานโรงเรียน",coordinator_org:"โรงเรียนบ้านหนองน้ำใส",coordinator_phone:"081-000-0001",overall_status:"in_progress",current_step:"จัดกำลัง",completed_steps:4,assigned_center_name:"ศูนย์ประสานงานจังหวัดตัวอย่าง",assigned_team_name:"TEAM-20260928-0001 · ชุดจัดเตรียมและสนับสนุนสิ่งของช่วยเหลือ"},
   {id:"d2",request_no:"REQ-20260927-00003",requester_type:"citizen",requester_name:"ผู้แทนชุมชนริมคลอง",received_at:new Date(now-7200000).toISOString(),received_by:"ระบบรับคำร้องออนไลน์",location_name:"ชุมชนริมคลอง",organization:"เทศบาลตำบล",operation_point:"ศาลาชุมชนใกล้สะพาน",situation:"ประชาชนทยอยนำสิ่งของมาบริจาคและการจราจรเริ่มหนาแน่น",impact:"จุดรับบริจาคยังไม่มีระบบคัดแยก",mission:"ช่วยจัดระเบียบพื้นที่และประสานจุดรับบริจาค",personnel_required:18,operation_start_at:new Date(now+18000000).toISOString(),operation_end_at:null,priority:"critical",coordinator_name:"ผู้ใหญ่บ้านตัวอย่าง",coordinator_org:"ชุมชนริมคลอง",coordinator_phone:"081-000-0002",overall_status:"blocked",current_step:"ประเมินความปลอดภัย",completed_steps:2,assigned_team_name:null},
   {id:"d3",request_no:"REQ-20260926-00002",requester_type:"agency",requester_name:"ศูนย์พักพิงชั่วคราว",received_at:new Date(now-86400000).toISOString(),received_by:"ระบบรับคำร้องออนไลน์",location_name:"ศูนย์พักพิงชั่วคราว",organization:"องค์การบริหารส่วนตำบล",operation_point:"อาคารประชุมชั้น 1",situation:"มีผู้พักพิงเพิ่มขึ้นต่อเนื่อง",impact:"เจ้าหน้าที่ครัวและผู้กระจายสิ่งของไม่เพียงพอ",mission:"จัดชุดช่วยงานครัวและกระจายสิ่งของ",personnel_required:20,operation_start_at:new Date(now+172800000).toISOString(),operation_end_at:null,priority:"normal",coordinator_name:"เจ้าหน้าที่ศูนย์พักพิง",coordinator_org:"องค์การบริหารส่วนตำบล",coordinator_phone:"081-000-0003",overall_status:"pending",current_step:"ตรวจสอบ",completed_steps:1,assigned_team_name:null}
 ];
@@ -273,6 +273,10 @@ function initializeOperationMap() {
   operationMap.on("click", event => setOperationPin(event.latlng.lat,event.latlng.lng,true));
 }
 
+function googleMapsUrl(latitude,longitude) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${latitude},${longitude}`)}`;
+}
+
 function setOperationPin(latitude,longitude,focus=false) {
   const lat = Number(latitude).toFixed(6);
   const lng = Number(longitude).toFixed(6);
@@ -284,7 +288,7 @@ function setOperationPin(latitude,longitude,focus=false) {
   if (focus) operationMap.setView([Number(lat),Number(lng)], Math.max(operationMap.getZoom(),15));
   $("#map-coordinate").textContent = `พิกัด ${lat}, ${lng}`;
   const link = $("#map-open-link");
-  link.href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
+  link.href = googleMapsUrl(lat,lng);
   link.hidden = false;
   $("#clear-operation-pin").hidden = false;
 }
@@ -546,7 +550,7 @@ function requestPayload(form) {
   const latitude = payload.operation_latitude;
   const longitude = payload.operation_longitude;
   if (latitude && longitude) {
-    const mapUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`;
+    const mapUrl = googleMapsUrl(latitude,longitude);
     payload.operation_point = [payload.operation_point,`พิกัด: ${latitude}, ${longitude}`,`แผนที่: ${mapUrl}`].filter(Boolean).join(" | ");
   }
   delete payload.operation_latitude;
@@ -1085,7 +1089,7 @@ function requestLocation(request) {
   const longitude = Number(request.operation_longitude ?? coordinateMatch?.[2]);
   const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
   const description = raw.split(/\s*\|\s*พิกัด:/i)[0].trim() || "ไม่ได้ระบุรายละเอียดจุดปฏิบัติงาน";
-  return {description,hasCoordinates,latitude,longitude,mapUrl:hasCoordinates?`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`:""};
+  return {description,hasCoordinates,latitude,longitude,mapUrl:hasCoordinates?googleMapsUrl(latitude,longitude):""};
 }
 
 function detailItem(label,value,full=false) {
