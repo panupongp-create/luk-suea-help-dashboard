@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Noto+Serif+Thai:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=10">
+  <link rel="stylesheet" href="styles-v2.css?v=11">
 </head>
 <body>
   <header class="app-header">
@@ -90,23 +90,55 @@
 
       <form id="volunteer-form" class="request-form">
         <section class="form-card">
-          <div class="section-title"><span>01</span><div><h2>เลือกกลุ่มทะเบียน</h2><p>เลือกประเภทที่ตรงกับสถานะหรือเครือข่ายของผู้สมัคร</p></div></div>
+          <div class="section-title section-title-plain"><div><h2>เลือกกลุ่มทะเบียน</h2><p>เลือกประเภทที่ตรงกับสถานะหรือเครือข่ายของผู้สมัคร</p></div></div>
           <div id="group-selector" class="group-selector"></div>
         </section>
         <section class="form-card">
-          <div class="section-title"><span>02</span><div><h2>ข้อมูลผู้ลงทะเบียน</h2><p>ช่องข้อมูลตามแบบทะเบียนกำลังและทรัพยากร</p></div></div>
+          <div class="section-title section-title-plain"><div><h2>ข้อมูลผู้ลงทะเบียน</h2><p>ช่องข้อมูลตามแบบทะเบียนกำลังและทรัพยากร</p></div></div>
           <div class="form-grid cols-2">
             <label><span>ScoutDD ID</span><input name="scoutdd_id" maxlength="80" placeholder="ถ้ามี"></label>
             <label><span>เลขประจำตัวประชาชน *</span><input name="national_id" required inputmode="numeric" maxlength="13" pattern="[0-9]{13}" placeholder="13 หลัก"></label>
             <label><span>ชื่อ–นามสกุล *</span><input name="full_name" required maxlength="160"></label>
             <label><span>หน่วยงานหรือเครือข่าย *</span><input name="organization_network" required maxlength="200"></label>
             <label><span>หมายเลขโทรศัพท์ *</span><input name="phone" required maxlength="30" inputmode="tel" autocomplete="tel"></label>
-            <label><span>วันและเวลาที่พร้อมปฏิบัติงาน *</span><input name="availability_details" required maxlength="240" placeholder="เช่น จันทร์–ศุกร์ หลัง 17.00 น."></label>
             <label class="full"><span>พื้นที่ที่สามารถปฏิบัติงาน *</span><input name="operational_areas" required maxlength="400" placeholder="จังหวัด อำเภอ หรือพื้นที่ที่เดินทางไปได้"></label>
             <label class="full"><span>ทักษะ *</span><textarea name="skills" required maxlength="1200" rows="3" placeholder="เช่น ปฐมพยาบาล งานครัว การบุกเบิก สื่อสาร"></textarea></label>
-            <label><span>ยานพาหนะ</span><textarea name="vehicle" maxlength="600" rows="2" placeholder="ชนิด จำนวน หรือรายละเอียด"></textarea></label>
-            <label><span>อุปกรณ์</span><textarea name="equipment" maxlength="600" rows="2" placeholder="อุปกรณ์ที่สามารถนำมาสนับสนุน"></textarea></label>
+            <label class="full"><span>อุปกรณ์</span><textarea name="equipment" maxlength="600" rows="2" placeholder="อุปกรณ์ที่สามารถนำมาสนับสนุน"></textarea></label>
           </div>
+
+          <fieldset class="availability-fieldset">
+            <legend>วันที่พร้อมปฏิบัติงาน *</legend>
+            <p class="field-help">ระบุช่วงวันที่ที่สามารถเข้าร่วมปฏิบัติงานได้</p>
+            <div class="date-range-grid">
+              <label><span>ตั้งแต่วันที่</span><input name="availability_start_date" type="date" required></label>
+              <label><span>ถึงวันที่</span><input name="availability_end_date" type="date" required></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="choice-fieldset" id="availability-time-group">
+            <legend>เวลาที่พร้อมปฏิบัติงาน *</legend>
+            <p class="field-help">เลือกได้มากกว่า 1 ช่วงเวลา</p>
+            <div class="choice-card-grid">
+              <label class="choice-card"><input type="checkbox" name="availability_time_slots" value="08:30–12:00 น."><span>08:30–12:00 น.</span></label>
+              <label class="choice-card"><input type="checkbox" name="availability_time_slots" value="12:00–16:30 น."><span>12:00–16:30 น.</span></label>
+              <label class="choice-card"><input type="checkbox" name="availability_time_slots" value="16:30–24:00 น."><span>16:30–24:00 น.</span></label>
+              <label class="choice-card"><input type="checkbox" name="availability_time_slots" value="24:00–08:30 น."><span>24:00–08:30 น.</span></label>
+            </div>
+            <p class="field-error" id="availability-time-error" hidden>กรุณาเลือกเวลาที่พร้อมปฏิบัติงานอย่างน้อย 1 ช่วง</p>
+          </fieldset>
+
+          <fieldset class="choice-fieldset" id="vehicle-type-group">
+            <legend>ยานพาหนะ *</legend>
+            <p class="field-help">เลือกยานพาหนะที่สามารถนำมาสนับสนุนได้มากกว่า 1 ประเภท</p>
+            <div class="choice-card-grid">
+              <label class="choice-card"><input type="checkbox" name="vehicle_types" value="รถมอเตอร์ไซค์"><span>รถมอเตอร์ไซค์</span></label>
+              <label class="choice-card"><input type="checkbox" name="vehicle_types" value="รถเก๋ง"><span>รถเก๋ง</span></label>
+              <label class="choice-card"><input type="checkbox" name="vehicle_types" value="รถกระบะ"><span>รถกระบะ</span></label>
+              <label class="choice-card"><input type="checkbox" name="vehicle_types" value="รถยนต์ขนาดใหญ่"><span>รถยนต์ขนาดใหญ่</span></label>
+            </div>
+            <p class="field-error" id="vehicle-type-error" hidden>กรุณาเลือกยานพาหนะอย่างน้อย 1 ประเภท</p>
+          </fieldset>
+
           <label class="consent-row"><input name="consent" type="checkbox" required><span>ยืนยันว่าข้อมูลเป็นความจริง และยินยอมให้ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อใช้ข้อมูลเพื่อจัดกำลังตามภารกิจ *</span></label>
         </section>
         <div class="form-actions"><a href="#home" class="button button-ghost">ยกเลิก</a><button id="volunteer-submit" class="button button-primary" type="submit">ลงทะเบียนเข้าร่วมโครงการ</button></div>
@@ -256,6 +288,6 @@
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="app.js?v=6"></script>
+  <script type="module" src="app.js?v=7"></script>
 </body>
 </html>

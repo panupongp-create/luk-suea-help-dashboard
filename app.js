@@ -314,10 +314,58 @@ function renderRegistryStats() {
 }
 
 function volunteerPayload(form) {
-  const payload = Object.fromEntries(new FormData(form));
+  const data = new FormData(form);
+  const payload = Object.fromEntries(data);
+  const startDate = String(data.get("availability_start_date") || "");
+  const endDate = String(data.get("availability_end_date") || "");
+  const timeSlots = data.getAll("availability_time_slots").map(String);
+  const vehicleTypes = data.getAll("vehicle_types").map(String);
   delete payload.consent;
+  delete payload.availability_start_date;
+  delete payload.availability_end_date;
+  delete payload.availability_time_slots;
+  delete payload.vehicle_types;
   payload.group_no = Number(payload.group_no);
+  payload.availability_details = `วันที่ ${formatVolunteerDate(startDate)}–${formatVolunteerDate(endDate)} · เวลา ${timeSlots.join(", ")}`;
+  payload.vehicle = vehicleTypes.join(", ");
   return payload;
+}
+
+function formatVolunteerDate(value) {
+  const [year,month,day] = String(value).split("-").map(Number);
+  if (!year || !month || !day) return "–";
+  return `${String(day).padStart(2,"0")}/${String(month).padStart(2,"0")}/${year + 543}`;
+}
+
+function validateVolunteerOptions(form) {
+  const startDate = form.elements.availability_start_date;
+  const endDate = form.elements.availability_end_date;
+  const selectedTimes = $$('input[name="availability_time_slots"]:checked', form);
+  const selectedVehicles = $$('input[name="vehicle_types"]:checked', form);
+  const timeError = $("#availability-time-error");
+  const vehicleError = $("#vehicle-type-error");
+
+  endDate.setCustomValidity(startDate.value && endDate.value && endDate.value < startDate.value ? "วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่มต้น" : "");
+  timeError.hidden = selectedTimes.length > 0;
+  vehicleError.hidden = selectedVehicles.length > 0;
+
+  if (!endDate.checkValidity()) {
+    endDate.reportValidity();
+    return false;
+  }
+  if (!selectedTimes.length) {
+    $("#availability-time-group").scrollIntoView({behavior:"smooth",block:"center"});
+    $('input[name="availability_time_slots"]', form)?.focus();
+    showToast("กรุณาเลือกเวลาที่พร้อมปฏิบัติงานอย่างน้อย 1 ช่วง", true);
+    return false;
+  }
+  if (!selectedVehicles.length) {
+    $("#vehicle-type-group").scrollIntoView({behavior:"smooth",block:"center"});
+    $('input[name="vehicle_types"]', form)?.focus();
+    showToast("กรุณาเลือกยานพาหนะอย่างน้อย 1 ประเภท", true);
+    return false;
+  }
+  return true;
 }
 
 async function registerVolunteer(payload) {
@@ -333,6 +381,7 @@ async function registerVolunteer(payload) {
 
 async function handleVolunteerSubmit(event) {
   event.preventDefault();
+  if (!validateVolunteerOptions(event.currentTarget)) return;
   const button = $("#volunteer-submit");
   button.disabled = true;
   button.textContent = "กำลังบันทึก…";
@@ -341,6 +390,8 @@ async function handleVolunteerSubmit(event) {
     $("#success-registration-no").textContent = result.registration_no;
     $("#volunteer-success-dialog").showModal();
     event.currentTarget.reset();
+    $("#availability-time-error").hidden = true;
+    $("#vehicle-type-error").hidden = true;
     $("#group-selector input").checked = true;
     await loadRegistry();
   } catch (error) {
@@ -772,6 +823,15 @@ function registerWebMcpTools() {
 }
 
 $("#volunteer-form").addEventListener("submit",handleVolunteerSubmit);
+$("#volunteer-form").addEventListener("change",event => {
+  if (event.target.name === "availability_time_slots") $("#availability-time-error").hidden = true;
+  if (event.target.name === "vehicle_types") $("#vehicle-type-error").hidden = true;
+  if (event.target.name === "availability_start_date") {
+    const endDate = event.currentTarget.elements.availability_end_date;
+    endDate.min = event.target.value;
+    endDate.setCustomValidity("");
+  }
+});
 $("#request-form").addEventListener("submit",handleRequestSubmit);
 $("#use-current-location").addEventListener("click",useCurrentLocation);
 $("#clear-operation-pin").addEventListener("click",clearOperationPin);

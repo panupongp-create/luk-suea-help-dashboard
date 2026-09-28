@@ -90,6 +90,20 @@ fieldset{border-top-color:#eadfd7}
 .group-option span{background:#fffaf5;border-color:var(--line);color:#685950}
 .group-option input:checked+span{border-color:#9a472e;background:#f7e5d9;box-shadow:0 0 0 3px rgba(147,65,42,.08)}
 .consent-row{background:#faf2ea;color:#65564e}.group-chip{background:#f2dfd2;color:#81351f}
+.section-title-plain{gap:0}.section-title-plain>div{width:100%}
+.availability-fieldset,.choice-fieldset{margin-top:24px;padding-top:22px}
+.availability-fieldset legend,.choice-fieldset legend{font-size:1rem}
+.field-help{margin:0 0 14px;color:var(--muted);font-size:.8rem}
+.date-range-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.date-range-grid label{display:flex;flex-direction:column;gap:7px}
+.date-range-grid label>span{font-size:.8rem;font-weight:700;color:#594940}
+.choice-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.choice-card{display:flex;align-items:center;gap:12px;min-height:58px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:#fffaf5;cursor:pointer;transition:.15s border-color,.15s background,.15s box-shadow}
+.choice-card:hover{border-color:#c99b86;background:#fff}
+.choice-card:has(input:checked){border-color:#9a472e;background:#f7e5d9;box-shadow:0 0 0 3px rgba(147,65,42,.08)}
+.choice-card input{width:21px;height:21px;flex:0 0 auto;margin:0;accent-color:#8d3e26}
+.choice-card span{font-size:.9rem;font-weight:650;color:#493a33}
+.field-error{margin:10px 0 0;color:#a83232;font-size:.78rem;font-weight:700}
 
 .login-shell{background:linear-gradient(135deg,#5d2112 0%,#8e3e26 100%);box-shadow:0 24px 60px rgba(82,34,19,.24)}
 .login-intro .eyebrow{color:#f2c3a3!important}.login-intro p,.login-intro ul{color:#f6e2d5}
@@ -109,4 +123,4 @@ fieldset{border-top-color:#eadfd7}
 .success-dialog::backdrop{background:rgba(64,31,20,.56)}
 .success-dialog>strong{color:var(--teal)}.manage-link-box button{background:#8d3e26}
 
-@media(max-width:720px){.form-actions{background:rgba(250,245,239,.95)}.map-toolbar,.map-meta{align-items:flex-start;flex-direction:column}.map-actions{width:100%}.map-button{flex:1}#operation-map{height:280px}}
+@media(max-width:720px){.form-actions{background:rgba(250,245,239,.95)}.map-toolbar,.map-meta{align-items:flex-start;flex-direction:column}.map-actions{width:100%}.map-button{flex:1}#operation-map{height:280px}.date-range-grid,.choice-card-grid{grid-template-columns:1fr}.choice-card{min-height:56px}}
