@@ -45,18 +45,13 @@ try {
       continue;
     }
     // The existing migration files remain usable on Supabase. A fresh,
-    // self-hosted Postgres instead installs pgcrypto in extensions and uses
-    // its own publication for the dashboard.
+    // self-hosted Postgres instead installs pgcrypto in extensions. Dashboard
+    // updates use LISTEN/NOTIFY rather than Supabase logical replication.
     const sql = original
       .replaceAll("create extension if not exists pgcrypto;", "create extension if not exists pgcrypto with schema extensions;")
-      .replaceAll("alter publication supabase_realtime", "alter publication app_realtime");
+      .replace(/do \$\$ begin\s+alter publication supabase_realtime add table public\.public_requests;\s+exception when duplicate_object then null; end \$\$;/i, "");
     await client.query("begin");
     try {
-      if (filename === "schema.sql") {
-        await client.query(`do $$ begin
-          create publication app_realtime;
-        exception when duplicate_object then null; end $$`);
-      }
       await client.query(sql);
       await client.query("insert into public.app_schema_migrations(filename,checksum) values($1,$2)", [filename, checksum]);
       await client.query("commit");
@@ -69,7 +64,7 @@ try {
 
   await client.query("begin");
   try {
-    const passwordCommand = await client.query("select format('alter role app_api login password %L', $1) as sql", [process.env.APP_DB_PASSWORD]);
+    const passwordCommand = await client.query("select format('alter role app_api login password %L', $1::text) as sql", [process.env.APP_DB_PASSWORD]);
     await client.query(passwordCommand.rows[0].sql);
     await client.query("revoke all on all tables in schema public from public");
     await client.query("revoke all on all sequences in schema public from public");
