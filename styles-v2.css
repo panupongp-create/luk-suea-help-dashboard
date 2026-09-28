@@ -289,12 +289,17 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .button-danger{border:1px solid #d9a9a0;background:#fff5f2;color:#9a2f22}
 .button-danger:hover{background:#fbe3dd}
 .team-center-label{display:inline-flex;margin-top:8px;padding:4px 8px;border-radius:99px;background:#f1e3d8;color:#7a321e;font-size:.7rem;font-weight:800}
-#subcenter-kpis{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:18px}
+#subcenter-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+.subcenter-team-assignment{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fcf7f2}
+.subcenter-team-assignment label{display:flex;flex-direction:column;gap:6px}
+.subcenter-team-assignment label>span{font-size:.76rem;font-weight:700;color:var(--navy)}
+.subcenter-team-assignment select{min-width:0}
+@media(max-width:560px){.subcenter-team-assignment{grid-template-columns:1fr}.subcenter-team-assignment .button{width:100%}}
 .subcenter-work-section{margin-top:18px}
 .volunteer-edit-dialog{width:min(860px,calc(100% - 28px))}
 .volunteer-edit-dialog .admin-form{padding:22px 26px 0}
 .availability-toggle{display:flex!important;flex-direction:row!important;align-items:center;gap:9px!important;min-height:44px}
 .availability-toggle input{width:18px;height:18px}
-@media(max-width:720px){#subcenter-kpis{grid-template-columns:1fr 1fr}#subcenter-kpis .kpi-card:last-child{grid-column:1/-1}.home-system-grid .system-card-two .system-features{max-width:none}}
+@media(max-width:720px){#subcenter-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#subcenter-kpis .kpi-card:last-child{grid-column:auto}.home-system-grid .system-card-two .system-features{max-width:none}}
 @media(max-width:560px){.volunteer-edit-dialog .admin-form{padding:16px 17px 0}.row-actions{flex-direction:column;align-items:stretch}.compact-action{width:100%}}
 .system-card-heading{grid-template-columns:auto 1fr}
