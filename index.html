@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Noto+Serif+Thai:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=22">
+  <link rel="stylesheet" href="styles-v2.css?v=23">
 </head>
 <body>
   <header class="app-header">
@@ -32,6 +32,7 @@
       <a id="central-operations-nav" class="nav-link staff-nav central-nav" data-route="center" href="#center" hidden>ศูนย์ควบคุมและจัดชุดปฏิบัติการ</a>
       <a id="central-dispatch-nav" class="nav-link staff-nav central-nav" data-route="dispatch" href="#dispatch" hidden>รับเรื่องและมอบหมายภารกิจ</a>
       <a id="subcenter-work-nav" class="nav-link staff-nav subcenter-nav" data-route="subcenter" href="#subcenter" hidden>พื้นที่ปฏิบัติงานศูนย์ย่อย</a>
+      <a id="shelter-nav" class="nav-link staff-nav subcenter-nav" data-route="shelter" href="#shelter" hidden>ข้อมูลผู้พักพิง</a>
       <button id="logout-button" class="nav-link nav-button" type="button" hidden>ออกจากระบบ</button>
       <a class="nav-link nav-primary public-nav" data-route="new" href="#new">+ แจ้งขอความช่วยเหลือ</a>
     </nav>
@@ -300,6 +301,34 @@
       </div>
     </section>
 
+    <section id="shelter-view" class="view" hidden aria-labelledby="shelter-title">
+      <div class="page-heading"><div><p class="eyebrow">บัญชีศูนย์ย่อย</p><h1 id="shelter-title">ข้อมูลผู้พักพิง</h1><p id="shelter-subtitle">บันทึกข้อมูลผู้พักพิงของศูนย์ย่อย</p></div></div>
+      <div id="shelter-loading" class="panel loading-panel">กำลังโหลดข้อมูลผู้พักพิง…</div>
+      <div id="shelter-content" hidden>
+        <section class="panel admin-section">
+          <div class="panel-heading"><div><h2 id="shelter-form-title">เพิ่มข้อมูลผู้พักพิง</h2><p>ข้อมูลนี้แสดงเฉพาะเจ้าหน้าที่ของศูนย์ย่อยที่บันทึก ไม่แสดงบน Dashboard สาธารณะ</p></div></div>
+          <form id="shelter-form" class="admin-form">
+            <input name="resident_id" type="hidden">
+            <div class="form-grid cols-2">
+              <label><span>ชื่อ–สกุล *</span><input name="full_name" required maxlength="160" autocomplete="name"></label>
+              <label><span>เบอร์โทรศัพท์ *</span><input name="phone" type="tel" required inputmode="numeric" pattern="[0-9]{9,10}" maxlength="10" placeholder="เช่น 0812345678"></label>
+              <label class="full"><span>ที่อยู่ *</span><textarea name="address" required rows="2" maxlength="1000"></textarea></label>
+              <label><span>จำนวนผู้เข้าพักร่วม *</span><input name="companions_count" type="number" required min="0" max="1000" step="1" value="0"><small>ไม่นับรวมผู้ลงทะเบียนคนนี้</small></label>
+              <label><span>ชื่อ–สกุล ผู้ติดต่อกรณีฉุกเฉิน *</span><input name="emergency_contact_name" required maxlength="160"></label>
+              <label><span>เบอร์โทรศัพท์ผู้ติดต่อกรณีฉุกเฉิน *</span><input name="emergency_contact_phone" type="tel" required inputmode="numeric" pattern="[0-9]{9,10}" maxlength="10" placeholder="เช่น 0812345678"></label>
+            </div>
+            <p id="shelter-form-error" class="form-error" role="alert" hidden></p>
+            <div class="align-end shelter-form-actions"><button id="shelter-cancel-edit" class="button button-ghost" type="button" hidden>ยกเลิกการแก้ไข</button><button id="shelter-submit" class="button button-primary" type="submit">บันทึกข้อมูลผู้พักพิง</button></div>
+          </form>
+        </section>
+        <section class="panel admin-section">
+          <div class="panel-heading"><div><h2>ทะเบียนผู้พักพิงของศูนย์</h2><p id="shelter-count">ยังไม่มีข้อมูล</p></div><div class="table-tools"><input id="shelter-search" type="search" placeholder="ค้นหาชื่อ ที่อยู่ หรือเบอร์โทร" aria-label="ค้นหาผู้พักพิง"><button id="shelter-refresh" class="button button-ghost compact-action" type="button">รีเฟรช</button></div></div>
+          <div class="table-wrap shelter-table"><table><thead><tr><th>ชื่อ–สกุล / เบอร์โทร</th><th>ที่อยู่</th><th>ผู้เข้าพักร่วม</th><th>ผู้ติดต่อฉุกเฉิน</th><th>บันทึกเมื่อ</th><th>จัดการ</th></tr></thead><tbody id="shelter-table-body"></tbody></table></div>
+          <div class="volunteer-pagination" aria-label="หน้ารายชื่อผู้พักพิง"><span id="shelter-page-info" aria-live="polite"></span><div><button id="shelter-prev-page" class="button button-ghost compact-action" type="button">ก่อนหน้า</button><button id="shelter-next-page" class="button button-ghost compact-action" type="button">ถัดไป</button></div></div>
+        </section>
+      </div>
+    </section>
+
     <section id="manage-view" class="view" hidden aria-labelledby="manage-title">
       <div class="page-heading"><div><p class="eyebrow">ลิงก์จัดการคำร้องเดิม</p><h1 id="manage-title">ติดตามและอัปเดตการดำเนินงาน</h1><p id="manage-subtitle">กำลังตรวจสอบลิงก์</p></div><a class="text-link" href="#dashboard">ดู Dashboard →</a></div>
       <div id="manage-loading" class="panel loading-panel">กำลังโหลดข้อมูลคำร้อง…</div>
@@ -353,6 +382,6 @@
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="app.js?v=16"></script>
+  <script type="module" src="app.js?v=17"></script>
 </body>
 </html>

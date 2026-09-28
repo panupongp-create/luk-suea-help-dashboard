@@ -293,6 +293,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .button-danger{border:1px solid #d9a9a0;background:#fff5f2;color:#9a2f22}
 .button-danger:hover{background:#fbe3dd}
 .volunteer-delete-dialog .dialog-actions{margin-top:22px}
+.shelter-form-actions{gap:9px;margin-top:18px}
+#shelter-form .form-grid label>small{color:var(--muted);font-size:.72rem}
+.shelter-table table{min-width:890px}
+.shelter-table td{vertical-align:top;max-width:300px;overflow-wrap:anywhere}
+.shelter-table td strong{display:block}
+@media(max-width:560px){.shelter-form-actions{flex-direction:column}.shelter-form-actions .button{width:100%}}
 .team-center-label{display:inline-flex;margin-top:8px;padding:4px 8px;border-radius:99px;background:#f1e3d8;color:#7a321e;font-size:.7rem;font-weight:800}
 #subcenter-kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
 .subcenter-team-assignment{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:0 0 16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fcf7f2}

@@ -67,6 +67,10 @@ let volunteerStats = [];
 let publicCenters = [...DEMO_CENTERS];
 let centralState = null;
 let subcenterSession = null;
+let shelterRecords = [];
+let shelterPage = 0;
+const SHELTER_PAGE_SIZE = 10;
+const demoShelterRecords = [];
 let realtimeChannel = null;
 let operationMap = null;
 let operationMarker = null;
@@ -113,9 +117,9 @@ function routeInfo() {
 
 function route() {
   const info = routeInfo();
-  const allowed = ["home","registry","dashboard","new","login","center","dispatch","subcenter","manage"];
+  const allowed = ["home","registry","dashboard","new","login","center","dispatch","subcenter","shelter","manage"];
   let name = allowed.includes(info.name) ? info.name : "home";
-  if (["center","dispatch","subcenter"].includes(name) && !authSession) {
+  if (["center","dispatch","subcenter","shelter"].includes(name) && !authSession) {
     location.hash = "login";
     return;
   }
@@ -123,7 +127,7 @@ function route() {
     location.hash = "subcenter";
     return;
   }
-  if (name === "subcenter" && authSession?.role !== "subcenter") {
+  if (["subcenter","shelter"].includes(name) && authSession?.role !== "subcenter") {
     location.hash = "center";
     return;
   }
@@ -144,6 +148,7 @@ function route() {
   }
   if (["center","dispatch"].includes(name)) loadCentral(name);
   if (name === "subcenter") loadSubcenter();
+  if (name === "shelter") loadShelter();
   if (name === "manage") loadManage(info.raw);
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -234,6 +239,8 @@ async function logoutStaff() {
   authSession = null;
   centralState = null;
   subcenterSession = null;
+  shelterRecords = [];
+  resetShelterForm();
   localStorage.removeItem(SESSION_KEY);
   applyAuthUi();
   location.hash = "home";
@@ -960,6 +967,104 @@ function renderSubcenter() {
   }).join("") : `<div class="panel empty-state"><strong>ยังไม่มีคำร้องที่ได้รับมอบหมาย</strong><span>เมื่อ${CENTRAL_NAME}ส่งต่อคำร้อง รายการจะแสดงที่หน้านี้</span></div>`;
 }
 
+async function loadShelter() {
+  if (!authSession || authSession.role !== "subcenter") { location.hash = "login"; return; }
+  const loading = $("#shelter-loading");
+  const content = $("#shelter-content");
+  content.hidden = true;
+  loading.hidden = false;
+  loading.textContent = "กำลังโหลดข้อมูลผู้พักพิง…";
+  try {
+    if (online) {
+      const {data,error} = await supabase.rpc("get_shelter_residents_by_session",{p_session_token:authSession.session_token});
+      if (error) throw error;
+      shelterRecords = Array.isArray(data) ? data : [];
+    } else {
+      shelterRecords = demoShelterRecords.filter(item => item.center_id === authSession.center_id);
+    }
+    $("#shelter-subtitle").textContent = `ศูนย์ย่อย: ${authSession.center_name || authSession.display_name}`;
+    renderShelter();
+    loading.hidden = true;
+    content.hidden = false;
+  } catch (error) {
+    loading.textContent = "เปิดข้อมูลผู้พักพิงไม่ได้: " + (error.message || error);
+  }
+}
+
+function renderShelter() {
+  const query = $("#shelter-search").value.trim().toLowerCase();
+  const filtered = shelterRecords.filter(item => !query || [item.full_name,item.address,item.phone,item.emergency_contact_name,item.emergency_contact_phone]
+    .some(value => String(value || "").toLowerCase().includes(query)))
+    .sort((a,b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  shelterPage = Math.min(shelterPage,Math.max(0,Math.ceil(filtered.length/SHELTER_PAGE_SIZE)-1));
+  const start = shelterPage*SHELTER_PAGE_SIZE;
+  const rows = filtered.slice(start,start+SHELTER_PAGE_SIZE);
+  $("#shelter-count").textContent = `ทั้งหมด ${shelterRecords.length.toLocaleString("th-TH")} คน · เห็นเฉพาะข้อมูลของศูนย์นี้`;
+  $("#shelter-table-body").innerHTML = rows.length ? rows.map(item => `<tr data-resident-id="${escapeHtml(item.id)}"><td><strong>${escapeHtml(item.full_name)}</strong><span class="cell-sub">${escapeHtml(item.phone)}</span></td><td>${escapeHtml(item.address)}</td><td>${Number(item.companions_count || 0).toLocaleString("th-TH")} คน</td><td><strong>${escapeHtml(item.emergency_contact_name)}</strong><span class="cell-sub">${escapeHtml(item.emergency_contact_phone)}</span></td><td>${formatDate(item.created_at)}</td><td><button class="button button-ghost compact-action edit-resident" type="button">แก้ไข</button></td></tr>`).join("") : `<tr><td colspan="6"><div class="empty-state compact-empty">ยังไม่มีข้อมูลผู้พักพิงตามเงื่อนไข</div></td></tr>`;
+  $("#shelter-page-info").textContent = filtered.length ? `แสดง ${start+1}–${start+rows.length} จาก ${filtered.length} คน` : "ไม่พบผู้พักพิง";
+  $("#shelter-prev-page").disabled = shelterPage === 0;
+  $("#shelter-next-page").disabled = start+SHELTER_PAGE_SIZE >= filtered.length;
+}
+
+function resetShelterForm() {
+  const form = $("#shelter-form");
+  form.reset();
+  form.elements.resident_id.value = "";
+  $("#shelter-form-title").textContent = "เพิ่มข้อมูลผู้พักพิง";
+  $("#shelter-submit").textContent = "บันทึกข้อมูลผู้พักพิง";
+  $("#shelter-cancel-edit").hidden = true;
+  $("#shelter-form-error").hidden = true;
+}
+
+function editShelterResident(id) {
+  const item = shelterRecords.find(record => record.id === id);
+  if (!item) return;
+  const form = $("#shelter-form");
+  for (const key of ["resident_id","full_name","address","phone","companions_count","emergency_contact_name","emergency_contact_phone"]) {
+    form.elements[key].value = key === "resident_id" ? item.id : item[key] ?? "";
+  }
+  $("#shelter-form-title").textContent = "แก้ไขข้อมูลผู้พักพิง";
+  $("#shelter-submit").textContent = "บันทึกการแก้ไข";
+  $("#shelter-cancel-edit").hidden = false;
+  $("#shelter-form-error").hidden = true;
+  form.scrollIntoView({behavior:"smooth",block:"start"});
+  form.elements.full_name.focus({preventScroll:true});
+}
+
+async function saveShelterResident(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const payload = Object.fromEntries(new FormData(form));
+  const residentId = payload.resident_id || null;
+  delete payload.resident_id;
+  payload.companions_count = Number(payload.companions_count);
+  const errorBox = $("#shelter-form-error");
+  const button = $("#shelter-submit");
+  errorBox.hidden = true;
+  button.disabled = true;
+  try {
+    if (!authSession || authSession.role !== "subcenter") throw new Error("กรุณาเข้าสู่ระบบศูนย์ย่อยใหม่");
+    if (online) {
+      const {error} = await supabase.rpc("save_shelter_resident_by_session",{p_session_token:authSession.session_token,p_payload:payload,p_resident_id:residentId});
+      if (error) throw error;
+    } else if (residentId) {
+      const item = demoShelterRecords.find(record => record.id === residentId && record.center_id === authSession.center_id);
+      if (!item) throw new Error("ไม่พบข้อมูลผู้พักพิงของศูนย์นี้");
+      Object.assign(item,payload, {updated_at:new Date().toISOString()});
+    } else {
+      demoShelterRecords.push({id:`demo-resident-${Date.now()}`,center_id:authSession.center_id,...payload,created_at:new Date().toISOString()});
+    }
+    resetShelterForm();
+    shelterPage = 0;
+    $("#shelter-search").value = "";
+    await loadShelter();
+    showToast(residentId ? "แก้ไขข้อมูลผู้พักพิงแล้ว" : "บันทึกข้อมูลผู้พักพิงแล้ว");
+  } catch (error) {
+    errorBox.textContent = "บันทึกไม่สำเร็จ: " + (error.message || error);
+    errorBox.hidden = false;
+  } finally { button.disabled = false; }
+}
+
 function subcenterTeamAssignmentHtml(request,teams) {
   const selected=request.assigned_team_id||"";
   const hasTeams=teams.length>0;
@@ -1190,6 +1295,16 @@ attachNationalIdValidation($("#volunteer-edit-form"));
 $("#cancel-volunteer-edit").addEventListener("click",() => $("#volunteer-edit-dialog").close());
 $("#cancel-volunteer-delete").addEventListener("click",() => $("#volunteer-delete-dialog").close());
 $("#confirm-volunteer-delete").addEventListener("click",deleteVolunteer);
+$("#shelter-form").addEventListener("submit",saveShelterResident);
+$("#shelter-cancel-edit").addEventListener("click",resetShelterForm);
+$("#shelter-refresh").addEventListener("click",loadShelter);
+$("#shelter-search").addEventListener("input",() => { shelterPage=0; renderShelter(); });
+$("#shelter-prev-page").addEventListener("click",() => { if (shelterPage>0) { shelterPage--; renderShelter(); } });
+$("#shelter-next-page").addEventListener("click",() => { shelterPage++; renderShelter(); });
+$("#shelter-table-body").addEventListener("click",event => {
+  const row = event.target.closest("tr[data-resident-id]");
+  if (row && event.target.closest(".edit-resident")) editShelterResident(row.dataset.residentId);
+});
 $("#team-member-picker").addEventListener("change",updateTeamMemberCount);
 $("#team-leader").addEventListener("change",event => {
   const checkbox = $(`#team-member-picker input[value="${event.target.value}"]`);
