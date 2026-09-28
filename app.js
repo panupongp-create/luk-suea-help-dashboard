@@ -848,6 +848,29 @@ $("#team-leader").addEventListener("change",event => {
 $("#team-form").addEventListener("submit",handleTeamSubmit);
 $("#login-form").addEventListener("submit",handleLogin);
 $("#logout-button").addEventListener("click",logoutStaff);
+const appHeader = $(".app-header");
+const menuToggle = $("#menu-toggle");
+function closeNavigationMenu() {
+  appHeader.classList.remove("menu-open");
+  menuToggle.setAttribute("aria-expanded","false");
+}
+menuToggle.addEventListener("click",event => {
+  event.stopPropagation();
+  const isOpen = appHeader.classList.toggle("menu-open");
+  menuToggle.setAttribute("aria-expanded",String(isOpen));
+});
+$("#main-navigation").addEventListener("click",event => {
+  if (event.target.closest("a,button")) closeNavigationMenu();
+});
+document.addEventListener("click",event => {
+  if (!appHeader.contains(event.target)) closeNavigationMenu();
+});
+document.addEventListener("keydown",event => {
+  if (event.key === "Escape") closeNavigationMenu();
+});
+window.addEventListener("resize",() => {
+  if (window.innerWidth > 1100) closeNavigationMenu();
+});
 $("#assignment-list").addEventListener("click",event => { const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
 $("#subcenter-request-list").addEventListener("click",event => { const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });
 $("#subcenter-request-list").addEventListener("submit",event => { const form=event.target.closest(".sub-summary-form"); if (form) { event.preventDefault(); saveSubcenterSummary(form); } });
@@ -857,7 +880,7 @@ $("#request-another").addEventListener("click",() => { $("#request-success-dialo
 $("#go-dashboard").addEventListener("click",() => { $("#request-success-dialog").close(); location.hash="dashboard"; });
 $("#register-another").addEventListener("click",() => $("#volunteer-success-dialog").close());
 $("#go-home").addEventListener("click",() => { $("#volunteer-success-dialog").close(); location.hash="home"; });
-window.addEventListener("hashchange",route);
+window.addEventListener("hashchange",() => { closeNavigationMenu(); route(); });
 window.addEventListener("beforeunload",() => { if (realtimeChannel) supabase.removeChannel(realtimeChannel); });
 
 $("#connection-banner").hidden = online;
