@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Noto+Serif+Thai:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=15">
+  <link rel="stylesheet" href="styles-v2.css?v=16">
 </head>
 <body>
   <header class="app-header">
@@ -299,10 +299,23 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="request-detail-dialog" class="request-detail-dialog" aria-labelledby="request-detail-title">
+    <div class="request-detail-header">
+      <div><span id="request-detail-no" class="team-no"></span><h2 id="request-detail-title">รายละเอียดคำร้อง</h2><p id="request-detail-subtitle"></p></div>
+      <form method="dialog"><button class="detail-close" type="submit" aria-label="ปิดรายละเอียด">×</button></form>
+    </div>
+    <div id="request-detail-content"></div>
+    <section class="request-detail-section request-detail-map-section">
+      <div class="request-detail-section-heading"><div><h3>พิกัดจุดปฏิบัติงาน</h3><p id="request-detail-location-text"></p></div><a id="request-detail-map-link" class="text-link" href="#" target="_blank" rel="noopener noreferrer" hidden>เปิดแผนที่เต็ม ↗</a></div>
+      <div id="request-detail-map" role="img" aria-label="แผนที่แสดงพิกัดจุดปฏิบัติงาน"></div>
+      <div id="request-detail-map-empty" class="detail-map-empty" hidden>คำร้องนี้ยังไม่ได้ปักหมุดพิกัดบนแผนที่</div>
+    </section>
+    <form method="dialog" class="request-detail-actions"><button class="button button-primary" type="submit">ปิดรายละเอียด</button></form>
+  </dialog>
   <dialog id="request-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ส่งคำร้องเรียบร้อย</h2><p>เลขที่คำร้องสำหรับติดตาม</p><strong id="success-request-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะตรวจสอบและมอบหมายศูนย์ย่อย ข้อมูลสถานะจะแสดงบน Dashboard สาธารณะ</p><div class="dialog-actions"><button id="request-another" class="button button-ghost" type="button">ส่งคำร้องอีก</button><button id="go-dashboard" class="button button-primary" type="button">ดู Dashboard</button></div></dialog>
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="app.js?v=9"></script>
+  <script type="module" src="app.js?v=10"></script>
 </body>
 </html>

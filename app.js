@@ -43,9 +43,9 @@ const PRIORITY = { normal: "ปกติ", urgent: "เร่งด่วน", c
 
 const now = Date.now();
 const demoRows = [
-  {id:"d1",request_no:"REQ-20260927-00004",received_at:new Date().toISOString(),location_name:"โรงเรียนบ้านหนองน้ำใส",organization:"สำนักงานเขตพื้นที่การศึกษา",mission:"สนับสนุนการจัดพื้นที่และขนย้ายสิ่งของ",personnel_required:12,operation_start_at:new Date(now+86400000).toISOString(),priority:"urgent",overall_status:"in_progress",current_step:"จัดกำลัง",completed_steps:4,assigned_center_name:"ศูนย์ประสานงานจังหวัดตัวอย่าง"},
-  {id:"d2",request_no:"REQ-20260927-00003",received_at:new Date(now-7200000).toISOString(),location_name:"ชุมชนริมคลอง",organization:"เทศบาลตำบล",mission:"ช่วยจัดระเบียบพื้นที่และประสานจุดรับบริจาค",personnel_required:18,operation_start_at:new Date(now+18000000).toISOString(),priority:"critical",overall_status:"blocked",current_step:"ประเมินความปลอดภัย",completed_steps:2,assigned_center_name:"ยังไม่มอบหมาย"},
-  {id:"d3",request_no:"REQ-20260926-00002",received_at:new Date(now-86400000).toISOString(),location_name:"ศูนย์พักพิงชั่วคราว",organization:"องค์การบริหารส่วนตำบล",mission:"จัดชุดช่วยงานครัวและกระจายสิ่งของ",personnel_required:20,operation_start_at:new Date(now+172800000).toISOString(),priority:"normal",overall_status:"pending",current_step:"ตรวจสอบ",completed_steps:1,assigned_center_name:"ยังไม่มอบหมาย"}
+  {id:"d1",request_no:"REQ-20260927-00004",requester_type:"agency",requester_name:"โรงเรียนบ้านหนองน้ำใส",received_at:new Date().toISOString(),received_by:"ระบบรับคำร้องออนไลน์",location_name:"โรงเรียนบ้านหนองน้ำใส",organization:"สำนักงานเขตพื้นที่การศึกษา",operation_point:"อาคารอเนกประสงค์ด้านทิศตะวันออก | พิกัด: 13.756300, 100.501800 | แผนที่: https://www.openstreetmap.org/?mlat=13.756300&mlon=100.501800#map=16/13.756300/100.501800",situation:"มีสิ่งของช่วยเหลือเข้ามาจำนวนมากและต้องจัดพื้นที่รับมอบ",impact:"ทางเดินและพื้นที่ใช้งานบางส่วนไม่เพียงพอ",mission:"สนับสนุนการจัดพื้นที่และขนย้ายสิ่งของ",personnel_required:12,operation_start_at:new Date(now+86400000).toISOString(),operation_end_at:new Date(now+118800000).toISOString(),priority:"urgent",coordinator_name:"ผู้ประสานงานโรงเรียน",coordinator_org:"โรงเรียนบ้านหนองน้ำใส",coordinator_phone:"081-000-0001",overall_status:"in_progress",current_step:"จัดกำลัง",completed_steps:4,assigned_center_name:"ศูนย์ประสานงานจังหวัดตัวอย่าง"},
+  {id:"d2",request_no:"REQ-20260927-00003",requester_type:"citizen",requester_name:"ผู้แทนชุมชนริมคลอง",received_at:new Date(now-7200000).toISOString(),received_by:"ระบบรับคำร้องออนไลน์",location_name:"ชุมชนริมคลอง",organization:"เทศบาลตำบล",operation_point:"ศาลาชุมชนใกล้สะพาน",situation:"ประชาชนทยอยนำสิ่งของมาบริจาคและการจราจรเริ่มหนาแน่น",impact:"จุดรับบริจาคยังไม่มีระบบคัดแยก",mission:"ช่วยจัดระเบียบพื้นที่และประสานจุดรับบริจาค",personnel_required:18,operation_start_at:new Date(now+18000000).toISOString(),operation_end_at:null,priority:"critical",coordinator_name:"ผู้ใหญ่บ้านตัวอย่าง",coordinator_org:"ชุมชนริมคลอง",coordinator_phone:"081-000-0002",overall_status:"blocked",current_step:"ประเมินความปลอดภัย",completed_steps:2,assigned_center_name:"ยังไม่มอบหมาย"},
+  {id:"d3",request_no:"REQ-20260926-00002",requester_type:"agency",requester_name:"ศูนย์พักพิงชั่วคราว",received_at:new Date(now-86400000).toISOString(),received_by:"ระบบรับคำร้องออนไลน์",location_name:"ศูนย์พักพิงชั่วคราว",organization:"องค์การบริหารส่วนตำบล",operation_point:"อาคารประชุมชั้น 1",situation:"มีผู้พักพิงเพิ่มขึ้นต่อเนื่อง",impact:"เจ้าหน้าที่ครัวและผู้กระจายสิ่งของไม่เพียงพอ",mission:"จัดชุดช่วยงานครัวและกระจายสิ่งของ",personnel_required:20,operation_start_at:new Date(now+172800000).toISOString(),operation_end_at:null,priority:"normal",coordinator_name:"เจ้าหน้าที่ศูนย์พักพิง",coordinator_org:"องค์การบริหารส่วนตำบล",coordinator_phone:"081-000-0003",overall_status:"pending",current_step:"ตรวจสอบ",completed_steps:1,assigned_center_name:"ยังไม่มอบหมาย"}
 ];
 
 const demoVolunteers = [
@@ -62,6 +62,8 @@ let subcenterSession = null;
 let realtimeChannel = null;
 let operationMap = null;
 let operationMarker = null;
+let requestDetailMap = null;
+let requestDetailMarker = null;
 let demoRequestCounter = 5;
 let demoVolunteerCounter = demoVolunteers.length + 1;
 const demoManage = new Map();
@@ -516,7 +518,7 @@ function demoCentralWorkspace() {
     {id:"c3",center_code:"SUB-03",name:"มัธยมวัดหนองจอก",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
     {id:"c4",center_code:"SUB-04",name:"วิทยาลัยเทคนิคดอนเมือง",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true}
   ];
-  return {label:`${CENTRAL_NAME} (โหมดตัวอย่าง)`,volunteers:demoVolunteers,teams:centralState?.teams||[],centers:existingCenters,requests:[...demoRows,...[...demoManage.values()].map(item=>item.request)].map(request => ({...request,assigned_center_id:request.id==="d1"?"c1":null,assigned_center_name:request.id==="d1"?"ศูนย์ประสานงานจังหวัดตัวอย่าง":null}))};
+  return {label:`${CENTRAL_NAME} (โหมดตัวอย่าง)`,volunteers:demoVolunteers,teams:centralState?.teams||[],centers:existingCenters,requests:[...demoRows,...[...demoManage.values()].map(item=>item.request)].map(request => ({...request,assigned_center_id:request.id==="d1"?"c1":null,assigned_center_name:request.id==="d1"?existingCenters[0].name:null}))};
 }
 
 async function loadCentral(viewName = "center") {
@@ -641,7 +643,7 @@ function renderAssignments() {
   const centers = (centralState?.centers||[]).filter(center => center.active);
   $("#assignment-list").innerHTML = requests.length ? requests.map(request => {
     const selected = request.assigned_center_id || "";
-    return `<article class="assignment-card" data-request-id="${request.id}"><div class="assignment-main"><span class="team-no">${escapeHtml(request.request_no)}</span><h3>${escapeHtml(request.location_name)}</h3><p>${escapeHtml(request.mission)}</p><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน · ${formatDate(request.operation_start_at)} · ผู้ประสานงาน ${escapeHtml(request.coordinator_name||"–")} ${escapeHtml(request.coordinator_phone||"")}</small></div><div class="assignment-control"><select class="assignment-center"><option value="">เลือกศูนย์ย่อย</option>${centers.map(center=>`<option value="${center.id}" ${selected===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("")}</select><input class="assignment-note" placeholder="ข้อสั่งการ / หมายเหตุ" value="${escapeHtml(request.assignment_note||"")}"><button class="button button-primary assign-request" type="button">${selected?"เปลี่ยนผู้รับผิดชอบ":"ส่งต่อคำร้อง"}</button>${selected?`<small>ปัจจุบัน: ${escapeHtml(request.assigned_center_name||"")}</small>`:""}</div></article>`;
+    return `<article class="assignment-card" data-request-id="${request.id}"><div class="assignment-main"><span class="team-no">${escapeHtml(request.request_no)}</span><h3>${escapeHtml(request.location_name)}</h3><p>${escapeHtml(request.mission)}</p><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน · ${formatDate(request.operation_start_at)} · ผู้ประสานงาน ${escapeHtml(request.coordinator_name||"–")} ${escapeHtml(request.coordinator_phone||"")}</small><button class="request-detail-link view-request-detail" type="button">ดูรายละเอียดทั้งหมดและแผนที่ →</button></div><div class="assignment-control"><select class="assignment-center"><option value="">เลือกศูนย์ย่อย</option>${centers.map(center=>`<option value="${center.id}" ${selected===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("")}</select><input class="assignment-note" placeholder="ข้อสั่งการ / หมายเหตุ" value="${escapeHtml(request.assignment_note||"")}"><button class="button button-primary assign-request" type="button">${selected?"เปลี่ยนผู้รับผิดชอบ":"ส่งต่อคำร้อง"}</button>${selected?`<small>ปัจจุบัน: ${escapeHtml(request.assigned_center_name||"")}</small>`:""}</div></article>`;
   }).join("") : `<div class="empty-state"><strong>ยังไม่มีคำร้อง</strong><span>คำร้องใหม่จากหน้าสาธารณะจะแสดงที่นี่</span></div>`;
 }
 
@@ -707,8 +709,62 @@ function renderSubcenter() {
   $("#subcenter-request-list").innerHTML = records.length ? records.map((record,index) => {
     const request = record.request;
     const steps = record.steps || [];
-    return `<details class="subcenter-request" ${index===0?"open":""} data-request-id="${request.id}"><summary><div><span class="team-no">${escapeHtml(request.request_no)}</span><strong>${escapeHtml(request.location_name)}</strong><small>${escapeHtml(request.mission)}</small></div><span class="status-chip ${escapeHtml(request.overall_status||"pending")}">${escapeHtml((STATUS[request.overall_status]||STATUS.pending)[0])}</span></summary><div class="request-private-grid"><span>ผู้ประสานงาน<strong>${escapeHtml(request.coordinator_name||"–")}</strong><small>${escapeHtml(request.coordinator_org||"")} · ${escapeHtml(request.coordinator_phone||"")}</small></span><span>วันปฏิบัติงาน<strong>${formatDate(request.operation_start_at)}</strong><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน</small></span><span>สถานการณ์<strong>${escapeHtml(request.situation||"–")}</strong><small>${escapeHtml(request.impact||"")}</small></span></div><div class="step-editor sub-step-editor">${steps.sort((a,b)=>a.step_order-b.step_order).map(step=>stepEditorHtml(step,"sub")).join("")}</div><form class="sub-summary-form summary-editor-inline"><label><span>สรุปผลการดำเนินงาน / ข้อสั่งการเพิ่มเติม</span><textarea name="summary" rows="3">${escapeHtml(request.summary||"")}</textarea></label><div class="form-grid cols-2"><label><span>ผู้บันทึก</span><input name="recorder_name" value="${escapeHtml(request.recorder_name||"")}"></label><label><span>ตำแหน่ง</span><input name="recorder_position" value="${escapeHtml(request.recorder_position||"")}"></label></div><div class="align-end"><button class="button button-primary" type="submit">บันทึกสรุปผล</button></div></form></div></details>`;
+    return `<details class="subcenter-request" ${index===0?"open":""} data-request-id="${request.id}"><summary><div><span class="team-no">${escapeHtml(request.request_no)}</span><strong>${escapeHtml(request.location_name)}</strong><small>${escapeHtml(request.mission)}</small></div><span class="status-chip ${escapeHtml(request.overall_status||"pending")}">${escapeHtml((STATUS[request.overall_status]||STATUS.pending)[0])}</span></summary><div class="request-private-grid"><span>ผู้ประสานงาน<strong>${escapeHtml(request.coordinator_name||"–")}</strong><small>${escapeHtml(request.coordinator_org||"")} · ${escapeHtml(request.coordinator_phone||"")}</small></span><span>วันปฏิบัติงาน<strong>${formatDate(request.operation_start_at)}</strong><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน</small></span><span>สถานการณ์<strong>${escapeHtml(request.situation||"–")}</strong><small>${escapeHtml(request.impact||"")}</small></span></div><button class="button button-ghost view-request-detail subcenter-detail-button" type="button">ดูข้อมูลคำร้องทั้งหมดและพิกัดแผนที่</button><div class="step-editor sub-step-editor">${steps.sort((a,b)=>a.step_order-b.step_order).map(step=>stepEditorHtml(step,"sub")).join("")}</div><form class="sub-summary-form summary-editor-inline"><label><span>สรุปผลการดำเนินงาน / ข้อสั่งการเพิ่มเติม</span><textarea name="summary" rows="3">${escapeHtml(request.summary||"")}</textarea></label><div class="form-grid cols-2"><label><span>ผู้บันทึก</span><input name="recorder_name" value="${escapeHtml(request.recorder_name||"")}"></label><label><span>ตำแหน่ง</span><input name="recorder_position" value="${escapeHtml(request.recorder_position||"")}"></label></div><div class="align-end"><button class="button button-primary" type="submit">บันทึกสรุปผล</button></div></form></div></details>`;
   }).join("") : `<div class="panel empty-state"><strong>ยังไม่มีคำร้องที่ได้รับมอบหมาย</strong><span>เมื่อ${CENTRAL_NAME}ส่งต่อคำร้อง รายการจะแสดงที่หน้านี้</span></div>`;
+}
+
+function requestLocation(request) {
+  const raw = String(request.operation_point || "");
+  const coordinateMatch = raw.match(/พิกัด:\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);
+  const latitude = Number(request.operation_latitude ?? coordinateMatch?.[1]);
+  const longitude = Number(request.operation_longitude ?? coordinateMatch?.[2]);
+  const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
+  const description = raw.split(/\s*\|\s*พิกัด:/i)[0].trim() || "ไม่ได้ระบุรายละเอียดจุดปฏิบัติงาน";
+  return {description,hasCoordinates,latitude,longitude,mapUrl:hasCoordinates?`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`:""};
+}
+
+function detailItem(label,value,full=false) {
+  return `<div class="request-detail-item ${full?"full":""}"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || "–")}</dd></div>`;
+}
+
+function openRequestDetails(request) {
+  if (!request) return;
+  const dialog = $("#request-detail-dialog");
+  const location = requestLocation(request);
+  const status = STATUS[request.overall_status] || STATUS.pending;
+  $("#request-detail-no").textContent = request.request_no || "คำร้อง";
+  $("#request-detail-title").textContent = request.location_name || "รายละเอียดคำร้อง";
+  $("#request-detail-subtitle").textContent = `${PRIORITY[request.priority] || "ปกติ"} · ${status[0]}`;
+  $("#request-detail-content").innerHTML = `
+    <section class="request-detail-section"><h3>ข้อมูลผู้แจ้งและการรับเรื่อง</h3><dl class="request-detail-grid">${detailItem("ประเภทผู้แจ้ง",request.requester_type === "agency" ? "หน่วยงาน" : "ประชาชน")}${detailItem("ชื่อผู้แจ้ง / หน่วยงาน",request.requester_name)}${detailItem("วันและเวลารับคำขอ",formatDate(request.received_at))}${detailItem("ช่องทางรับเรื่อง",request.received_by)}</dl></section>
+    <section class="request-detail-section"><h3>สถานที่และความต้องการ</h3><dl class="request-detail-grid">${detailItem("ชื่อสถานที่",request.location_name)}${detailItem("หน่วยงาน / สถานศึกษา",request.organization)}${detailItem("จุดปฏิบัติงาน",location.description,true)}${detailItem("สถานการณ์ปัจจุบัน",request.situation,true)}${detailItem("ผลกระทบ",request.impact,true)}${detailItem("ภารกิจหรือความช่วยเหลือที่ต้องการ",request.mission,true)}</dl></section>
+    <section class="request-detail-section"><h3>กำหนดการและการประสานงาน</h3><dl class="request-detail-grid">${detailItem("กำลังพลที่ต้องการ",`${Number(request.personnel_required||0).toLocaleString("th-TH")} คน`)}${detailItem("ระดับความเร่งด่วน",PRIORITY[request.priority] || "ปกติ")}${detailItem("เริ่มปฏิบัติงาน",formatDate(request.operation_start_at))}${detailItem("สิ้นสุดโดยประมาณ",request.operation_end_at ? formatDate(request.operation_end_at) : "ไม่ได้ระบุ")}${detailItem("ชื่อผู้ประสานงาน",request.coordinator_name)}${detailItem("หน่วยงานผู้ประสานงาน",request.coordinator_org)}${detailItem("หมายเลขโทรศัพท์",request.coordinator_phone)}${detailItem("ศูนย์ย่อยที่รับผิดชอบ",request.assigned_center_name || subcenterSession?.data?.center?.name || "ยังไม่มอบหมาย")}${detailItem("ข้อสั่งการ / หมายเหตุการมอบหมาย",request.assignment_note || "ยังไม่มี",true)}</dl></section>`;
+  $("#request-detail-location-text").textContent = location.hasCoordinates ? `${location.description} · ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : location.description;
+  const mapElement = $("#request-detail-map");
+  const emptyElement = $("#request-detail-map-empty");
+  const mapLink = $("#request-detail-map-link");
+  mapElement.hidden = !location.hasCoordinates;
+  emptyElement.hidden = location.hasCoordinates;
+  mapLink.hidden = !location.hasCoordinates;
+  mapLink.href = location.mapUrl || "#";
+  dialog.showModal();
+  if (location.hasCoordinates && window.L) requestAnimationFrame(() => {
+    if (!requestDetailMap) {
+      requestDetailMap = L.map("request-detail-map", {scrollWheelZoom:false});
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}).addTo(requestDetailMap);
+    }
+    if (requestDetailMarker) requestDetailMarker.remove();
+    requestDetailMarker = L.marker([location.latitude,location.longitude]).addTo(requestDetailMap);
+    requestDetailMap.setView([location.latitude,location.longitude],16);
+    requestDetailMap.invalidateSize();
+  });
+}
+
+function requestFromDetailButton(button) {
+  const requestId = button.closest("[data-request-id]")?.dataset.requestId;
+  if (!requestId) return null;
+  if (routeInfo().name === "subcenter") return subcenterSession?.data?.requests?.find(record => record.request?.id === requestId)?.request;
+  return centralState?.requests?.find(request => request.id === requestId);
 }
 
 function stepEditorHtml(step,mode="legacy") {
@@ -880,8 +936,8 @@ document.addEventListener("keydown",event => {
 window.addEventListener("resize",() => {
   if (window.innerWidth > 1100) closeNavigationMenu();
 });
-$("#assignment-list").addEventListener("click",event => { const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
-$("#subcenter-request-list").addEventListener("click",event => { const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });
+$("#assignment-list").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
+$("#subcenter-request-list").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });
 $("#subcenter-request-list").addEventListener("submit",event => { const form=event.target.closest(".sub-summary-form"); if (form) { event.preventDefault(); saveSubcenterSummary(form); } });
 $("#step-editor").addEventListener("click",event => { const button=event.target.closest(".save-step"); if (button) saveLegacyStep(button); });
 $("#summary-form").addEventListener("submit",saveLegacySummary);
