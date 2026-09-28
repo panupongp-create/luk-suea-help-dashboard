@@ -124,3 +124,64 @@ fieldset{border-top-color:#eadfd7}
 .success-dialog>strong{color:var(--teal)}.manage-link-box button{background:#8d3e26}
 
 @media(max-width:720px){.form-actions{background:rgba(250,245,239,.95)}.map-toolbar,.map-meta{align-items:flex-start;flex-direction:column}.map-actions{width:100%}.map-button{flex:1}#operation-map{height:280px}.date-range-grid,.choice-card-grid{grid-template-columns:1fr}.choice-card{min-height:56px}}
+
+/* Phone viewport refinements */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+@media(max-width:720px){
+  .app-header{height:auto;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:9px 12px}
+  .brand{justify-self:center;min-width:0;max-width:100%;gap:8px}
+  .brand-mark{width:32px;height:32px;font-size:1.6rem}
+  .brand strong{max-width:none;font-size:.84rem;line-height:1.2;white-space:nowrap}
+  .brand small{display:none}
+  .main-nav{display:flex;width:100%;min-width:0;justify-content:center;gap:6px}
+  .main-nav #login-nav{display:block!important;flex:1 1 auto;max-width:none!important;min-width:0;padding:8px 9px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.76rem}
+  .main-nav #logout-button{display:block;flex:0 0 auto;padding:8px 9px}
+  .main-nav .nav-primary{flex:0 0 auto;padding:9px 12px;white-space:nowrap}
+  .main-nav .nav-primary:after{font-size:.78rem}
+  .connection-banner{padding:8px 12px;font-size:.76rem;line-height:1.5}
+  main{width:100%;max-width:100%;padding:20px 12px 72px}
+  .view,.page-heading,.page-heading>div,.panel,.form-card,.request-form{width:100%;max-width:100%;min-width:0}
+  .page-heading{gap:8px;margin-bottom:18px}
+  .page-heading h1{font-size:clamp(1.45rem,7vw,1.8rem);overflow-wrap:anywhere}
+  .page-heading p{font-size:.88rem;line-height:1.6}
+  .text-link{padding:5px 0;font-size:.82rem}
+  .request-form{gap:13px}
+  .form-card,.panel{padding:17px;border-radius:15px}
+  .section-title{margin-bottom:18px}
+  .section-title h2{font-size:1.08rem}
+  .form-grid{gap:14px}
+  input,select,textarea{min-width:0;font-size:16px}
+  .registry-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
+  .registry-stat{min-width:0;min-height:142px;padding:13px}
+  .registry-stat p{overflow-wrap:anywhere}
+  .group-option span{padding:12px;overflow-wrap:anywhere}
+  .availability-fieldset,.choice-fieldset{margin-top:20px;padding-top:18px}
+  .choice-card{padding:12px 13px}
+  .form-actions{left:0;right:0;bottom:6px;z-index:8;width:100%;gap:7px;padding:8px;margin:0;border:1px solid rgba(229,215,204,.85);box-shadow:0 8px 28px rgba(82,48,34,.12)}
+  .form-actions .button{min-width:0;padding:10px 9px;font-size:.86rem;line-height:1.35;text-align:center}
+  .table-wrap{width:100%;max-width:100%;overscroll-behavior-x:contain}
+  .login-shell{width:100%;max-width:100%;padding:22px 17px;border-radius:18px}
+  .login-card{padding:22px 17px}
+  .success-dialog{width:calc(100% - 24px);padding:23px 18px}
+  .toast{left:12px;right:12px;bottom:12px;max-width:none}
+  #home-view{margin-top:-20px}
+  #home-view .hero-panel{min-height:540px}
+  .hero-content{padding:38px 18px 128px}
+  .hero-content h1{font-size:clamp(2.15rem,11vw,3rem)}
+  .home-system-grid{width:calc(100% - 20px)}
+}
+@media(max-width:380px){
+  .app-header{padding-inline:9px}
+  .brand strong{font-size:.78rem}
+  .main-nav{gap:4px}
+  .main-nav #login-nav{padding-inline:6px;font-size:.7rem}
+  .main-nav #logout-button{padding-inline:7px}
+  .main-nav .nav-primary{padding-inline:9px}
+  .main-nav .nav-primary:after{font-size:.73rem}
+  main{padding-inline:10px}
+  .registry-stat{min-height:136px;padding:11px}
+  .registry-stat p{font-size:.69rem}
+  .form-card,.panel{padding:15px}
+  .form-actions .button{font-size:.8rem;padding-inline:7px}
+  .kpi-card{padding:13px}
+}
