@@ -126,6 +126,7 @@ fieldset{border-top-color:#eadfd7}
 @media(max-width:720px){.form-actions{background:rgba(250,245,239,.95)}.map-toolbar,.map-meta{align-items:flex-start;flex-direction:column}.map-actions{width:100%}.map-button{flex:1}#operation-map{height:280px}.date-range-grid,.choice-card-grid{grid-template-columns:1fr}.choice-card{min-height:56px}}
 
 /* Phone viewport refinements */
+[hidden]{display:none!important}
 html,body{width:100%;max-width:100%;overflow-x:hidden}
 @media(max-width:720px){
   .app-header{height:auto;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:9px 12px}
@@ -135,7 +136,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   .brand small{display:none}
   .main-nav{display:flex;width:100%;min-width:0;justify-content:center;gap:6px}
   .main-nav #login-nav{display:block!important;flex:1 1 auto;max-width:none!important;min-width:0;padding:8px 9px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.76rem}
-  .main-nav #logout-button{display:block;flex:0 0 auto;padding:8px 9px}
+  .main-nav #logout-button[hidden]{display:none!important}
+  .main-nav #logout-button:not([hidden]){display:block;flex:0 0 auto;padding:8px 9px;font-size:.72rem}
+  .main-nav #logout-button:not([hidden])::after{content:none}
   .main-nav .nav-primary{flex:0 0 auto;padding:9px 12px;white-space:nowrap}
   .main-nav .nav-primary:after{font-size:.78rem}
   .connection-banner{padding:8px 12px;font-size:.76rem;line-height:1.5}
