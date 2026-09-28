@@ -359,6 +359,50 @@ function volunteerPayload(form) {
   return payload;
 }
 
+function isValidThaiNationalId(value) {
+  const nationalId = String(value || "");
+  if (!/^[0-9]{13}$/.test(nationalId)) return false;
+  const weightedSum = [...nationalId.slice(0,12)].reduce((sum,digit,index) => sum + Number(digit) * (13-index),0);
+  return (11 - (weightedSum % 11)) % 10 === Number(nationalId[12]);
+}
+
+function setVolunteerIdentityValidity(form) {
+  const nationalId = form.elements.national_id;
+  const phone = form.elements.phone;
+  const idValue = nationalId.value.trim();
+  const phoneValue = phone.value.trim();
+  nationalId.setCustomValidity(idValue && idValue.length === 13 && !isValidThaiNationalId(idValue)
+    ? "เลขประจำตัวประชาชนไม่ถูกต้อง กรุณาตรวจสอบ Check Digit"
+    : "");
+  phone.setCustomValidity(phoneValue && !/^[0-9]{9,10}$/.test(phoneValue)
+    ? "กรอกเบอร์โทรศัพท์เป็นตัวเลข 9–10 หลัก เช่น 0812345678"
+    : "");
+  if (idValue && idValue.length === 13 && !isValidThaiNationalId(idValue)) {
+    nationalId.reportValidity();
+    return false;
+  }
+  if (phoneValue && !/^[0-9]{9,10}$/.test(phoneValue)) {
+    phone.reportValidity();
+    return false;
+  }
+  return true;
+}
+
+function attachNationalIdValidation(form) {
+  const nationalId = form.elements.national_id;
+  const phone = form.elements.phone;
+  nationalId.addEventListener("input",() => {
+    const digits = nationalId.value.replace(/[^0-9]/g,"").slice(0,13);
+    if (nationalId.value !== digits) nationalId.value = digits;
+    setVolunteerIdentityValidity(form);
+  });
+  phone.addEventListener("input",() => {
+    const digits = phone.value.replace(/[^0-9]/g,"").slice(0,10);
+    if (phone.value !== digits) phone.value = digits;
+    setVolunteerIdentityValidity(form);
+  });
+}
+
 function formatVolunteerDate(value) {
   const [year,month,day] = String(value).split("-").map(Number);
   if (!year || !month || !day) return "–";
@@ -409,6 +453,7 @@ async function registerVolunteer(payload) {
 
 async function handleVolunteerSubmit(event) {
   event.preventDefault();
+  if (!setVolunteerIdentityValidity(event.currentTarget)) return;
   if (!validateVolunteerOptions(event.currentTarget)) return;
   const button = $("#volunteer-submit");
   button.disabled = true;
@@ -627,7 +672,9 @@ function openVolunteerEditor(volunteerId) {
   const centers = (centralState?.centers||[]).filter(center => center.active || center.id === volunteer.subcenter_id);
   $("#edit-volunteer-center").innerHTML = `<option value="">เลือกศูนย์ย่อย</option>` + centers.map(center => `<option value="${center.id}">${escapeHtml(center.name)}</option>`).join("");
   ["volunteer_id","group_no","subcenter_id","scoutdd_id","national_id","full_name","phone","operational_areas","skills","vehicle","equipment","availability_details"].forEach(key => {
-    if (form.elements[key]) form.elements[key].value = volunteer[key] ?? "";
+    if (form.elements[key]) form.elements[key].value = key === "phone"
+      ? String(volunteer[key] ?? "").replace(/[^0-9]/g,"").slice(0,10)
+      : volunteer[key] ?? "";
   });
   form.elements.active.checked = Boolean(volunteer.active);
   $("#volunteer-edit-dialog").showModal();
@@ -636,6 +683,7 @@ function openVolunteerEditor(volunteerId) {
 async function saveVolunteerEdit(event) {
   event.preventDefault();
   const form = event.currentTarget;
+  if (!setVolunteerIdentityValidity(form)) return;
   const data = Object.fromEntries(new FormData(form));
   const volunteerId = data.volunteer_id;
   const payload = {...data,group_no:Number(data.group_no),active:form.elements.active.checked};
@@ -1070,6 +1118,7 @@ function registerWebMcpTools() {
 }
 
 $("#volunteer-form").addEventListener("submit",handleVolunteerSubmit);
+attachNationalIdValidation($("#volunteer-form"));
 $("#volunteer-form").addEventListener("change",event => {
   if (event.target.name === "availability_time_slots") $("#availability-time-error").hidden = true;
   if (event.target.name === "vehicle_types") $("#vehicle-type-error").hidden = true;
@@ -1093,6 +1142,7 @@ $("#volunteer-table-body").addEventListener("click",event => {
   if (event.target.closest(".delete-volunteer")) deleteVolunteer(row.dataset.volunteerId);
 });
 $("#volunteer-edit-form").addEventListener("submit",saveVolunteerEdit);
+attachNationalIdValidation($("#volunteer-edit-form"));
 $("#cancel-volunteer-edit").addEventListener("click",() => $("#volunteer-edit-dialog").close());
 $("#team-member-picker").addEventListener("change",updateTeamMemberCount);
 $("#team-leader").addEventListener("change",event => {
