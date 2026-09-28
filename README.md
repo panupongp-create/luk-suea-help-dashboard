@@ -75,13 +75,31 @@ git clone https://github.com/panupongp-create/luk-suea-help-dashboard.git
 cd luk-suea-help-dashboard
 cp .env.example .env
 # แก้ POSTGRES_PASSWORD และ APP_DB_PASSWORD ให้เป็นรหัสสุ่มที่ต่างกัน
-# SITE_ADDRESS=:80 สำหรับทดสอบผ่าน IP หรือใส่ชื่อโดเมนจริงเพื่อใช้ HTTPS
+# HTTP_PORT=80 คือพอร์ตบนเครื่องเซิร์ฟเวอร์ที่ส่งเข้า Nginx ใน Docker
 docker compose build
 docker compose up -d db
 docker compose run --rm migrate
 ```
 
-ฐานข้อมูล PostgreSQL อยู่ใน Docker volume `postgres_data` และไม่ได้เปิดพอร์ต 5432 ออกสู่สาธารณะ แอปใช้บัญชีฐานข้อมูล `app_api` ซึ่งเรียกได้เฉพาะฟังก์ชันที่หน้าเว็บต้องใช้และอ่านตาราง Dashboard ที่ตัดข้อมูลส่วนบุคคลแล้ว Caddy เป็นตัวรับ HTTP/HTTPS; เมื่อใช้โดเมนต้องตั้ง DNS มาที่เซิร์ฟเวอร์และเปิดพอร์ต 80/443
+ฐานข้อมูล PostgreSQL อยู่ใน Docker volume `postgres_data` และไม่ได้เปิดพอร์ต 5432 ออกสู่สาธารณะ แอปใช้บัญชีฐานข้อมูล `app_api` ซึ่งเรียกได้เฉพาะฟังก์ชันที่หน้าเว็บต้องใช้และอ่านตาราง Dashboard ที่ตัดข้อมูลส่วนบุคคลแล้ว Nginx ใน Docker เป็น reverse proxy ไปยัง `app:3000`; ไฟล์ตั้งค่าเริ่มต้นคือ `nginx/default.conf` เปิดพอร์ต 80 เพื่อทดสอบเท่านั้น
+
+### โดเมนและ HTTPS
+
+ที่ผู้ใช้แจ้งคือ IP `203.159.242.200` และชื่อ `www.AGER_DD-01.moe.go.th` การตั้ง DNS **ไม่ได้เกิดจาก Nginx หรือ Docker**: ผู้ดูแล DNS ของ `moe.go.th` ต้องสร้าง A record ของชื่อที่ใช้จริงให้ชี้มายัง IP นี้ และเปิดพอร์ต 80/443 ที่ไฟร์วอลล์ หากเครื่องมีบริการอื่นใช้พอร์ต 80 อยู่ ให้แก้ `HTTP_PORT` ใน `.env` หรือวางระบบหลัง reverse proxy ที่มีอยู่
+
+ชื่อ `www.AGER_DD-01.moe.go.th` มี `_` ซึ่งไม่ใช่อักขระที่ใช้ใน hostname สำหรับใบรับรอง HTTPS สาธารณะ จึงไม่ควรใช้กับระบบที่มีการล็อกอินและข้อมูลส่วนบุคคล ให้ผู้ดูแลโดเมนยืนยันชื่อที่ไม่มี `_` ก่อน (เช่น `www.AGER-DD-01.moe.go.th` *ถ้ามีสิทธิ์ตั้งชื่อนี้จริง*) แล้วจึงจัดเตรียมใบรับรอง TLS ที่ตรงกับชื่อนั้น HTTP ในไฟล์เริ่มต้นใช้ทดสอบการเชื่อมต่อเท่านั้น ไม่ใช่การเปิดใช้จริง
+
+เมื่อมีชื่อที่ถูกต้องและใบรับรองแล้ว ใช้ตัวเลือก HTTPS ของ Nginx ใน repo:
+
+```bash
+cp nginx/https.conf.example nginx/https.conf
+# แก้ example.org ใน nginx/https.conf เป็นชื่อโดเมนจริงที่ตรงกับใบรับรอง
+# วาง fullchain.pem และ privkey.pem ที่ออกให้ชื่อนั้นใน certs/ (ไม่ขึ้น Git)
+docker compose -f compose.yaml -f compose.https.yaml config --quiet
+docker compose -f compose.yaml -f compose.https.yaml up -d web
+```
+
+ตรวจจากเครื่องภายนอกด้วย `https://<ชื่อโดเมนจริง>/healthz` และทดสอบหน้าเข้าสู่ระบบ การต่ออายุใบรับรองและการ reload Nginx เป็นหน้าที่ผู้ดูแลเซิร์ฟเวอร์; ไฟล์ `certs/` และ `nginx/https.conf` ถูก Git ignore ไว้
 
 ### คัดลอกข้อมูลจริงจาก Supabase เดิม
 

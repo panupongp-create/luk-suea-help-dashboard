@@ -6,3 +6,5 @@
 Thumbs.db
 _site/
 node_modules/
+certs/
+nginx/https.conf
