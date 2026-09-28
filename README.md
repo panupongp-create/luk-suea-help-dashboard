@@ -120,6 +120,31 @@ sudo docker compose -f compose.yaml -f compose.https.yaml exec web nginx -t
 
 ### คัดลอกข้อมูลจริงจาก Supabase เดิม
 
+#### ทางเลือกเมื่อไม่มีรหัส PostgreSQL ของ Supabase
+
+เปิด `supabase/export-snapshot.sql` ใน Supabase SQL Editor และรันคำสั่ง `SELECT` นี้เพียงครั้งเดียว จากนั้นเลือก **Export → Download CSV** ไฟล์ผลลัพธ์มีข้อมูลส่วนบุคคลและ password/session hash ทั้งหมด ห้ามอัปโหลดขึ้น Git หรือส่งผ่านแชต การส่งออกนี้อ่านอย่างเดียว ไม่รีเซ็ตรหัส ไม่แก้ฐาน Supabase และไม่เปลี่ยนเว็บ GitHub Pages เดิม
+
+บนเครื่องเซิร์ฟเวอร์ให้สร้างโฟลเดอร์ส่วนตัว `mkdir -m 700 snapshots` ภายใน repo แล้วส่งไฟล์ CSV ไปเป็น `snapshots/source.csv` ผ่าน SCP/SFTP ที่ตรวจสอบ host key แล้ว (ห้ามนำไฟล์นี้ไว้ในโฟลเดอร์ public ของ Nginx) หลัง `git pull` และ `sudo docker compose build migrate` ให้ตรวจ snapshot ก่อน โดยต้องเห็นจำนวนข้อมูลที่คาดหวังครบทุกตาราง:
+
+```bash
+sudo docker compose -f compose.yaml -f compose.https.yaml run --rm -v "$PWD/snapshots/source.csv:/app/snapshot.csv:ro" migrate node server/import-snapshot.mjs /app/snapshot.csv --inspect
+```
+
+ฐาน Docker ที่เคยมีข้อมูลทดสอบต้องสำรองก่อนแทนที่ หยุดเว็บใหม่ชั่วคราว แล้วนำเข้าใน transaction เดียว; หากขั้นตอนใดล้มเหลวจะ rollback ฐาน Docker และฐาน Supabase จะไม่ได้รับผลกระทบ:
+
+```bash
+sudo docker compose -f compose.yaml -f compose.https.yaml stop web app
+umask 077
+sudo docker compose -f compose.yaml -f compose.https.yaml exec -T db sh -c 'exec pg_dump -U postgres -d luk_suea -Fc' > snapshots/target-before-import.dump
+sudo docker compose -f compose.yaml -f compose.https.yaml run --rm -v "$PWD/snapshots/source.csv:/app/snapshot.csv:ro" -e ALLOW_TARGET_REPLACE=YES migrate node server/import-snapshot.mjs /app/snapshot.csv --replace
+sudo docker compose -f compose.yaml -f compose.https.yaml up -d app web
+sudo docker compose -f compose.yaml -f compose.https.yaml exec -T db psql -U postgres -d luk_suea -c 'select (select count(*) from public.volunteers) as volunteers, (select count(*) from public.requests) as requests, (select count(*) from public.operation_teams) as teams, (select count(*) from public.app_users) as staff_users'
+```
+
+ไฟล์ CSV เป็นภาพข้อมูล ณ เวลาที่กด Export เท่านั้น ข้อมูลใหม่ที่เข้าผ่านเว็บ GitHub Pages หลังจากนั้นจะไม่ปรากฏบนเซิร์ฟเวอร์ Docker จนกว่าจะส่งออกและนำเข้าซ้ำ จึงควรวางแผนหยุดรับข้อมูลที่เว็บเดิมก่อนเปลี่ยนระบบจริง
+
+#### ทางเลือกผ่าน PostgreSQL connection string
+
 ข้อมูลต้นทางต้องใช้ PostgreSQL connection string ที่มีสิทธิ์อ่านตาราง `public` ทั้งหมด รวมถึงข้อมูลส่วนบุคคล บัญชีเจ้าหน้าที่แบบ hash, คำร้อง, ขั้นตอน, การมอบหมาย, ชุดปฏิบัติการ และผู้พักพิง ดู connection string ที่ Project Dashboard → Connect; ถ้าลืม database password ให้ผู้ดูแลโปรเจกต์รีเซ็ตใน Database Settings เองหลังตรวจผลต่อระบบอื่นที่ใช้รหัสเก่า [วิธีเลือกการเชื่อมต่อของ Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres) หากเซิร์ฟเวอร์เข้า direct connection (IPv6) ไม่ได้ ให้ใช้ **Session pooler พอร์ต 5432** ที่รองรับ IPv4 และคง SSL ไว้ อย่าใช้ Transaction pooler พอร์ต 6543 เพราะสคริปต์นี้ใช้ transaction กับ cursor
 
 ```bash
