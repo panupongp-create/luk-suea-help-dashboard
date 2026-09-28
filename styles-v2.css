@@ -216,3 +216,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   .menu-toggle{min-width:62px;padding-inline:10px;font-size:.78rem}
   .main-nav{left:9px;right:9px}
 }
+
+/* Authenticated navigation and split central workspaces */
+.main-nav .staff-nav[hidden],.main-nav .public-nav[hidden],.main-nav #login-nav[hidden]{display:none!important}
+#center-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+#dispatch-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:720px){
+  #center-kpis,#dispatch-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #dispatch-kpis .kpi-card:last-child{grid-column:1/-1}
+}

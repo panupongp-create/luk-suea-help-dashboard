@@ -93,6 +93,7 @@ function setConnectionState(state) {
 function routeInfo() {
   const raw = location.hash.replace(/^#/, "") || "home";
   if (raw === "center" || raw.startsWith("center/")) return {name:"center",raw};
+  if (raw === "dispatch" || raw.startsWith("dispatch/")) return {name:"dispatch",raw};
   if (raw === "subcenter" || raw.startsWith("subcenter/")) return {name:"subcenter",raw};
   if (raw.startsWith("manage/")) return {name:"manage",raw};
   return {name:raw,raw};
@@ -100,13 +101,13 @@ function routeInfo() {
 
 function route() {
   const info = routeInfo();
-  const allowed = ["home","registry","dashboard","new","login","center","subcenter","manage"];
+  const allowed = ["home","registry","dashboard","new","login","center","dispatch","subcenter","manage"];
   let name = allowed.includes(info.name) ? info.name : "home";
-  if (["center","subcenter"].includes(name) && !authSession) {
+  if (["center","dispatch","subcenter"].includes(name) && !authSession) {
     location.hash = "login";
     return;
   }
-  if (name === "center" && authSession?.role !== "central") {
+  if (["center","dispatch"].includes(name) && authSession?.role !== "central") {
     location.hash = "subcenter";
     return;
   }
@@ -129,7 +130,7 @@ function route() {
       operationMap?.invalidateSize();
     });
   }
-  if (name === "center") loadCentral();
+  if (["center","dispatch"].includes(name)) loadCentral(name);
   if (name === "subcenter") loadSubcenter();
   if (name === "manage") loadManage(info.raw);
   window.scrollTo({top:0,behavior:"smooth"});
@@ -138,11 +139,12 @@ function route() {
 function applyAuthUi() {
   const loginLink = $("#login-nav");
   const logoutButton = $("#logout-button");
+  const isCentral = authSession?.role === "central";
+  const isSubcenter = authSession?.role === "subcenter";
+  $$(".public-nav").forEach(link => { link.hidden = Boolean(authSession); });
+  $$(".central-nav").forEach(link => { link.hidden = !isCentral; });
+  $$(".subcenter-nav").forEach(link => { link.hidden = !isSubcenter; });
   if (authSession) {
-    loginLink.textContent = authSession.role === "central" ? CENTRAL_NAME : authSession.display_name;
-    loginLink.title = loginLink.textContent;
-    loginLink.href = authSession.role === "central" ? "#center" : "#subcenter";
-    loginLink.dataset.route = authSession.role === "central" ? "center" : "subcenter";
     logoutButton.hidden = false;
   } else {
     loginLink.textContent = "เข้าสู่ระบบเจ้าหน้าที่";
@@ -517,10 +519,13 @@ function demoCentralWorkspace() {
   return {label:`${CENTRAL_NAME} (โหมดตัวอย่าง)`,volunteers:demoVolunteers,teams:centralState?.teams||[],centers:existingCenters,requests:[...demoRows,...[...demoManage.values()].map(item=>item.request)].map(request => ({...request,assigned_center_id:request.id==="d1"?"c1":null,assigned_center_name:request.id==="d1"?"ศูนย์ประสานงานจังหวัดตัวอย่าง":null}))};
 }
 
-async function loadCentral() {
-  $("#center-content").hidden = true;
-  $("#center-loading").hidden = false;
-  $("#center-loading").textContent = `กำลังโหลดข้อมูล${CENTRAL_NAME}…`;
+async function loadCentral(viewName = "center") {
+  const targetName = viewName === "dispatch" ? "dispatch" : "center";
+  const content = $(`#${targetName}-content`);
+  const loading = $(`#${targetName}-loading`);
+  content.hidden = true;
+  loading.hidden = false;
+  loading.textContent = targetName === "dispatch" ? "กำลังโหลดข้อมูลคำร้องและศูนย์ย่อย…" : `กำลังโหลดข้อมูล${CENTRAL_NAME}…`;
   if (!authSession || authSession.role !== "central") { location.hash="login"; return; }
   try {
     if (online) {
@@ -532,11 +537,12 @@ async function loadCentral() {
     }
     if (!centralState) throw new Error("บัญชีไม่มีสิทธิ์หรือเซสชันหมดอายุ");
     $("#center-subtitle").textContent = CENTRAL_NAME;
+    $("#dispatch-subtitle").textContent = `${CENTRAL_NAME} · ตรวจสอบและมอบหมายงานตามพื้นที่รับผิดชอบ`;
     renderCentral();
-    $("#center-loading").hidden = true;
-    $("#center-content").hidden = false;
+    loading.hidden = true;
+    content.hidden = false;
   } catch (error) {
-    $("#center-loading").textContent = "เปิดศูนย์ควบคุมไม่ได้: " + (error.message || error);
+    loading.textContent = "เปิดระบบเจ้าหน้าที่ไม่ได้: " + (error.message || error);
     if (/เซสชัน|สิทธิ์/.test(error.message||"")) {
       localStorage.removeItem(SESSION_KEY);
       authSession = null;
@@ -553,8 +559,11 @@ function renderCentral() {
   const unassigned = requests.filter(request => !request.assigned_center_id).length;
   $("#center-kpis").innerHTML = [
     ["กำลังในทะเบียน",volunteers.length,"คน"],
-    ["ชุดปฏิบัติการ",teams.length,"ชุด"],
+    ["ชุดปฏิบัติการ",teams.length,"ชุด"]
+  ].map(([label,value,unit],index) => `<article class="kpi-card ${index===0?"kpi-accent":""}"><span>${label}</span><strong>${Number(value).toLocaleString("th-TH")}</strong><small>${unit}</small></article>`).join("");
+  $("#dispatch-kpis").innerHTML = [
     ["ศูนย์ย่อย",centers.length,"ศูนย์"],
+    ["คำร้องทั้งหมด",requests.length,"รายการ"],
     ["คำร้องรอมอบหมาย",unassigned,"รายการ"]
   ].map(([label,value,unit],index) => `<article class="kpi-card ${index===0?"kpi-accent":""}"><span>${label}</span><strong>${Number(value).toLocaleString("th-TH")}</strong><small>${unit}</small></article>`).join("");
   renderCentralVolunteers();
