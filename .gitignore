@@ -1,4 +1,7 @@
 .env
+.env.*
+!.env.example
+!.env.migration.example
 .DS_Store
 Thumbs.db
 _site/

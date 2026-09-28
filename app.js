@@ -1,8 +1,13 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
+import { createServerClient } from "./server-client.js";
 
 const config = window.APP_CONFIG || {};
-const online = Boolean(config.SUPABASE_URL && config.SUPABASE_PUBLISHABLE_KEY);
-const supabase = online ? createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY) : null;
+const selfHosted = config.BACKEND_MODE === "server";
+const online = selfHosted || Boolean(config.SUPABASE_URL && config.SUPABASE_PUBLISHABLE_KEY);
+const supabase = selfHosted
+  ? createServerClient()
+  : online
+    ? (await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm")).createClient(config.SUPABASE_URL, config.SUPABASE_PUBLISHABLE_KEY)
+    : null;
 const CENTRAL_NAME = "ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ";
 const normalizeCentralName = value => String(value ?? "").replaceAll("ศูนย์ส่วนกลาง", CENTRAL_NAME).replaceAll("ศูนย์กลาง", CENTRAL_NAME);
 

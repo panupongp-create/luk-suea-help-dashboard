@@ -1,0 +1,25 @@
+// The self-hosted API intentionally exposes only calls used by the browser.
+export const rpc = Object.freeze({
+  get_public_volunteer_stats: {args: [], rows: true},
+  get_public_subcenters: {args: [], rows: true},
+  register_public_volunteer: {args: [["p_payload", "jsonb"]], rows: true},
+  create_public_request: {args: [["p_payload", "jsonb"]], rows: true},
+  login_staff: {args: [["p_username", "text"], ["p_password", "text"]]},
+  get_staff_session: {args: [["p_session_token", "text"]]},
+  logout_staff: {args: [["p_session_token", "text"]]},
+  get_central_workspace_by_session: {args: [["p_session_token", "text"]]},
+  update_volunteer_by_session: {args: [["p_session_token", "text"], ["p_volunteer_id", "uuid"], ["p_payload", "jsonb"]]},
+  delete_volunteer_by_session: {args: [["p_session_token", "text"], ["p_volunteer_id", "uuid"]]},
+  create_operation_team_by_session: {args: [["p_session_token", "text"], ["p_payload", "jsonb"]], rows: true},
+  assign_request_to_center_by_session: {args: [["p_session_token", "text"], ["p_request_id", "uuid"], ["p_center_id", "uuid"], ["p_note", "text"]]},
+  assign_request_to_team_by_subcenter_session: {args: [["p_session_token", "text"], ["p_request_id", "uuid"], ["p_team_id", "uuid"], ["p_note", "text"]]},
+  get_subcenter_workspace_by_session: {args: [["p_session_token", "text"]]},
+  get_shelter_residents_by_session: {args: [["p_session_token", "text"]]},
+  save_shelter_resident_by_session: {args: [["p_session_token", "text"], ["p_payload", "jsonb"], ["p_resident_id", "uuid"]]},
+  delete_shelter_resident_by_session: {args: [["p_session_token", "text"], ["p_resident_id", "uuid"]]},
+  update_workflow_step_by_staff: {args: [["p_session_token", "text"], ["p_request_id", "uuid"], ["p_step_code", "text"], ["p_status", "text"], ["p_assignee", "text"], ["p_note", "text"]]},
+  update_request_summary_by_staff: {args: [["p_session_token", "text"], ["p_request_id", "uuid"], ["p_summary", "text"], ["p_recorder_name", "text"], ["p_recorder_position", "text"]]},
+  get_request_by_token: {args: [["p_request_id", "uuid"], ["p_edit_token", "text"]]},
+  update_workflow_step_by_token: {args: [["p_request_id", "uuid"], ["p_edit_token", "text"], ["p_step_code", "text"], ["p_status", "text"], ["p_assignee", "text"], ["p_note", "text"]]},
+  update_request_summary_by_token: {args: [["p_request_id", "uuid"], ["p_edit_token", "text"], ["p_summary", "text"], ["p_recorder_name", "text"], ["p_recorder_position", "text"]]}
+});

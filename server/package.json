@@ -1,0 +1,13 @@
+{
+  "name": "luk-suea-self-hosted",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs",
+    "migrate": "node migrate.mjs",
+    "copy-data": "node copy-data.mjs"
+  },
+  "dependencies": {
+    "pg": "8.23.0"
+  }
+}

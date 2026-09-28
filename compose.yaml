@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: luk_suea
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d luk_suea"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks: [internal]
+
+  migrate:
+    build: .
+    image: luk-suea-help-app:local
+    restart: "no"
+    command: ["node", "server/migrate.mjs"]
+    environment:
+      PGHOST: db
+      PGDATABASE: luk_suea
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+
+  app:
+    image: luk-suea-help-app:local
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGDATABASE: luk_suea
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks: [internal]
+
+  web:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+    networks: [internal]
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:

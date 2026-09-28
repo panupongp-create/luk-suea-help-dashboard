@@ -61,3 +61,66 @@ Repository variables ที่ workflow ใช้:
 - `SUPABASE_PUBLISHABLE_KEY`
 
 เมื่อ push เข้า branch `main` ระบบจะสร้าง `config.js` และ deploy หน้าเว็บอัตโนมัติ
+
+## รันเองด้วย Docker + PostgreSQL (ไม่ใช้ Supabase)
+
+โหมดนี้อยู่ใน repo เดียวกัน แต่ใช้ PostgreSQL และ API บนเซิร์ฟเวอร์ของคุณเอง เว็บ GitHub Pages เดิมยังใช้ Supabase ตามเดิมจนกว่าจะตัดสินใจย้ายผู้ใช้ไป URL ใหม่ ห้ามนำ `.env` หรือ `.env.migration` ขึ้น Git เพราะมีรหัสฐานข้อมูลและข้อมูลเชื่อมต่อต้นทาง
+
+### เริ่มฐานข้อมูลและเตรียมแอป
+
+บนเซิร์ฟเวอร์ Linux ที่ติดตั้ง Docker Engine และ Docker Compose plugin แล้ว:
+
+```bash
+git clone https://github.com/panupongp-create/luk-suea-help-dashboard.git
+cd luk-suea-help-dashboard
+cp .env.example .env
+# แก้ POSTGRES_PASSWORD และ APP_DB_PASSWORD ให้เป็นรหัสสุ่มที่ต่างกัน
+# SITE_ADDRESS=:80 สำหรับทดสอบผ่าน IP หรือใส่ชื่อโดเมนจริงเพื่อใช้ HTTPS
+docker compose build
+docker compose up -d db
+docker compose run --rm migrate
+```
+
+ฐานข้อมูล PostgreSQL อยู่ใน Docker volume `postgres_data` และไม่ได้เปิดพอร์ต 5432 ออกสู่สาธารณะ แอปใช้บัญชีฐานข้อมูล `app_api` ซึ่งเรียกได้เฉพาะฟังก์ชันที่หน้าเว็บต้องใช้และอ่านตาราง Dashboard ที่ตัดข้อมูลส่วนบุคคลแล้ว Caddy เป็นตัวรับ HTTP/HTTPS; เมื่อใช้โดเมนต้องตั้ง DNS มาที่เซิร์ฟเวอร์และเปิดพอร์ต 80/443
+
+### คัดลอกข้อมูลจริงจาก Supabase เดิม
+
+ข้อมูลต้นทางต้องใช้ PostgreSQL connection string ที่มีสิทธิ์อ่านตาราง `public` ทั้งหมด รวมถึงข้อมูลส่วนบุคคล บัญชีเจ้าหน้าที่แบบ hash, คำร้อง, ขั้นตอน, การมอบหมาย, ชุดปฏิบัติการ และผู้พักพิง ดู connection string ที่ Project Dashboard → Connect; ถ้าลืม database password ให้จัดการใน Database Settings ของโปรเจกต์เอง [วิธีเลือกการเชื่อมต่อของ Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres) หากเซิร์ฟเวอร์เข้า direct connection (IPv6) ไม่ได้ ให้ใช้ Session pooler ที่รองรับ IPv4 และคง SSL ไว้
+
+```bash
+cp .env.migration.example .env.migration
+# ใส่ SOURCE_DATABASE_URL จริงในไฟล์ .env.migration; ไม่ใส่รหัสในคำสั่งหรือ Git
+chmod 600 .env .env.migration
+docker compose -f compose.yaml -f compose.migration.yaml run --rm migrate node server/copy-data.mjs
+```
+
+สคริปต์อ่านต้นทางใน transaction แบบ snapshot และคัดลอกเฉพาะข้อมูลแอปใน `public` ไปยังฐานใหม่ที่ว่าง ตรวจสคีมาและจำนวนแถวทุกตาราง แล้ว commit พร้อมกัน หากมีตารางต้นทางเพิ่มเติมหรือฐานปลายทางมีข้อมูลอยู่ สคริปต์จะหยุดโดยไม่เขียนทับ เมื่อคัดลอกสำเร็จจึงเปิดเว็บใหม่:
+
+```bash
+docker compose up -d app web
+docker compose ps
+curl -f http://localhost/healthz
+```
+
+การคัดลอกเป็นภาพข้อมูล ณ เวลาที่รัน เว็บ GitHub Pages เดิมยังรับข้อมูลต่อได้ ดังนั้นข้อมูลใหม่หลังเวลานั้นจะไม่ปรากฏบนเซิร์ฟเวอร์ใหม่โดยอัตโนมัติ ก่อนเปลี่ยน URL ให้ผู้ใช้จริง ต้องหยุดการเขียนที่ระบบเดิมชั่วคราวและคัดลอกข้อมูลรอบสุดท้ายลงฐานปลายทางที่ว่างหรือมีแผนรวมข้อมูล หลีกเลี่ยงการให้ทั้งสองเว็บรับข้อมูลจริงพร้อมกัน เพราะฐานข้อมูลจะไม่ซิงก์กัน
+
+หากเคยคัดลอกไปแล้วและต้องการภาพข้อมูลล่าสุด ให้หยุดเว็บใหม่ สำรองฐานใหม่ก่อน แล้วรันด้วย `--replace` คำสั่งนี้แทนข้อมูลแอปทั้งหมดในฐานปลายทางภายใน transaction เดียว หากขั้นตอนใดผิดพลาดจะ rollback ข้อมูลเดิม ห้ามใช้เมื่อมีข้อมูลใหม่ที่บันทึกเฉพาะบนเว็บใหม่:
+
+```bash
+docker compose stop web app
+docker compose exec -T db sh -c 'exec pg_dump -U postgres -d luk_suea -Fc' > before-final-copy.dump
+docker compose -f compose.yaml -f compose.migration.yaml run --rm -e ALLOW_TARGET_REPLACE=YES migrate node server/copy-data.mjs --replace
+docker compose up -d app web
+```
+
+### สำรองข้อมูลและอัปเดตโค้ด
+
+สำรอง volume PostgreSQL เป็นประจำ และเก็บไฟล์สำรองนอกเซิร์ฟเวอร์ ก่อนอัปเดตแอป:
+
+```bash
+git pull
+docker compose build
+docker compose up -d
+```
+
+Migration ของสคีมาจะรันเฉพาะไฟล์ที่ยังไม่เคยใช้ ส่วนข้อมูลส่วนตัวไม่ได้ถูกใส่ลง image หรือ repo

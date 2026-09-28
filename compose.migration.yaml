@@ -1,0 +1,4 @@
+services:
+  migrate:
+    env_file:
+      - .env.migration
