@@ -192,7 +192,7 @@
           <div class="section-title"><span>02</span><div><h2>ส่วนที่ 1 ข้อมูลคำร้องขอ</h2><p>รายละเอียดอย่างน้อย 6 รายการตามแบบฟอร์ม</p></div></div>
           <div class="form-grid cols-2">
             <label><span>ชื่อสถานที่ *</span><input name="location_name" required maxlength="180" placeholder="เช่น โรงเรียน บ้าน ชุมชน"></label>
-            <label><span>หน่วยงาน / สถานศึกษา</span><input name="organization" maxlength="180"></label>
+            <label><span>หน่วยงาน / สถานศึกษา (ถ้ามี)</span><input name="organization" maxlength="180" placeholder="ถ้ามี"></label>
             <label class="full"><span>จุดปฏิบัติงาน</span><input name="operation_point" maxlength="500" placeholder="ระบุชื่อสถานที่ รายละเอียดจุดนัดหมาย หรือจุดสังเกต"></label>
             <div class="map-field full">
               <div class="map-toolbar"><div><strong>ปักหมุดจุดปฏิบัติงาน</strong><span>คลิกบนแผนที่เพื่อระบุตำแหน่ง</span></div><div class="map-actions"><button id="use-current-location" class="button button-ghost map-button" type="button">ใช้ตำแหน่งปัจจุบัน</button><button id="clear-operation-pin" class="button button-ghost map-button" type="button" hidden>ล้างหมุด</button></div></div>
@@ -208,7 +208,7 @@
             <label><span>วันและเวลาเริ่มปฏิบัติงาน *</span><input name="operation_start_at" type="datetime-local" required></label>
             <label><span>สิ้นสุดโดยประมาณ</span><input name="operation_end_at" type="datetime-local"></label>
           </div>
-          <fieldset><legend>ผู้ประสานงานพร้อมหมายเลขโทรศัพท์</legend><div class="form-grid cols-3"><label><span>ชื่อ–นามสกุล *</span><input name="coordinator_name" required maxlength="140"></label><label><span>หน่วยงาน *</span><input name="coordinator_org" required maxlength="180"></label><label><span>หมายเลขโทรศัพท์ *</span><input name="coordinator_phone" required maxlength="30" inputmode="tel" autocomplete="tel"></label></div></fieldset>
+          <fieldset><legend>ผู้แจ้ง/ผู้ขอความช่วยเหลือ (ผู้ประสานงาน)</legend><div class="form-grid cols-3"><label><span>ชื่อ–นามสกุล *</span><input name="coordinator_name" required maxlength="140"></label><label><span>หน่วยงาน (ถ้ามี)</span><input name="coordinator_org" maxlength="180" placeholder="ถ้ามี"></label><label><span>หมายเลขโทรศัพท์ *</span><input name="coordinator_phone" required maxlength="30" inputmode="tel" autocomplete="tel"></label></div></fieldset>
         </section>
         <div class="form-actions"><a href="#dashboard" class="button button-ghost">ยกเลิก</a><button id="submit-button" class="button button-primary" type="submit">ส่งคำร้องเข้าสู่ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ</button></div>
       </form>
@@ -382,6 +382,6 @@
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="app.js?v=17"></script>
+  <script type="module" src="app.js?v=18"></script>
 </body>
 </html>

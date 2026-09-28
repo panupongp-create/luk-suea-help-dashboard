@@ -1261,7 +1261,22 @@ function registerWebMcpTools() {
   const context = document.modelContext;
   if (!context?.registerTool) return;
   const lifecycle = new AbortController();
-  Promise.resolve(context.registerTool({name:"create_service_request",title:"สร้างคำร้องช่วยเหลือ",description:"สร้างคำร้องใหม่จากข้อมูลที่ครบถ้วนและคืนเลขที่คำร้อง",inputSchema:{type:"object",properties:{requester_type:{type:"string",enum:["citizen","agency"]},requester_name:{type:"string"},received_by:{type:"string"},location_name:{type:"string"},situation:{type:"string"},mission:{type:"string"},personnel_required:{type:"integer",minimum:1},operation_start_at:{type:"string"},coordinator_name:{type:"string"},coordinator_org:{type:"string"},coordinator_phone:{type:"string"},priority:{type:"string",enum:["normal","urgent","critical"]}},required:["requester_name","received_by","location_name","situation","mission","personnel_required","operation_start_at","coordinator_name","coordinator_org","coordinator_phone"],additionalProperties:true},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){const result=await createRequest({...input,requester_type:input.requester_type||"citizen",received_at:new Date().toISOString()});return{request_no:result.request_no}}},{signal:lifecycle.signal})).catch(()=>{});
+  Promise.resolve(context.registerTool({
+    name:"create_service_request",
+    title:"สร้างคำร้องช่วยเหลือ",
+    description:"สร้างคำร้องใหม่จากข้อมูลที่ครบถ้วนและคืนเลขที่คำร้อง",
+    inputSchema:{
+      type:"object",
+      properties:{requester_type:{type:"string",enum:["citizen","agency"]},requester_name:{type:"string"},received_by:{type:"string"},location_name:{type:"string"},situation:{type:"string"},mission:{type:"string"},personnel_required:{type:"integer",minimum:1},operation_start_at:{type:"string"},coordinator_name:{type:"string"},coordinator_org:{type:"string"},coordinator_phone:{type:"string"},priority:{type:"string",enum:["normal","urgent","critical"]}},
+      required:["requester_name","received_by","location_name","situation","mission","personnel_required","operation_start_at","coordinator_name","coordinator_phone"],
+      additionalProperties:true
+    },
+    annotations:{readOnlyHint:false,untrustedContentHint:false},
+    async execute(input){
+      const result=await createRequest({...input,requester_type:input.requester_type||"citizen",received_at:new Date().toISOString()});
+      return {request_no:result.request_no};
+    }
+  },{signal:lifecycle.signal})).catch(()=>{});
 }
 
 $("#volunteer-form").addEventListener("submit",handleVolunteerSubmit);
