@@ -77,6 +77,8 @@ let demoVolunteerCounter = demoVolunteers.length + 1;
 const demoManage = new Map();
 const SESSION_KEY = "luk_suea_staff_session";
 let authSession = null;
+let volunteerPage = 0;
+const VOLUNTEERS_PER_PAGE = 5;
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -371,17 +373,19 @@ function setVolunteerIdentityValidity(form) {
   const phone = form.elements.phone;
   const idValue = nationalId.value.trim();
   const phoneValue = phone.value.trim();
-  nationalId.setCustomValidity(idValue && idValue.length === 13 && !isValidThaiNationalId(idValue)
+  const editingUnchangedId = form.id === "volunteer-edit-form" && idValue === form.dataset.originalNationalId;
+  const editingUnchangedPhone = form.id === "volunteer-edit-form" && phoneValue === form.dataset.originalPhone;
+  nationalId.setCustomValidity(!editingUnchangedId && idValue && idValue.length === 13 && !isValidThaiNationalId(idValue)
     ? "เลขประจำตัวประชาชนไม่ถูกต้อง กรุณาตรวจสอบ Check Digit"
     : "");
-  phone.setCustomValidity(phoneValue && !/^[0-9]{9,10}$/.test(phoneValue)
+  phone.setCustomValidity(!editingUnchangedPhone && phoneValue && !/^[0-9]{9,10}$/.test(phoneValue)
     ? "กรอกเบอร์โทรศัพท์เป็นตัวเลข 9–10 หลัก เช่น 0812345678"
     : "");
-  if (idValue && idValue.length === 13 && !isValidThaiNationalId(idValue)) {
+  if (!editingUnchangedId && idValue && idValue.length === 13 && !isValidThaiNationalId(idValue)) {
     nationalId.reportValidity();
     return false;
   }
-  if (phoneValue && !/^[0-9]{9,10}$/.test(phoneValue)) {
+  if (!editingUnchangedPhone && phoneValue && !/^[0-9]{9,10}$/.test(phoneValue)) {
     phone.reportValidity();
     return false;
   }
@@ -657,12 +661,20 @@ function renderCentral() {
 function filteredCentralVolunteers() {
   const query = $("#volunteer-search").value.trim().toLowerCase();
   const group = $("#volunteer-group-filter").value;
-  return (centralState?.volunteers||[]).filter(item => (group === "all" || Number(item.group_no) === Number(group)) && (!query || [item.registration_no,item.full_name,item.organization_network,item.operational_areas,item.skills].some(value => String(value||"").toLowerCase().includes(query))));
+  return (centralState?.volunteers||[])
+    .filter(item => (group === "all" || Number(item.group_no) === Number(group)) && (!query || [item.registration_no,item.full_name,item.organization_network,item.operational_areas,item.skills].some(value => String(value||"").toLowerCase().includes(query))))
+    .sort((a,b) => String(b.created_at||"").localeCompare(String(a.created_at||"")) || String(b.registration_no||"").localeCompare(String(a.registration_no||"")));
 }
 
 function renderCentralVolunteers() {
-  const rows = filteredCentralVolunteers();
+  const filtered = filteredCentralVolunteers();
+  volunteerPage = Math.min(volunteerPage,Math.max(0,Math.ceil(filtered.length/VOLUNTEERS_PER_PAGE)-1));
+  const start = volunteerPage*VOLUNTEERS_PER_PAGE;
+  const rows = filtered.slice(start,start+VOLUNTEERS_PER_PAGE);
   $("#volunteer-table-body").innerHTML = rows.length ? rows.map(item => `<tr data-volunteer-id="${item.id}"><td><strong>${escapeHtml(item.registration_no)}</strong><span class="cell-sub">${escapeHtml(item.scoutdd_id||"ไม่มี ScoutDD ID")}</span></td><td><strong>${escapeHtml(item.full_name)}</strong><span class="cell-sub">${escapeHtml(item.phone)}</span></td><td><strong>${escapeHtml(item.center_name||item.organization_network||"ยังไม่ระบุศูนย์")}</strong><span class="group-chip">กลุ่ม ${Number(item.group_no)}</span></td><td><strong>${escapeHtml(item.operational_areas)}</strong><span class="cell-sub clamp-text">${escapeHtml(item.skills)}</span></td><td><span class="status-chip ${item.active?"completed":"blocked"}">${item.active?"พร้อมจัดกำลัง":"ไม่พร้อม"}</span><span class="cell-sub clamp-text">${escapeHtml(item.availability_details)}</span></td><td><div class="row-actions"><button class="button button-ghost compact-action edit-volunteer" type="button">แก้ไข</button><button class="button button-danger compact-action delete-volunteer" type="button">ลบ</button></div></td></tr>`).join("") : `<tr><td colspan="6"><div class="empty-state compact-empty">ไม่พบข้อมูลตามเงื่อนไข</div></td></tr>`;
+  $("#volunteer-page-info").textContent = filtered.length ? `แสดง ${start+1}–${start+rows.length} จาก ${filtered.length} คน` : "ไม่พบผู้ลงทะเบียน";
+  $("#volunteer-prev-page").disabled = volunteerPage === 0;
+  $("#volunteer-next-page").disabled = start+VOLUNTEERS_PER_PAGE >= filtered.length;
 }
 
 function openVolunteerEditor(volunteerId) {
@@ -671,11 +683,17 @@ function openVolunteerEditor(volunteerId) {
   const form = $("#volunteer-edit-form");
   const centers = (centralState?.centers||[]).filter(center => center.active || center.id === volunteer.subcenter_id);
   $("#edit-volunteer-center").innerHTML = `<option value="">เลือกศูนย์ย่อย</option>` + centers.map(center => `<option value="${center.id}">${escapeHtml(center.name)}</option>`).join("");
-  ["volunteer_id","group_no","subcenter_id","scoutdd_id","national_id","full_name","phone","operational_areas","skills","vehicle","equipment","availability_details"].forEach(key => {
+  form.elements.volunteer_id.value = volunteer.id;
+  ["group_no","subcenter_id","scoutdd_id","national_id","full_name","phone","operational_areas","skills","vehicle","equipment","availability_details"].forEach(key => {
     if (form.elements[key]) form.elements[key].value = key === "phone"
       ? String(volunteer[key] ?? "").replace(/[^0-9]/g,"").slice(0,10)
       : volunteer[key] ?? "";
   });
+  form.dataset.originalNationalId = String(volunteer.national_id||"");
+  form.dataset.originalPhone = form.elements.phone.value;
+  form.elements.national_id.setCustomValidity("");
+  form.elements.phone.setCustomValidity("");
+  $("#volunteer-edit-error").hidden = true;
   form.elements.active.checked = Boolean(volunteer.active);
   $("#volunteer-edit-dialog").showModal();
 }
@@ -689,8 +707,11 @@ async function saveVolunteerEdit(event) {
   const payload = {...data,group_no:Number(data.group_no),active:form.elements.active.checked};
   delete payload.volunteer_id;
   const button = $("button[type=submit]",form);
+  const errorBox = $("#volunteer-edit-error");
+  errorBox.hidden = true;
   button.disabled = true;
   try {
+    if (!volunteerId) throw new Error("ไม่พบรหัสผู้ลงทะเบียน กรุณาปิดหน้าต่างแล้วเปิดรายการใหม่");
     if (online) {
       const {error} = await supabase.rpc("update_volunteer_by_session",{p_session_token:authSession.session_token,p_volunteer_id:volunteerId,p_payload:payload});
       if (error) throw error;
@@ -704,14 +725,33 @@ async function saveVolunteerEdit(event) {
     $("#volunteer-edit-dialog").close();
     showToast("บันทึกข้อมูลผู้ลงทะเบียนแล้ว");
   } catch (error) {
-    showToast("แก้ไขข้อมูลไม่สำเร็จ: " + (error.message||error),true);
+    errorBox.textContent = "แก้ไขข้อมูลไม่สำเร็จ: " + (error.message||error);
+    errorBox.hidden = false;
   } finally { button.disabled = false; }
 }
 
-async function deleteVolunteer(volunteerId) {
+function openVolunteerDeleteDialog(volunteerId) {
   const volunteer = (centralState?.volunteers||[]).find(item => item.id===volunteerId);
-  if (!volunteer || !window.confirm(`ยืนยันลบ ${volunteer.full_name} ออกจากทะเบียน?`)) return;
+  if (!volunteer) return;
+  if ((centralState?.teams||[]).some(team => team.members?.some(member => member.volunteer_id === volunteerId))) {
+    showToast("ผู้ลงทะเบียนอยู่ในชุดปฏิบัติการแล้ว กรุณาแก้ไขเป็นไม่พร้อมแทนการลบ",true);
+    return;
+  }
+  const dialog = $("#volunteer-delete-dialog");
+  dialog.dataset.volunteerId = volunteerId;
+  $("#volunteer-delete-name").textContent = volunteer.full_name;
+  $("#volunteer-delete-error").hidden = true;
+  dialog.showModal();
+}
+
+async function deleteVolunteer() {
+  const dialog = $("#volunteer-delete-dialog");
+  const volunteerId = dialog.dataset.volunteerId;
+  const button = $("#confirm-volunteer-delete");
+  const errorBox = $("#volunteer-delete-error");
+  button.disabled = true;
   try {
+    if (!volunteerId) throw new Error("ไม่พบรหัสผู้ลงทะเบียน กรุณาเปิดรายการใหม่");
     if (online) {
       const {error} = await supabase.rpc("delete_volunteer_by_session",{p_session_token:authSession.session_token,p_volunteer_id:volunteerId});
       if (error) throw error;
@@ -722,10 +762,12 @@ async function deleteVolunteer(volunteerId) {
       if (demoIndex>=0) demoVolunteers.splice(demoIndex,1);
       renderCentral();
     }
+    dialog.close();
     showToast("ลบข้อมูลผู้ลงทะเบียนแล้ว");
   } catch (error) {
-    showToast("ลบข้อมูลไม่สำเร็จ: " + (error.message||error),true);
-  }
+    errorBox.textContent = "ลบข้อมูลไม่สำเร็จ: " + (error.message||error);
+    errorBox.hidden = false;
+  } finally { button.disabled = false; }
 }
 
 function renderMemberPicker() {
@@ -1133,17 +1175,21 @@ $("#use-current-location").addEventListener("click",useCurrentLocation);
 $("#clear-operation-pin").addEventListener("click",clearOperationPin);
 $("#search-input").addEventListener("input",renderRequestTable);
 $("#status-filter").addEventListener("change",renderRequestTable);
-$("#volunteer-search").addEventListener("input",renderCentralVolunteers);
-$("#volunteer-group-filter").addEventListener("change",renderCentralVolunteers);
+$("#volunteer-search").addEventListener("input",() => { volunteerPage=0; renderCentralVolunteers(); });
+$("#volunteer-group-filter").addEventListener("change",() => { volunteerPage=0; renderCentralVolunteers(); });
+$("#volunteer-prev-page").addEventListener("click",() => { if (volunteerPage>0) { volunteerPage--; renderCentralVolunteers(); } });
+$("#volunteer-next-page").addEventListener("click",() => { volunteerPage++; renderCentralVolunteers(); });
 $("#volunteer-table-body").addEventListener("click",event => {
   const row = event.target.closest("tr[data-volunteer-id]");
   if (!row) return;
   if (event.target.closest(".edit-volunteer")) openVolunteerEditor(row.dataset.volunteerId);
-  if (event.target.closest(".delete-volunteer")) deleteVolunteer(row.dataset.volunteerId);
+  if (event.target.closest(".delete-volunteer")) openVolunteerDeleteDialog(row.dataset.volunteerId);
 });
 $("#volunteer-edit-form").addEventListener("submit",saveVolunteerEdit);
 attachNationalIdValidation($("#volunteer-edit-form"));
 $("#cancel-volunteer-edit").addEventListener("click",() => $("#volunteer-edit-dialog").close());
+$("#cancel-volunteer-delete").addEventListener("click",() => $("#volunteer-delete-dialog").close());
+$("#confirm-volunteer-delete").addEventListener("click",deleteVolunteer);
 $("#team-member-picker").addEventListener("change",updateTeamMemberCount);
 $("#team-leader").addEventListener("change",event => {
   const checkbox = $(`#team-member-picker input[value="${event.target.value}"]`);

@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Noto+Serif+Thai:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=21">
+  <link rel="stylesheet" href="styles-v2.css?v=22">
 </head>
 <body>
   <header class="app-header">
@@ -240,8 +240,9 @@
       <div id="center-content" hidden>
         <div id="center-kpis" class="kpi-grid center-kpis"></div>
         <section class="panel admin-section">
-          <div class="panel-heading"><div><h2>ทะเบียนกำลัง 6 กลุ่ม</h2><p>ภาพรวมผู้ลงทะเบียนทุกศูนย์ย่อย พร้อมเครื่องมือแก้ไขและลบข้อมูล</p></div><div class="table-tools"><input id="volunteer-search" type="search" placeholder="ค้นหาชื่อ ศูนย์ย่อย หรือพื้นที่"><select id="volunteer-group-filter"><option value="all">ทุกกลุ่ม</option></select></div></div>
+          <div class="panel-heading"><div><h2>ทะเบียนกำลัง 6 กลุ่ม</h2><p>แสดงผู้ลงทะเบียนล่าสุด 5 คน ค้นหาและเปลี่ยนหน้าเพื่อจัดการรายการอื่น</p></div><div class="table-tools"><input id="volunteer-search" type="search" placeholder="ค้นหาชื่อ ศูนย์ย่อย หรือพื้นที่"><select id="volunteer-group-filter"><option value="all">ทุกกลุ่ม</option></select></div></div>
           <div class="table-wrap compact-volunteer-table"><table><thead><tr><th>เลขทะเบียน</th><th>ชื่อ–นามสกุล</th><th>ศูนย์ย่อย / กลุ่ม</th><th>พื้นที่ / ทักษะ</th><th>ความพร้อม</th><th>จัดการ</th></tr></thead><tbody id="volunteer-table-body"></tbody></table></div>
+          <div class="volunteer-pagination" aria-label="หน้ารายชื่อผู้ลงทะเบียน"><span id="volunteer-page-info" aria-live="polite"></span><div><button id="volunteer-prev-page" class="button button-ghost compact-action" type="button">ก่อนหน้า</button><button id="volunteer-next-page" class="button button-ghost compact-action" type="button">ถัดไป</button></div></div>
         </section>
         <section class="panel admin-section">
           <div class="panel-heading"><div><h2>ภาพรวมชุดปฏิบัติการทุกศูนย์ย่อย</h2><p>แต่ละศูนย์ย่อยเป็นผู้จัดชุด ส่วนศูนย์อำนวยการเห็นภาพรวมและใช้มอบหมายภารกิจ</p></div></div>
@@ -325,8 +326,15 @@
         <label class="full"><span>รายละเอียดวันและเวลาที่พร้อม *</span><input name="availability_details" required maxlength="1000"></label>
         <label class="availability-toggle"><input name="active" type="checkbox"><span>พร้อมจัดกำลัง</span></label>
       </div>
+      <p id="volunteer-edit-error" class="form-error" role="alert" hidden></p>
       <div class="request-detail-actions"><button class="button button-ghost" type="button" id="cancel-volunteer-edit">ยกเลิก</button><button class="button button-primary" type="submit">บันทึกการแก้ไข</button></div>
     </form>
+  </dialog>
+  <dialog id="volunteer-delete-dialog" class="success-dialog volunteer-delete-dialog" aria-labelledby="volunteer-delete-title">
+    <h2 id="volunteer-delete-title">ยืนยันลบผู้ลงทะเบียน</h2>
+    <p>ต้องการลบ <strong id="volunteer-delete-name"></strong> ออกจากทะเบียนหรือไม่?</p>
+    <p id="volunteer-delete-error" class="form-error" role="alert" hidden></p>
+    <div class="dialog-actions"><button id="cancel-volunteer-delete" class="button button-ghost" type="button">ยกเลิก</button><button id="confirm-volunteer-delete" class="button button-danger" type="button">ยืนยันลบ</button></div>
   </dialog>
   <dialog id="request-detail-dialog" class="request-detail-dialog" aria-labelledby="request-detail-title">
     <div class="request-detail-header">
@@ -345,6 +353,6 @@
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="app.js?v=15"></script>
+  <script type="module" src="app.js?v=16"></script>
 </body>
 </html>

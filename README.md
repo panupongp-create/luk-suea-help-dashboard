@@ -38,7 +38,8 @@
 6. รัน `supabase/migration-006-subcenter-team-management.sql`
 7. รัน `supabase/migration-007-subcenter-team-dispatch.sql`
 8. รัน `supabase/migration-008-thai-id-and-phone-validation.sql`
-9. สร้างบัญชีเริ่มต้นหนึ่งครั้งจาก SQL Editor:
+9. รัน `supabase/migration-009-allow-editing-legacy-volunteers.sql`
+10. สร้างบัญชีเริ่มต้นหนึ่งครั้งจาก SQL Editor:
 
 ```sql
 select * from public.provision_initial_staff_accounts();
