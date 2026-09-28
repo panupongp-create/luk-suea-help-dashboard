@@ -1,0 +1,5 @@
+# Optional HTTP-only diagnostics. Do not use for logins or personal data.
+services:
+  web:
+    ports:
+      - "${HTTP_PORT:-80}:80"

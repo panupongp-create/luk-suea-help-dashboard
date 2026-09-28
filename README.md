@@ -75,19 +75,19 @@ git clone https://github.com/panupongp-create/luk-suea-help-dashboard.git
 cd luk-suea-help-dashboard
 cp .env.example .env
 # แก้ POSTGRES_PASSWORD และ APP_DB_PASSWORD ให้เป็นรหัสสุ่มที่ต่างกัน
-# HTTP_PORT=80 คือพอร์ตบนเครื่องเซิร์ฟเวอร์ที่ส่งเข้า Nginx ใน Docker
+# ตัว compose.yaml ไม่เผยแพร่พอร์ตเว็บ; โหมด HTTPS ใช้ compose.https.yaml เพิ่ม
 docker compose build
 docker compose up -d db
 docker compose run --rm migrate
 ```
 
-ฐานข้อมูล PostgreSQL อยู่ใน Docker volume `postgres_data` และไม่ได้เปิดพอร์ต 5432 ออกสู่สาธารณะ แอปใช้บัญชีฐานข้อมูล `app_api` ซึ่งเรียกได้เฉพาะฟังก์ชันที่หน้าเว็บต้องใช้และอ่านตาราง Dashboard ที่ตัดข้อมูลส่วนบุคคลแล้ว Nginx ใน Docker เป็น reverse proxy ไปยัง `app:3000`; ไฟล์ตั้งค่าเริ่มต้นคือ `nginx/default.conf` เปิดพอร์ต 80 เพื่อทดสอบเท่านั้น
+ฐานข้อมูล PostgreSQL อยู่ใน Docker volume `postgres_data` และไม่ได้เปิดพอร์ต 5432 ออกสู่สาธารณะ แอปใช้บัญชีฐานข้อมูล `app_api` ซึ่งเรียกได้เฉพาะฟังก์ชันที่หน้าเว็บต้องใช้และอ่านตาราง Dashboard ที่ตัดข้อมูลส่วนบุคคลแล้ว Nginx ใน Docker เป็น reverse proxy ไปยัง `app:3000` ตัว `compose.yaml` ไม่เผยแพร่พอร์ตเว็บ; `compose.https.yaml` เปิดเฉพาะ 443 ส่วน `compose.http.yaml` เปิด 80 สำหรับการทดสอบแยกต่างหากเท่านั้น
 
 ### โดเมนและ HTTPS
 
-ที่ผู้ใช้แจ้งคือ IP `203.159.242.200` และชื่อ `www.AGER_DD-01.moe.go.th` การตั้ง DNS **ไม่ได้เกิดจาก Nginx หรือ Docker**: ผู้ดูแล DNS ของ `moe.go.th` ต้องสร้าง A record ของชื่อที่ใช้จริงให้ชี้มายัง IP นี้ และเปิดพอร์ต 80/443 ที่ไฟร์วอลล์ หากเครื่องมีบริการอื่นใช้พอร์ต 80 อยู่ ให้แก้ `HTTP_PORT` ใน `.env` หรือวางระบบหลัง reverse proxy ที่มีอยู่
+ที่ผู้ใช้แจ้งคือ IP `203.159.242.200` และชื่อ `AGER_DD-01.moe.go.th` การตั้ง DNS **ไม่ได้เกิดจาก Nginx หรือ Docker**: ผู้ดูแล DNS ของ `moe.go.th` ต้องสร้าง A record ของชื่อที่ใช้จริงให้ชี้มายัง IP นี้ และเปิดพอร์ต 443 ที่ไฟร์วอลล์
 
-ชื่อ `www.AGER_DD-01.moe.go.th` มี `_` ซึ่งไม่ใช่อักขระที่ใช้ใน hostname สำหรับใบรับรอง HTTPS สาธารณะ จึงไม่ควรใช้กับระบบที่มีการล็อกอินและข้อมูลส่วนบุคคล ให้ผู้ดูแลโดเมนยืนยันชื่อที่ไม่มี `_` ก่อน (เช่น `www.AGER-DD-01.moe.go.th` *ถ้ามีสิทธิ์ตั้งชื่อนี้จริง*) แล้วจึงจัดเตรียมใบรับรอง TLS ที่ตรงกับชื่อนั้น HTTP ในไฟล์เริ่มต้นใช้ทดสอบการเชื่อมต่อเท่านั้น ไม่ใช่การเปิดใช้จริง
+ชื่อ `AGER_DD-01.moe.go.th` มี `_` ทำให้การตรวจชื่อใบรับรองข้ามแพลตฟอร์มให้ผลต่างกัน: Windows/Schannel ผ่าน แต่ OpenSSL แจ้ง hostname mismatch ไม่ควรใช้กับระบบที่มีการล็อกอินและข้อมูลส่วนบุคคลจนกว่าจะได้ชื่อที่ไม่มี `_` เช่น `AGER-DD-01.moe.go.th` (*หากผู้ดูแล DNS อนุมัติและสร้างชื่อนี้จริง*) ใบรับรอง `*.moe.go.th` ที่ได้รับครอบคลุมชื่อใหม่แบบระดับเดียวนี้
 
 เมื่อมีชื่อที่ถูกต้องและใบรับรองแล้ว ใช้ตัวเลือก HTTPS ของ Nginx ใน repo:
 
@@ -103,7 +103,7 @@ docker compose -f compose.yaml -f compose.https.yaml up -d web
 
 #### ทดสอบ Nginx กับโดเมน `AGER_DD-01.moe.go.th` ที่ได้รับมา
 
-ถ้าใบรับรองสองไฟล์อยู่บนเซิร์ฟเวอร์ที่ `/home/eduadmin/ssl/all_certificate.crt` และ `/home/eduadmin/ssl/privatekey.key` แล้ว สามารถทดสอบว่า Nginx เปิดพอร์ต 443 และส่งต่อถึงแอปได้โดยไม่คัดลอก private key เข้า repo ไฟล์ตัวอย่างนี้ **ไม่ redirect HTTP** และ **ไม่ใช่การเปิด HTTPS สำหรับใช้งานจริง**: OpenSSL ไม่ยอมรับชื่อที่มี `_` กับใบรับรอง `*.moe.go.th` ดังนั้นบางไคลเอนต์จะขึ้น certificate hostname mismatch
+ถ้าใบรับรองสองไฟล์อยู่บนเซิร์ฟเวอร์ที่ `/home/eduadmin/ssl/all_certificate.crt` และ `/home/eduadmin/ssl/privatekey.key` แล้ว สามารถทดสอบว่า Nginx เปิดพอร์ต 443 และส่งต่อถึงแอปได้โดยไม่คัดลอก private key เข้า repo ไฟล์ตัวอย่างนี้ **ไม่เปิดพอร์ต 80** และ **ไม่ใช่การเปิด HTTPS สำหรับใช้งานจริง**: OpenSSL ไม่ยอมรับชื่อที่มี `_` กับใบรับรอง `*.moe.go.th` ดังนั้นบางไคลเอนต์จะขึ้น certificate hostname mismatch
 
 ```bash
 # บนเซิร์ฟเวอร์ ในโฟลเดอร์ repo
@@ -114,11 +114,13 @@ sudo docker compose -f compose.yaml -f compose.https.yaml up -d web
 sudo docker compose -f compose.yaml -f compose.https.yaml exec web nginx -t
 ```
 
+หากเคยเปิดเว็บบนพอร์ต 80 ด้วย Compose รุ่นเก่า หลัง `git pull` ให้รัน `sudo docker compose -f compose.yaml -f compose.https.yaml up -d --no-deps --force-recreate web` แล้วตรวจ `sudo docker compose -f compose.yaml -f compose.https.yaml ps`: บรรทัด `web` ต้องมีเฉพาะ `443->443/tcp` และไม่มี `80->80/tcp` ห้ามใช้ `docker compose -f compose.yaml -f compose.http.yaml up` บนระบบจริง
+
 ทดสอบ `https://AGER_DD-01.moe.go.th/healthz` จากเครื่องภายนอกโดย **ไม่** กดข้ามคำเตือนใบรับรอง ถ้าไคลเอนต์ไม่ยอมรับใบรับรอง ให้หยุดที่จุดนี้และให้ผู้ดูแลโดเมนเพิ่มชื่อที่ถูกต้อง เช่น `AGER-DD-01.moe.go.th` ก่อนใช้กับคำร้องหรือบัญชีเจ้าหน้าที่ ใบรับรอง wildcard ที่มีอยู่ครอบคลุมชื่อใหม่ระดับเดียวนี้หาก DNS ถูกสร้างจริง
 
 ### คัดลอกข้อมูลจริงจาก Supabase เดิม
 
-ข้อมูลต้นทางต้องใช้ PostgreSQL connection string ที่มีสิทธิ์อ่านตาราง `public` ทั้งหมด รวมถึงข้อมูลส่วนบุคคล บัญชีเจ้าหน้าที่แบบ hash, คำร้อง, ขั้นตอน, การมอบหมาย, ชุดปฏิบัติการ และผู้พักพิง ดู connection string ที่ Project Dashboard → Connect; ถ้าลืม database password ให้จัดการใน Database Settings ของโปรเจกต์เอง [วิธีเลือกการเชื่อมต่อของ Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres) หากเซิร์ฟเวอร์เข้า direct connection (IPv6) ไม่ได้ ให้ใช้ Session pooler ที่รองรับ IPv4 และคง SSL ไว้
+ข้อมูลต้นทางต้องใช้ PostgreSQL connection string ที่มีสิทธิ์อ่านตาราง `public` ทั้งหมด รวมถึงข้อมูลส่วนบุคคล บัญชีเจ้าหน้าที่แบบ hash, คำร้อง, ขั้นตอน, การมอบหมาย, ชุดปฏิบัติการ และผู้พักพิง ดู connection string ที่ Project Dashboard → Connect; ถ้าลืม database password ให้ผู้ดูแลโปรเจกต์รีเซ็ตใน Database Settings เองหลังตรวจผลต่อระบบอื่นที่ใช้รหัสเก่า [วิธีเลือกการเชื่อมต่อของ Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres) หากเซิร์ฟเวอร์เข้า direct connection (IPv6) ไม่ได้ ให้ใช้ **Session pooler พอร์ต 5432** ที่รองรับ IPv4 และคง SSL ไว้ อย่าใช้ Transaction pooler พอร์ต 6543 เพราะสคริปต์นี้ใช้ transaction กับ cursor
 
 ```bash
 cp .env.migration.example .env.migration
@@ -130,9 +132,9 @@ docker compose -f compose.yaml -f compose.migration.yaml run --rm migrate node s
 สคริปต์อ่านต้นทางใน transaction แบบ snapshot และคัดลอกเฉพาะข้อมูลแอปใน `public` ไปยังฐานใหม่ที่ว่าง ตรวจสคีมาและจำนวนแถวทุกตาราง แล้ว commit พร้อมกัน หากมีตารางต้นทางเพิ่มเติมหรือฐานปลายทางมีข้อมูลอยู่ สคริปต์จะหยุดโดยไม่เขียนทับ เมื่อคัดลอกสำเร็จจึงเปิดเว็บใหม่:
 
 ```bash
-docker compose up -d app web
-docker compose ps
-curl -f http://localhost/healthz
+docker compose -f compose.yaml -f compose.https.yaml up -d app web
+docker compose -f compose.yaml -f compose.https.yaml ps
+docker compose exec -T db psql -U postgres -d luk_suea -c 'select (select count(*) from public.volunteers) as volunteers, (select count(*) from public.requests) as requests, (select count(*) from public.operation_teams) as teams, (select count(*) from public.shelter_residents) as shelter_residents'
 ```
 
 การคัดลอกเป็นภาพข้อมูล ณ เวลาที่รัน เว็บ GitHub Pages เดิมยังรับข้อมูลต่อได้ ดังนั้นข้อมูลใหม่หลังเวลานั้นจะไม่ปรากฏบนเซิร์ฟเวอร์ใหม่โดยอัตโนมัติ ก่อนเปลี่ยน URL ให้ผู้ใช้จริง ต้องหยุดการเขียนที่ระบบเดิมชั่วคราวและคัดลอกข้อมูลรอบสุดท้ายลงฐานปลายทางที่ว่างหรือมีแผนรวมข้อมูล หลีกเลี่ยงการให้ทั้งสองเว็บรับข้อมูลจริงพร้อมกัน เพราะฐานข้อมูลจะไม่ซิงก์กัน
@@ -141,10 +143,13 @@ curl -f http://localhost/healthz
 
 ```bash
 docker compose stop web app
+umask 077
 docker compose exec -T db sh -c 'exec pg_dump -U postgres -d luk_suea -Fc' > before-final-copy.dump
 docker compose -f compose.yaml -f compose.migration.yaml run --rm -e ALLOW_TARGET_REPLACE=YES migrate node server/copy-data.mjs --replace
-docker compose up -d app web
+docker compose -f compose.yaml -f compose.https.yaml up -d app web
 ```
+
+ไฟล์ `.dump` อาจมีข้อมูลส่วนบุคคลและ password hash; เก็บในที่ปลอดภัย ไม่ส่งในแชต และไม่อัปโหลดขึ้น Git หากฐานใหม่มีข้อมูลทดสอบอยู่แล้วแต่ต้องการให้ตรงกับ Supabase ให้ใช้ขั้นตอนสำรองและ `--replace` นี้หลังได้รับอนุมัติให้แทนข้อมูล ไม่ใช้คำสั่งคัดลอกฐานว่างด้านบน
 
 ### สำรองข้อมูลและอัปเดตโค้ด
 
@@ -153,7 +158,7 @@ docker compose up -d app web
 ```bash
 git pull
 docker compose build
-docker compose up -d
+docker compose -f compose.yaml -f compose.https.yaml up -d
 ```
 
 Migration ของสคีมาจะรันเฉพาะไฟล์ที่ยังไม่เคยใช้ ส่วนข้อมูลส่วนตัวไม่ได้ถูกใส่ลง image หรือ repo

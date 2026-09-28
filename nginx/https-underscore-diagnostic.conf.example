@@ -1,9 +1,8 @@
 # Diagnostic only. The current *.moe.go.th certificate does not pass OpenSSL
 # hostname validation for AGER_DD-01.moe.go.th (underscore). Do not use this
 # endpoint for logins or personal data unless trusted clients validate it.
-# No HTTP-to-HTTPS redirect is configured while certificate validation fails.
+# This diagnostic config listens on 443 only. No HTTP listener is exposed.
 server {
-    listen 80;
     listen 443 ssl;
     server_name AGER_DD-01.moe.go.th;
 

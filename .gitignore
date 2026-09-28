@@ -8,3 +8,4 @@ _site/
 node_modules/
 certs/
 nginx/https.conf
+*.dump
