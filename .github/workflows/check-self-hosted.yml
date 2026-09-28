@@ -32,6 +32,10 @@ jobs:
           openssl req -x509 -nodes -newkey rsa:2048 -keyout certs/privkey.pem -out certs/fullchain.pem -days 1 -subj '/CN=example.org' >/dev/null 2>&1
           docker compose -f compose.yaml -f compose.https.yaml config --quiet
           docker compose -f compose.yaml -f compose.https.yaml run --rm --no-deps web nginx -t
+          cp certs/fullchain.pem certs/all_certificate.crt
+          cp certs/privkey.pem certs/privatekey.key
+          cp nginx/https-underscore-diagnostic.conf.example nginx/https.conf
+          docker compose -f compose.yaml -f compose.https.yaml run --rm --no-deps web nginx -t
       - name: Show logs on failure
         if: failure()
         run: docker compose logs --no-color --tail=100

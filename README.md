@@ -101,6 +101,21 @@ docker compose -f compose.yaml -f compose.https.yaml up -d web
 
 ตรวจจากเครื่องภายนอกด้วย `https://<ชื่อโดเมนจริง>/healthz` และทดสอบหน้าเข้าสู่ระบบ การต่ออายุใบรับรองและการ reload Nginx เป็นหน้าที่ผู้ดูแลเซิร์ฟเวอร์; ไฟล์ `certs/` และ `nginx/https.conf` ถูก Git ignore ไว้
 
+#### ทดสอบ Nginx กับโดเมน `AGER_DD-01.moe.go.th` ที่ได้รับมา
+
+ถ้าใบรับรองสองไฟล์อยู่บนเซิร์ฟเวอร์ที่ `/home/eduadmin/ssl/all_certificate.crt` และ `/home/eduadmin/ssl/privatekey.key` แล้ว สามารถทดสอบว่า Nginx เปิดพอร์ต 443 และส่งต่อถึงแอปได้โดยไม่คัดลอก private key เข้า repo ไฟล์ตัวอย่างนี้ **ไม่ redirect HTTP** และ **ไม่ใช่การเปิด HTTPS สำหรับใช้งานจริง**: OpenSSL ไม่ยอมรับชื่อที่มี `_` กับใบรับรอง `*.moe.go.th` ดังนั้นบางไคลเอนต์จะขึ้น certificate hostname mismatch
+
+```bash
+# บนเซิร์ฟเวอร์ ในโฟลเดอร์ repo
+# แก้ TLS_CERT_DIR ใน .env จาก ./certs เป็น /home/eduadmin/ssl
+cp nginx/https-underscore-diagnostic.conf.example nginx/https.conf
+sudo docker compose -f compose.yaml -f compose.https.yaml config --quiet
+sudo docker compose -f compose.yaml -f compose.https.yaml up -d web
+sudo docker compose -f compose.yaml -f compose.https.yaml exec web nginx -t
+```
+
+ทดสอบ `https://AGER_DD-01.moe.go.th/healthz` จากเครื่องภายนอกโดย **ไม่** กดข้ามคำเตือนใบรับรอง ถ้าไคลเอนต์ไม่ยอมรับใบรับรอง ให้หยุดที่จุดนี้และให้ผู้ดูแลโดเมนเพิ่มชื่อที่ถูกต้อง เช่น `AGER-DD-01.moe.go.th` ก่อนใช้กับคำร้องหรือบัญชีเจ้าหน้าที่ ใบรับรอง wildcard ที่มีอยู่ครอบคลุมชื่อใหม่ระดับเดียวนี้หาก DNS ถูกสร้างจริง
+
 ### คัดลอกข้อมูลจริงจาก Supabase เดิม
 
 ข้อมูลต้นทางต้องใช้ PostgreSQL connection string ที่มีสิทธิ์อ่านตาราง `public` ทั้งหมด รวมถึงข้อมูลส่วนบุคคล บัญชีเจ้าหน้าที่แบบ hash, คำร้อง, ขั้นตอน, การมอบหมาย, ชุดปฏิบัติการ และผู้พักพิง ดู connection string ที่ Project Dashboard → Connect; ถ้าลืม database password ให้จัดการใน Database Settings ของโปรเจกต์เอง [วิธีเลือกการเชื่อมต่อของ Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres) หากเซิร์ฟเวอร์เข้า direct connection (IPv6) ไม่ได้ ให้ใช้ Session pooler ที่รองรับ IPv4 และคง SSL ไว้

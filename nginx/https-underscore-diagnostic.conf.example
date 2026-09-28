@@ -1,6 +1,15 @@
+# Diagnostic only. The current *.moe.go.th certificate does not pass OpenSSL
+# hostname validation for AGER_DD-01.moe.go.th (underscore). Do not use this
+# endpoint for logins or personal data unless trusted clients validate it.
+# No HTTP-to-HTTPS redirect is configured while certificate validation fails.
 server {
     listen 80;
-    server_name AGER_DD-01.moe.go.th www.AGER_DD-01.moe.go.th 203.159.242.200;
+    listen 443 ssl;
+    server_name AGER_DD-01.moe.go.th;
+
+    ssl_certificate /etc/nginx/certs/all_certificate.crt;
+    ssl_certificate_key /etc/nginx/certs/privatekey.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
 
     client_max_body_size 2m;
 
@@ -13,7 +22,6 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Keep the live dashboard event stream open without buffering it.
     location /api/events {
         proxy_pass http://app:3000;
         proxy_http_version 1.1;
