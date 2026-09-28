@@ -81,7 +81,7 @@ async function handle(req, res) {
       const result = await pool.query("select * from public.public_requests order by received_at desc limit $1", [limit]);
       return respond(res, 200, {data: result.rows});
     }
-    if (req.method === "POST" && url.pathname.startsWith("/api/rpc/")) return handleRpc(req, res, url.pathname.slice(9));
+    if (req.method === "POST" && url.pathname.startsWith("/api/rpc/")) return await handleRpc(req, res, url.pathname.slice(9));
     if (req.method === "GET" && url.pathname === "/api/events") {
       res.writeHead(200, {"Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "Connection": "keep-alive", "X-Accel-Buffering": "no"});
       res.write(": connected\n\n");
@@ -90,7 +90,7 @@ async function handle(req, res) {
       req.on("close", () => { clearInterval(heartbeat); streams.delete(res); });
       return;
     }
-    if (req.method === "GET" || req.method === "HEAD") return serveFile(res, url.pathname);
+    if (req.method === "GET" || req.method === "HEAD") return await serveFile(res, url.pathname);
     return respond(res, 405, {error: "วิธีเรียกไม่ถูกต้อง"});
   } catch (error) {
     if (error.code === "P0001") return respond(res, 400, {error: error.message});
