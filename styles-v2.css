@@ -318,3 +318,28 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 /* Match the primary Thai typeface used by Traffy Fondue across the app. */
 :root{font-family:"Anuphan",system-ui,sans-serif}
 .hero-content .hero-quote,.leaflet-container{font-family:"Anuphan",system-ui,sans-serif}
+
+/* Subcenter mission overview and dedicated update page. */
+#subcenter-request-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#subcenter-request-list>.empty-state{grid-column:1/-1}
+.subcenter-mission-card{min-width:0;border:1px solid var(--line);border-radius:16px;background:#fcf7f2;box-shadow:0 6px 18px rgba(74,38,22,.05);overflow:hidden;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.subcenter-mission-card:hover,.subcenter-mission-card:focus-within{transform:translateY(-2px);border-color:#b98268;box-shadow:0 13px 26px rgba(74,38,22,.1)}
+.subcenter-mission-card>a{display:flex;flex-direction:column;min-height:235px;height:100%;padding:20px;color:inherit;text-decoration:none}
+.subcenter-mission-card>a:focus-visible{outline:3px solid #b98268;outline-offset:-3px}
+.subcenter-mission-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.subcenter-mission-card h3{margin:13px 0 5px;color:var(--navy);font-size:1.08rem;line-height:1.35}
+.subcenter-mission-card p{margin:0 0 15px;color:var(--muted);font-size:.84rem;line-height:1.5;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.subcenter-mission-card-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto;padding-top:13px;border-top:1px solid var(--line)}
+.subcenter-mission-card-facts span{min-width:0;color:var(--muted);font-size:.72rem}
+.subcenter-mission-card-facts strong{display:block;margin-top:3px;color:var(--navy);font-size:.81rem;overflow-wrap:anywhere}
+.subcenter-mission-card-action{margin-top:16px;color:var(--teal);font-size:.82rem;font-weight:800}
+#subcenter-mission-view{max-width:1100px;margin-inline:auto}
+.subcenter-mission-editor-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:22px 24px;border-bottom:1px solid var(--line);background:#fcf7f2}
+.subcenter-mission-editor-header h2{margin:5px 0;color:var(--navy);font-size:1.35rem}
+.subcenter-mission-editor-header p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.5}
+.subcenter-mission-editor>.subcenter-mission-editor-body{padding:24px}
+.subcenter-mission-edit-section{margin-top:22px;padding-top:22px;border-top:1px solid var(--line)}
+.subcenter-mission-edit-section h3{margin:0 0 16px;color:var(--navy);font-size:1rem}
+.subcenter-mission-edit-section .summary-editor-inline{margin-top:0;padding-top:0;border-top:0}
+@media(max-width:760px){#subcenter-request-list{grid-template-columns:1fr}.subcenter-mission-card>a{min-height:0}.subcenter-mission-editor-header{flex-direction:column}.subcenter-mission-editor>.subcenter-mission-editor-body{padding:18px}}
+@media(max-width:420px){.subcenter-mission-card-facts{grid-template-columns:1fr}}
