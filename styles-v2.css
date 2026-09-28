@@ -314,3 +314,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 @media(max-width:720px){#subcenter-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#subcenter-kpis .kpi-card:last-child{grid-column:auto}.home-system-grid .system-card-two .system-features{max-width:none}}
 @media(max-width:560px){.volunteer-edit-dialog .admin-form{padding:16px 17px 0}.row-actions{flex-direction:column;align-items:stretch}.compact-action{width:100%}}
 .system-card-heading{grid-template-columns:auto 1fr}
+
+/* Match the primary Thai typeface used by Traffy Fondue across the app. */
+:root{font-family:"Anuphan",system-ui,sans-serif}
+.hero-content .hero-quote,.leaflet-container{font-family:"Anuphan",system-ui,sans-serif}
