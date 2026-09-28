@@ -22,6 +22,13 @@ const TEAM_TYPES = {
   school_recovery: ["ชุดฟื้นฟูสถานศึกษา", "Scout School Recovery", "ขนย้าย คัดแยก ทำความสะอาด และเตรียมสถานศึกษาให้กลับมาเปิดเรียน"]
 };
 
+const DEMO_CENTERS = [
+  {id:"c1",center_code:"SUB-01",name:"ศูนย์ผินแจ่มวิชาสอน",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
+  {id:"c2",center_code:"SUB-02",name:'ศูนย์พัฒนาบุคลากรทางการลูกเสือ ยุวกาชาดและกิจกรรมเยาวชน "กฐิน กุยยกานนท์"',service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
+  {id:"c3",center_code:"SUB-03",name:"มัธยมวัดหนองจอก",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
+  {id:"c4",center_code:"SUB-04",name:"วิทยาลัยเทคนิคดอนเมือง",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true}
+];
+
 const STEP_CATALOG = [
   ["received", "รับคำร้อง", "รับและบันทึกข้อมูลคำร้องขอให้ครบถ้วน"],
   ["verified", "ตรวจสอบ", "ตรวจสอบความครบถ้วนและยืนยันกับผู้ประสานงาน"],
@@ -49,14 +56,15 @@ const demoRows = [
 ];
 
 const demoVolunteers = [
-  {id:"v1",registration_no:"VOL-20260927-00001",group_no:1,scoutdd_id:"SDD-1001",national_id:"1100000000001",full_name:"กิตติพงศ์ ใจอาสา",organization_network:"สำนักงานลูกเสือแห่งชาติ",phone:"081-111-1111",operational_areas:"กรุงเทพมหานครและปริมณฑล",skills:"ประสานงาน จัดการคลังสิ่งของ",vehicle:"รถยนต์",equipment:"วิทยุสื่อสาร",availability_details:"พร้อมวันทำการ",active:true},
-  {id:"v2",registration_no:"VOL-20260927-00002",group_no:2,scoutdd_id:"SDD-1024",national_id:"1100000000002",full_name:"ปภังกร พร้อมช่วย",organization_network:"กองลูกเสือจังหวัด",phone:"082-222-2222",operational_areas:"นนทบุรี ปทุมธานี",skills:"ปฐมพยาบาล งานครัว",vehicle:"รถกระบะ",equipment:"ชุดปฐมพยาบาล",availability_details:"เสาร์และอาทิตย์",active:true},
-  {id:"v3",registration_no:"VOL-20260927-00003",group_no:3,scoutdd_id:"",national_id:"1100000000003",full_name:"ณัฐวุฒิ นักบุกเบิก",organization_network:"เครือข่ายวิทยากร",phone:"083-333-3333",operational_areas:"ภาคกลาง",skills:"บุกเบิก กู้ภัยทางน้ำ",vehicle:"เรือท้องแบน",equipment:"เชือก เสื้อชูชีพ",availability_details:"แจ้งล่วงหน้า 1 วัน",active:true},
-  {id:"v4",registration_no:"VOL-20260927-00004",group_no:6,scoutdd_id:"",national_id:"1100000000004",full_name:"พรทิพย์ มีน้ำใจ",organization_network:"เครือข่ายจิตอาสา",phone:"084-444-4444",operational_areas:"กรุงเทพมหานคร",skills:"ดูแลเด็กและงานทะเบียน",vehicle:"",equipment:"โน้ตบุ๊ก",availability_details:"ทุกวันหลัง 17.00 น.",active:true}
+  {id:"v1",registration_no:"VOL-20260927-00001",group_no:1,subcenter_id:"c1",scoutdd_id:"SDD-1001",national_id:"1100000000001",full_name:"กิตติพงศ์ ใจอาสา",organization_network:DEMO_CENTERS[0].name,phone:"081-111-1111",operational_areas:"กรุงเทพมหานครและปริมณฑล",skills:"ประสานงาน จัดการคลังสิ่งของ",vehicle:"รถยนต์",equipment:"วิทยุสื่อสาร",availability_details:"พร้อมวันทำการ",active:true},
+  {id:"v2",registration_no:"VOL-20260927-00002",group_no:2,subcenter_id:"c2",scoutdd_id:"SDD-1024",national_id:"1100000000002",full_name:"ปภังกร พร้อมช่วย",organization_network:DEMO_CENTERS[1].name,phone:"082-222-2222",operational_areas:"นนทบุรี ปทุมธานี",skills:"ปฐมพยาบาล งานครัว",vehicle:"รถกระบะ",equipment:"ชุดปฐมพยาบาล",availability_details:"เสาร์และอาทิตย์",active:true},
+  {id:"v3",registration_no:"VOL-20260927-00003",group_no:3,subcenter_id:"c3",scoutdd_id:"",national_id:"1100000000003",full_name:"ณัฐวุฒิ นักบุกเบิก",organization_network:DEMO_CENTERS[2].name,phone:"083-333-3333",operational_areas:"ภาคกลาง",skills:"บุกเบิก กู้ภัยทางน้ำ",vehicle:"เรือท้องแบน",equipment:"เชือก เสื้อชูชีพ",availability_details:"แจ้งล่วงหน้า 1 วัน",active:true},
+  {id:"v4",registration_no:"VOL-20260927-00004",group_no:6,subcenter_id:"c4",scoutdd_id:"",national_id:"1100000000004",full_name:"พรทิพย์ มีน้ำใจ",organization_network:DEMO_CENTERS[3].name,phone:"084-444-4444",operational_areas:"กรุงเทพมหานคร",skills:"ดูแลเด็กและงานทะเบียน",vehicle:"",equipment:"โน้ตบุ๊ก",availability_details:"ทุกวันหลัง 17.00 น.",active:true}
 ];
 
 let requestRows = [];
 let volunteerStats = [];
+let publicCenters = [...DEMO_CENTERS];
 let centralState = null;
 let subcenterSession = null;
 let realtimeChannel = null;
@@ -234,6 +242,7 @@ async function logoutStaff() {
 function initializeStaticOptions() {
   $("#group-selector").innerHTML = GROUPS.map((group,index) => `<label class="group-option"><input type="radio" name="group_no" value="${index+1}" ${index===0?"checked":""} required><span><strong>กลุ่ม ${index+1}</strong>${escapeHtml(group)}</span></label>`).join("");
   $("#volunteer-group-filter").innerHTML += GROUPS.map((group,index) => `<option value="${index+1}">กลุ่ม ${index+1} · ${escapeHtml(group)}</option>`).join("");
+  $("#edit-volunteer-group").innerHTML = GROUPS.map((group,index) => `<option value="${index+1}">กลุ่ม ${index+1} · ${escapeHtml(group)}</option>`).join("");
   $("#team-type").innerHTML = Object.entries(TEAM_TYPES).map(([value,item]) => `<option value="${value}">${escapeHtml(item[0])}</option>`).join("");
   setRequestDefaults();
   $("#team-form").elements.operation_start_at.value = toLocalInput(new Date(now + 86400000));
@@ -297,16 +306,29 @@ function useCurrentLocation() {
 async function loadRegistry() {
   try {
     if (online) {
-      const {data,error} = await supabase.rpc("get_public_volunteer_stats");
-      if (error) throw error;
-      volunteerStats = data || [];
+      const [statsResult,centersResult] = await Promise.all([
+        supabase.rpc("get_public_volunteer_stats"),
+        supabase.rpc("get_public_subcenters")
+      ]);
+      if (statsResult.error) throw statsResult.error;
+      if (centersResult.error) throw centersResult.error;
+      volunteerStats = statsResult.data || [];
+      publicCenters = centersResult.data || [];
     } else {
       volunteerStats = GROUPS.map((_,index) => ({group_no:index+1,total:demoVolunteers.filter(item => item.group_no===index+1).length,available:demoVolunteers.filter(item => item.group_no===index+1 && item.active).length}));
+      publicCenters = [...DEMO_CENTERS];
     }
     renderRegistryStats();
+    renderRegistrationCenters();
   } catch (error) {
     showToast("โหลดสรุปทะเบียนไม่สำเร็จ: " + (error.message || error), true);
   }
+}
+
+function renderRegistrationCenters() {
+  const select = $("#registration-center");
+  const current = select.value;
+  select.innerHTML = `<option value="">เลือกศูนย์ย่อย</option>` + publicCenters.map(center => `<option value="${center.id}" ${current===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("");
 }
 
 function renderRegistryStats() {
@@ -329,6 +351,8 @@ function volunteerPayload(form) {
   delete payload.availability_end_date;
   delete payload.availability_time_slots;
   delete payload.vehicle_types;
+  const center = publicCenters.find(item => item.id === payload.subcenter_id);
+  payload.organization_network = center?.name || "";
   payload.group_no = Number(payload.group_no);
   payload.availability_details = `วันที่ ${formatVolunteerDate(startDate)}–${formatVolunteerDate(endDate)} · เวลา ${timeSlots.join(", ")}`;
   payload.vehicle = vehicleTypes.join(", ");
@@ -512,14 +536,9 @@ async function handleRequestSubmit(event) {
 }
 
 function demoCentralWorkspace() {
-  const existingCenters = centralState?.centers || [
-    {id:"c1",center_code:"SUB-01",name:"ศูนย์ผินแจ่มวิชาสอน",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
-    {id:"c2",center_code:"SUB-02",name:'ศูนย์พัฒนาบุคลากรทางการลูกเสือ ยุวกาชาดและกิจกรรมเยาวชน "กฐิน กุยยกานนท์"',service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
-    {id:"c3",center_code:"SUB-03",name:"มัธยมวัดหนองจอก",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true},
-    {id:"c4",center_code:"SUB-04",name:"วิทยาลัยเทคนิคดอนเมือง",service_areas:`พื้นที่รับผิดชอบตามที่${CENTRAL_NAME}มอบหมาย`,active:true}
-  ];
+  const existingCenters = centralState?.centers || [...DEMO_CENTERS];
   const existingTeams = centralState?.teams?.length ? centralState.teams : [{
-    id:"t1",team_no:"TEAM-20260928-0001",team_type:"relief_packing",leader_name:demoVolunteers[0].full_name,
+    id:"t1",team_no:"TEAM-20260928-0001",team_type:"relief_packing",center_id:"c1",center_name:DEMO_CENTERS[0].name,leader_name:demoVolunteers[0].full_name,
     operation_area:"กรุงเทพมหานครและปริมณฑล",operation_start_at:new Date(now+86400000).toISOString(),
     operation_end_at:new Date(now+118800000).toISOString(),member_count:3,
     members:demoVolunteers.slice(0,3).map((volunteer,index)=>({volunteer_id:volunteer.id,full_name:volunteer.full_name,role:index===0?"หัวหน้าชุด":"สมาชิก",is_leader:index===0}))
@@ -584,8 +603,7 @@ function renderCentral() {
     ["คำร้องรอมอบหมาย",unassigned,"รายการ"]
   ].map(([label,value,unit],index) => `<article class="kpi-card ${index===0?"kpi-accent":""}"><span>${label}</span><strong>${Number(value).toLocaleString("th-TH")}</strong><small>${unit}</small></article>`).join("");
   renderCentralVolunteers();
-  renderMemberPicker();
-  renderTeams();
+  renderTeams(teams,"#central-team-list",true);
   renderDispatchCenters();
   renderDispatchTeams();
   renderAssignments();
@@ -598,11 +616,72 @@ function filteredCentralVolunteers() {
 }
 
 function renderCentralVolunteers() {
-  $("#volunteer-table-body").innerHTML = filteredCentralVolunteers().map(item => `<tr><td><strong>${escapeHtml(item.registration_no)}</strong><span class="cell-sub">${escapeHtml(item.scoutdd_id||"ไม่มี ScoutDD ID")}</span><span class="cell-private">เลขประจำตัว ${escapeHtml(item.national_id)}</span></td><td><strong>${escapeHtml(item.full_name)}</strong><span class="cell-sub">${escapeHtml(item.organization_network)}</span><span class="cell-private">${escapeHtml(item.phone)}</span></td><td><span class="group-chip">กลุ่ม ${Number(item.group_no)}</span><span class="cell-sub">${escapeHtml(GROUPS[Number(item.group_no)-1]||"")}</span></td><td><strong>${escapeHtml(item.operational_areas)}</strong><span class="cell-sub">${escapeHtml(item.skills)}</span></td><td>${escapeHtml([item.vehicle,item.equipment].filter(Boolean).join(" · ")||"–")}</td><td><span class="status-chip ${item.active?"completed":"blocked"}">${item.active?"พร้อมจัดกำลัง":"ไม่พร้อม"}</span><span class="cell-sub">${escapeHtml(item.availability_details)}</span></td></tr>`).join("");
+  const rows = filteredCentralVolunteers();
+  $("#volunteer-table-body").innerHTML = rows.length ? rows.map(item => `<tr data-volunteer-id="${item.id}"><td><strong>${escapeHtml(item.registration_no)}</strong><span class="cell-sub">${escapeHtml(item.scoutdd_id||"ไม่มี ScoutDD ID")}</span></td><td><strong>${escapeHtml(item.full_name)}</strong><span class="cell-sub">${escapeHtml(item.phone)}</span></td><td><strong>${escapeHtml(item.center_name||item.organization_network||"ยังไม่ระบุศูนย์")}</strong><span class="group-chip">กลุ่ม ${Number(item.group_no)}</span></td><td><strong>${escapeHtml(item.operational_areas)}</strong><span class="cell-sub clamp-text">${escapeHtml(item.skills)}</span></td><td><span class="status-chip ${item.active?"completed":"blocked"}">${item.active?"พร้อมจัดกำลัง":"ไม่พร้อม"}</span><span class="cell-sub clamp-text">${escapeHtml(item.availability_details)}</span></td><td><div class="row-actions"><button class="button button-ghost compact-action edit-volunteer" type="button">แก้ไข</button><button class="button button-danger compact-action delete-volunteer" type="button">ลบ</button></div></td></tr>`).join("") : `<tr><td colspan="6"><div class="empty-state compact-empty">ไม่พบข้อมูลตามเงื่อนไข</div></td></tr>`;
+}
+
+function openVolunteerEditor(volunteerId) {
+  const volunteer = (centralState?.volunteers||[]).find(item => item.id === volunteerId);
+  if (!volunteer) return;
+  const form = $("#volunteer-edit-form");
+  const centers = (centralState?.centers||[]).filter(center => center.active || center.id === volunteer.subcenter_id);
+  $("#edit-volunteer-center").innerHTML = `<option value="">เลือกศูนย์ย่อย</option>` + centers.map(center => `<option value="${center.id}">${escapeHtml(center.name)}</option>`).join("");
+  ["volunteer_id","group_no","subcenter_id","scoutdd_id","national_id","full_name","phone","operational_areas","skills","vehicle","equipment","availability_details"].forEach(key => {
+    if (form.elements[key]) form.elements[key].value = volunteer[key] ?? "";
+  });
+  form.elements.active.checked = Boolean(volunteer.active);
+  $("#volunteer-edit-dialog").showModal();
+}
+
+async function saveVolunteerEdit(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form));
+  const volunteerId = data.volunteer_id;
+  const payload = {...data,group_no:Number(data.group_no),active:form.elements.active.checked};
+  delete payload.volunteer_id;
+  const button = $("button[type=submit]",form);
+  button.disabled = true;
+  try {
+    if (online) {
+      const {error} = await supabase.rpc("update_volunteer_by_session",{p_session_token:authSession.session_token,p_volunteer_id:volunteerId,p_payload:payload});
+      if (error) throw error;
+      await loadCentral("center");
+    } else {
+      const volunteer = centralState.volunteers.find(item => item.id===volunteerId);
+      const center = centralState.centers.find(item => item.id===payload.subcenter_id);
+      Object.assign(volunteer,payload,{organization_network:center?.name||volunteer.organization_network,center_name:center?.name||""});
+      renderCentral();
+    }
+    $("#volunteer-edit-dialog").close();
+    showToast("บันทึกข้อมูลผู้ลงทะเบียนแล้ว");
+  } catch (error) {
+    showToast("แก้ไขข้อมูลไม่สำเร็จ: " + (error.message||error),true);
+  } finally { button.disabled = false; }
+}
+
+async function deleteVolunteer(volunteerId) {
+  const volunteer = (centralState?.volunteers||[]).find(item => item.id===volunteerId);
+  if (!volunteer || !window.confirm(`ยืนยันลบ ${volunteer.full_name} ออกจากทะเบียน?`)) return;
+  try {
+    if (online) {
+      const {error} = await supabase.rpc("delete_volunteer_by_session",{p_session_token:authSession.session_token,p_volunteer_id:volunteerId});
+      if (error) throw error;
+      await loadCentral("center");
+    } else {
+      centralState.volunteers = centralState.volunteers.filter(item => item.id!==volunteerId);
+      const demoIndex = demoVolunteers.findIndex(item => item.id===volunteerId);
+      if (demoIndex>=0) demoVolunteers.splice(demoIndex,1);
+      renderCentral();
+    }
+    showToast("ลบข้อมูลผู้ลงทะเบียนแล้ว");
+  } catch (error) {
+    showToast("ลบข้อมูลไม่สำเร็จ: " + (error.message||error),true);
+  }
 }
 
 function renderMemberPicker() {
-  const volunteers = (centralState?.volunteers||[]).filter(item => item.active);
+  const volunteers = (subcenterSession?.data?.volunteers||[]).filter(item => item.active);
   const selected = new Set($$("#team-member-picker input[type=checkbox]:checked").map(input => input.value));
   const currentLeader = $("#team-leader").value;
   $("#team-leader").innerHTML = `<option value="">เลือกหัวหน้าชุด</option>` + volunteers.map(item => `<option value="${item.id}" ${currentLeader===item.id?"selected":""}>${escapeHtml(item.full_name)} · กลุ่ม ${item.group_no}</option>`).join("");
@@ -628,24 +707,24 @@ async function handleTeamSubmit(event) {
       const {error} = await supabase.rpc("create_operation_team_by_session", {p_session_token:authSession.session_token,p_payload:payload});
       if (error) throw error;
     } else {
-      const leader = (centralState.volunteers||[]).find(item => item.id===payload.leader_volunteer_id);
-      centralState.teams.unshift({id:crypto.randomUUID(),team_no:`TEAM-${String(centralState.teams.length+1).padStart(4,"0")}`,team_type:payload.team_type,leader_name:leader?.full_name||"",operation_area:payload.operation_area,operation_start_at:payload.operation_start_at,operation_end_at:payload.operation_end_at,member_count:members.length,members:members.map(member=>({...member,full_name:(centralState.volunteers||[]).find(item=>item.id===member.volunteer_id)?.full_name||""}))});
+      const workspace = subcenterSession.data;
+      const leader = (workspace.volunteers||[]).find(item => item.id===payload.leader_volunteer_id);
+      workspace.teams.unshift({id:crypto.randomUUID(),team_no:`TEAM-${String(workspace.teams.length+1).padStart(4,"0")}`,team_type:payload.team_type,center_id:workspace.center.id,center_name:workspace.center.name,leader_name:leader?.full_name||"",operation_area:payload.operation_area,operation_start_at:payload.operation_start_at,operation_end_at:payload.operation_end_at,member_count:members.length,members:members.map(member=>({...member,full_name:(workspace.volunteers||[]).find(item=>item.id===member.volunteer_id)?.full_name||""}))});
     }
     showToast("บันทึกชุดปฏิบัติการแล้ว");
     form.reset();
     form.elements.operation_start_at.value = toLocalInput(new Date(Date.now()+86400000));
-    if (online) await loadCentral(); else renderCentral();
+    if (online) await loadSubcenter(); else renderSubcenter();
   } catch (error) {
     showToast("สร้างชุดไม่สำเร็จ: " + (error.message || error), true);
   } finally { button.disabled = false; }
 }
 
-function renderTeams() {
-  const teams = centralState?.teams || [];
-  $("#team-list").innerHTML = teams.length ? `<h3 class="subheading">ชุดปฏิบัติการที่จัดแล้ว</h3>` + teams.map(team => {
+function renderTeams(teams = [],containerSelector = "#team-list",showCenter = false) {
+  $(containerSelector).innerHTML = teams.length ? `<h3 class="subheading">${showCenter?"ชุดปฏิบัติการทั้งหมด":"ชุดปฏิบัติการที่จัดแล้ว"}</h3>` + teams.map(team => {
     const type = TEAM_TYPES[team.team_type] || [team.team_type||"ชุดปฏิบัติการ","",""];
     const members = Array.isArray(team.members) ? team.members : [];
-    return `<article class="team-card"><div><span class="team-no">${escapeHtml(team.team_no)}</span><h3>${escapeHtml(type[0])}</h3><p>${escapeHtml(team.operation_area)} · ${formatDate(team.operation_start_at)}</p></div><div class="team-meta"><span>หัวหน้าชุด<strong>${escapeHtml(team.leader_name||"–")}</strong></span><span>สมาชิก<strong>${Number(team.member_count??members.length).toLocaleString("th-TH")} คน</strong></span></div>${members.length?`<details><summary>ดูรายชื่อสมาชิก</summary><ul>${members.map(member=>`<li>${escapeHtml(member.full_name||"")} ${member.role?`· ${escapeHtml(member.role)}`:""}</li>`).join("")}</ul></details>`:""}</article>`;
+    return `<article class="team-card"><div><span class="team-no">${escapeHtml(team.team_no)}</span><h3>${escapeHtml(type[0])}</h3><p>${escapeHtml(team.operation_area)} · ${formatDate(team.operation_start_at)}</p>${showCenter?`<span class="team-center-label">${escapeHtml(team.center_name||"ยังไม่ระบุศูนย์ย่อย")}</span>`:""}</div><div class="team-meta"><span>หัวหน้าชุด<strong>${escapeHtml(team.leader_name||"–")}</strong></span><span>สมาชิก<strong>${Number(team.member_count??members.length).toLocaleString("th-TH")} คน</strong></span></div>${members.length?`<details><summary>ดูรายชื่อสมาชิก</summary><ul>${members.map(member=>`<li>${escapeHtml(member.full_name||"")} ${member.role?`· ${escapeHtml(member.role)}`:""}</li>`).join("")}</ul></details>`:""}</article>`;
   }).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่ได้จัดชุดปฏิบัติการ</strong><span>เลือกหัวหน้าชุดและสมาชิกจากทะเบียนด้านบน</span></div>`;
 }
 
@@ -661,7 +740,12 @@ function renderDispatchCenters() {
 
 function renderDispatchTeams() {
   const teams = centralState?.teams || [];
-  $("#dispatch-team-list").innerHTML = teams.length ? teams.map(team => `<article class="subcenter-card"><div><span>${escapeHtml(team.team_no)}</span><strong>${escapeHtml((TEAM_TYPES[team.team_type]||[team.team_type||"ชุดปฏิบัติการ"])[0])}</strong><small>${escapeHtml(team.operation_area||"ยังไม่ระบุพื้นที่")} · ${formatDate(team.operation_start_at)}</small></div><div><span class="status-chip completed">พร้อมรับภารกิจ</span><small>หัวหน้าชุด ${escapeHtml(team.leader_name||"–")} · ${Number(team.member_count||0).toLocaleString("th-TH")} คน</small></div></article>`).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่มีชุดปฏิบัติการ</strong><span>ไปที่เมนูศูนย์ควบคุมและจัดชุดปฏิบัติการเพื่อสร้างชุดก่อนส่งต่อคำร้อง</span></div>`;
+  $("#dispatch-team-list").innerHTML = teams.length ? teams.map(team => `<article class="subcenter-card"><div><span>${escapeHtml(team.team_no)}</span><strong>${escapeHtml((TEAM_TYPES[team.team_type]||[team.team_type||"ชุดปฏิบัติการ"])[0])}</strong><small>${escapeHtml(team.center_name||"ยังไม่ระบุศูนย์ย่อย")} · ${escapeHtml(team.operation_area||"ยังไม่ระบุพื้นที่")}</small></div><div><span class="status-chip completed">พร้อมรับภารกิจ</span><small>หัวหน้าชุด ${escapeHtml(team.leader_name||"–")} · ${Number(team.member_count||0).toLocaleString("th-TH")} คน</small></div></article>`).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่มีชุดปฏิบัติการ</strong><span>ศูนย์ย่อยต้องจัดชุดปฏิบัติการก่อนจึงจะมอบหมายภารกิจได้</span></div>`;
+}
+
+function teamOptionsForCenter(centerId,selectedTeam="") {
+  const teams = (centralState?.teams||[]).filter(team => team.center_id===centerId);
+  return `<option value="">${centerId?(teams.length?"เลือกชุดปฏิบัติการ":"ศูนย์นี้ยังไม่มีชุดปฏิบัติการ"):"เลือกศูนย์ย่อยก่อน"}</option>` + teams.map(team=>`<option value="${team.id}" ${selectedTeam===team.id?"selected":""}>${escapeHtml(teamDisplayName(team))} · ${escapeHtml(team.leader_name||"ไม่ระบุหัวหน้าชุด")}</option>`).join("");
 }
 
 function renderAssignments() {
@@ -674,7 +758,8 @@ function renderAssignments() {
     const assignedTeam = teams.find(team => team.id===selectedTeam);
     const currentLabel = assignedTeam ? teamDisplayName(assignedTeam) : [request.assigned_team_no,(TEAM_TYPES[request.assigned_team_type]||[request.assigned_team_type])[0]].filter(Boolean).join(" · ");
     const isAssigned = Boolean(selectedCenter && selectedTeam);
-    return `<article class="assignment-card" data-request-id="${request.id}"><div class="assignment-main"><span class="team-no">${escapeHtml(request.request_no)}</span><h3>${escapeHtml(request.location_name)}</h3><p>${escapeHtml(request.mission)}</p><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน · ${formatDate(request.operation_start_at)} · ผู้ประสานงาน ${escapeHtml(request.coordinator_name||"–")} ${escapeHtml(request.coordinator_phone||"")}</small><button class="request-detail-link view-request-detail" type="button">ดูรายละเอียดทั้งหมดและแผนที่ →</button></div><div class="assignment-control"><label class="assignment-field"><span>ศูนย์ย่อยที่รับผิดชอบ *</span><select class="assignment-center" ${centers.length?"":"disabled"}><option value="">เลือกศูนย์ย่อย</option>${centers.map(center=>`<option value="${center.id}" ${selectedCenter===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("")}</select></label><label class="assignment-field"><span>ชุดปฏิบัติการ *</span><select class="assignment-team" ${teams.length?"":"disabled"}><option value="">เลือกชุดปฏิบัติการ</option>${teams.map(team=>`<option value="${team.id}" ${selectedTeam===team.id?"selected":""}>${escapeHtml(teamDisplayName(team))} · ${escapeHtml(team.leader_name||"ไม่ระบุหัวหน้าชุด")}</option>`).join("")}</select></label><input class="assignment-note" placeholder="ข้อสั่งการ / หมายเหตุ" value="${escapeHtml(request.assignment_note||"")}"><button class="button button-primary assign-request" type="button" ${centers.length&&teams.length?"":"disabled"}>${isAssigned?"เปลี่ยนการมอบหมาย":"ส่งต่อภารกิจ"}</button>${isAssigned?`<small><strong>ศูนย์ย่อย:</strong> ${escapeHtml(request.assigned_center_name||"–")}<br><strong>ชุดปฏิบัติการ:</strong> ${escapeHtml(currentLabel||"–")} · หัวหน้าชุด ${escapeHtml(request.assigned_team_leader||assignedTeam?.leader_name||"–")}</small>`:""}</div></article>`;
+    const centerTeams = teams.filter(team => team.center_id===selectedCenter);
+    return `<article class="assignment-card" data-request-id="${request.id}"><div class="assignment-main"><span class="team-no">${escapeHtml(request.request_no)}</span><h3>${escapeHtml(request.location_name)}</h3><p>${escapeHtml(request.mission)}</p><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน · ${formatDate(request.operation_start_at)} · ผู้ประสานงาน ${escapeHtml(request.coordinator_name||"–")} ${escapeHtml(request.coordinator_phone||"")}</small><button class="request-detail-link view-request-detail" type="button">ดูรายละเอียดทั้งหมดและแผนที่ →</button></div><div class="assignment-control"><label class="assignment-field"><span>ศูนย์ย่อยที่รับผิดชอบ *</span><select class="assignment-center" ${centers.length?"":"disabled"}><option value="">เลือกศูนย์ย่อย</option>${centers.map(center=>`<option value="${center.id}" ${selectedCenter===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("")}</select></label><label class="assignment-field"><span>ชุดปฏิบัติการของศูนย์ย่อย *</span><select class="assignment-team" ${centerTeams.length?"":"disabled"}>${teamOptionsForCenter(selectedCenter,selectedTeam)}</select></label><input class="assignment-note" placeholder="ข้อสั่งการ / หมายเหตุ" value="${escapeHtml(request.assignment_note||"")}"><button class="button button-primary assign-request" type="button" ${centers.length&&centerTeams.length?"":"disabled"}>${isAssigned?"เปลี่ยนการมอบหมาย":"ส่งต่อภารกิจ"}</button>${isAssigned?`<small><strong>ศูนย์ย่อย:</strong> ${escapeHtml(request.assigned_center_name||"–")}<br><strong>ชุดปฏิบัติการ:</strong> ${escapeHtml(currentLabel||"–")} · หัวหน้าชุด ${escapeHtml(request.assigned_team_leader||assignedTeam?.leader_name||"–")}</small>`:""}</div></article>`;
   }).join("") : `<div class="empty-state"><strong>ยังไม่มีคำร้อง</strong><span>คำร้องใหม่จากหน้าสาธารณะจะแสดงที่นี่</span></div>`;
 }
 
@@ -724,7 +809,12 @@ async function loadSubcenter() {
         const team = (source.teams||[]).find(item => item.id===request.assigned_team_id);
         return {request:{...request,assigned_team_area:team?.operation_area,assigned_team_start_at:team?.operation_start_at,assigned_team_end_at:team?.operation_end_at,assigned_team_members:team?.members||[]},steps:demoManage.get(request.id)?.steps||STEP_CATALOG.map(([code,name,detail],index)=>({step_code:code,step_order:index+1,step_name:name,step_detail:detail,status:index===0?"completed":"pending",assignee:"",note:""}))};
       });
-      data = {center,requests:assigned};
+      data = {
+        center,
+        volunteers:(source.volunteers||demoVolunteers).filter(item => item.subcenter_id===authSession.center_id),
+        teams:(source.teams||[]).filter(item => item.center_id===authSession.center_id),
+        requests:assigned
+      };
     }
     if (!data) throw new Error("บัญชีไม่มีสิทธิ์หรือศูนย์นี้ถูกปิดใช้งาน");
     subcenterSession = {data};
@@ -744,7 +834,16 @@ async function loadSubcenter() {
 }
 
 function renderSubcenter() {
+  const volunteers = subcenterSession?.data?.volunteers || [];
+  const teams = subcenterSession?.data?.teams || [];
   const records = subcenterSession?.data?.requests || [];
+  $("#subcenter-kpis").innerHTML = [
+    ["กำลังในทะเบียน",volunteers.length,"คน"],
+    ["ชุดปฏิบัติการ",teams.length,"ชุด"],
+    ["ภารกิจที่ได้รับ",records.length,"รายการ"]
+  ].map(([label,value,unit],index) => `<article class="kpi-card ${index===0?"kpi-accent":""}"><span>${label}</span><strong>${Number(value).toLocaleString("th-TH")}</strong><small>${unit}</small></article>`).join("");
+  renderMemberPicker();
+  renderTeams(teams,"#team-list",false);
   $("#subcenter-request-list").innerHTML = records.length ? records.map((record,index) => {
     const request = record.request;
     const steps = record.steps || [];
@@ -962,6 +1061,14 @@ $("#search-input").addEventListener("input",renderRequestTable);
 $("#status-filter").addEventListener("change",renderRequestTable);
 $("#volunteer-search").addEventListener("input",renderCentralVolunteers);
 $("#volunteer-group-filter").addEventListener("change",renderCentralVolunteers);
+$("#volunteer-table-body").addEventListener("click",event => {
+  const row = event.target.closest("tr[data-volunteer-id]");
+  if (!row) return;
+  if (event.target.closest(".edit-volunteer")) openVolunteerEditor(row.dataset.volunteerId);
+  if (event.target.closest(".delete-volunteer")) deleteVolunteer(row.dataset.volunteerId);
+});
+$("#volunteer-edit-form").addEventListener("submit",saveVolunteerEdit);
+$("#cancel-volunteer-edit").addEventListener("click",() => $("#volunteer-edit-dialog").close());
 $("#team-member-picker").addEventListener("change",updateTeamMemberCount);
 $("#team-leader").addEventListener("change",event => {
   const checkbox = $(`#team-member-picker input[value="${event.target.value}"]`);
@@ -993,6 +1100,16 @@ document.addEventListener("keydown",event => {
 });
 window.addEventListener("resize",() => {
   if (window.innerWidth > 1100) closeNavigationMenu();
+});
+$("#assignment-list").addEventListener("change",event => {
+  const centerSelect = event.target.closest(".assignment-center");
+  if (!centerSelect) return;
+  const card = centerSelect.closest(".assignment-card");
+  const teamSelect = $(".assignment-team",card);
+  const actionButton = $(".assign-request",card);
+  teamSelect.innerHTML = teamOptionsForCenter(centerSelect.value);
+  teamSelect.disabled = !centerSelect.value || !teamSelect.querySelector('option[value]:not([value=""])');
+  actionButton.disabled = teamSelect.disabled;
 });
 $("#assignment-list").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
 $("#subcenter-request-list").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });
