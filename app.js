@@ -95,6 +95,7 @@ let volunteerPage = 0;
 const VOLUNTEERS_PER_PAGE = 5;
 let dispatchTeamsExpanded = false;
 const dispatchExpandedCenters = new Set();
+const centralExpandedTeamCenters = new Set();
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -1001,12 +1002,26 @@ async function handleTeamSubmit(event) {
   } finally { button.disabled = false; }
 }
 
+function teamCardHtml(team) {
+  const type = TEAM_TYPES[team.team_type] || [team.team_type||"ชุดปฏิบัติการ","",""];
+  const members = Array.isArray(team.members) ? team.members : [];
+  return `<article class="team-card"><div><span class="team-no">${escapeHtml(team.team_no)}</span><h3>${escapeHtml(type[0])}</h3><p>${escapeHtml(team.operation_area)} · ${formatDate(team.operation_start_at)}</p></div><div class="team-meta"><span>หัวหน้าชุด<strong>${escapeHtml(team.leader_name||"–")}</strong></span><span>สมาชิก<strong>${Number(team.member_count??members.length).toLocaleString("th-TH")} คน</strong></span></div>${members.length?`<details><summary>ดูรายชื่อสมาชิก</summary><ul>${members.map(member=>`<li>${escapeHtml(member.full_name||"")} ${member.role?`· ${escapeHtml(member.role)}`:""}</li>`).join("")}</ul></details>`:""}</article>`;
+}
+
 function renderTeams(teams = [],containerSelector = "#team-list",showCenter = false) {
-  $(containerSelector).innerHTML = teams.length ? `<h3 class="subheading">${showCenter?"ชุดปฏิบัติการทั้งหมด":"ชุดปฏิบัติการที่จัดแล้ว"}</h3>` + teams.map(team => {
-    const type = TEAM_TYPES[team.team_type] || [team.team_type||"ชุดปฏิบัติการ","",""];
-    const members = Array.isArray(team.members) ? team.members : [];
-    return `<article class="team-card"><div><span class="team-no">${escapeHtml(team.team_no)}</span><h3>${escapeHtml(type[0])}</h3><p>${escapeHtml(team.operation_area)} · ${formatDate(team.operation_start_at)}</p>${showCenter?`<span class="team-center-label">${escapeHtml(team.center_name||"ยังไม่ระบุศูนย์ย่อย")}</span>`:""}</div><div class="team-meta"><span>หัวหน้าชุด<strong>${escapeHtml(team.leader_name||"–")}</strong></span><span>สมาชิก<strong>${Number(team.member_count??members.length).toLocaleString("th-TH")} คน</strong></span></div>${members.length?`<details><summary>ดูรายชื่อสมาชิก</summary><ul>${members.map(member=>`<li>${escapeHtml(member.full_name||"")} ${member.role?`· ${escapeHtml(member.role)}`:""}</li>`).join("")}</ul></details>`:""}</article>`;
-  }).join("") : `<div class="empty-state compact-empty"><strong>ยังไม่ได้จัดชุดปฏิบัติการ</strong><span>เลือกหัวหน้าชุดและสมาชิกจากทะเบียนด้านบน</span></div>`;
+  if (!showCenter) {
+    $(containerSelector).innerHTML = teams.length ? `<h3 class="subheading">ชุดปฏิบัติการที่จัดแล้ว</h3>${teams.map(teamCardHtml).join("")}` : `<div class="empty-state compact-empty"><strong>ยังไม่ได้จัดชุดปฏิบัติการ</strong><span>เลือกหัวหน้าชุดและสมาชิกจากทะเบียนด้านบน</span></div>`;
+    return;
+  }
+  const centers = centralState?.centers || [];
+  const knownCenterIds = new Set(centers.map(center => center.id));
+  const groups = centers.map(center => ({id:center.id,code:center.center_code,name:center.name,teams:teams.filter(team => team.center_id === center.id)}));
+  const unknownTeams = teams.filter(team => !knownCenterIds.has(team.center_id));
+  if (unknownTeams.length) groups.push({id:"unregistered-center",code:"–",name:"ยังไม่ระบุศูนย์ย่อยในระบบ",teams:unknownTeams});
+  $(containerSelector).innerHTML = groups.length ? `<h3 class="subheading">ชุดปฏิบัติการทั้งหมด ${teams.length.toLocaleString("th-TH")} ชุด · แยกตามศูนย์ย่อย</h3><div class="central-team-groups">${groups.map(group => {
+    const preview = group.teams.slice(0,2).map(team => escapeHtml(team.team_no)).join(" · ");
+    return `<details class="central-team-group" data-center-id="${escapeHtml(group.id)}" ${centralExpandedTeamCenters.has(group.id)?"open":""}><summary><div><span class="team-no">${escapeHtml(group.code||"–")}</span><h4>${escapeHtml(group.name)}</h4><p>${group.teams.length?`${preview}${group.teams.length>2?` · และอีก ${group.teams.length-2} ชุด`:""}`:"ยังไม่มีชุดปฏิบัติการ"}</p></div><span class="central-team-count">${group.teams.length.toLocaleString("th-TH")} ชุด</span></summary><div class="central-team-group-list">${group.teams.length?group.teams.map(teamCardHtml).join(""):`<div class="dispatch-queue-empty">ศูนย์นี้ยังไม่ได้จัดชุดปฏิบัติการ</div>`}</div></details>`;
+  }).join("")}</div>` : `<div class="empty-state compact-empty"><strong>ยังไม่มีศูนย์ย่อยหรือชุดปฏิบัติการ</strong><span>ข้อมูลศูนย์ย่อยและชุดปฏิบัติการจะแสดงที่นี่</span></div>`;
 }
 
 function teamDisplayName(team) {
@@ -1651,6 +1666,7 @@ window.addEventListener("resize",() => {
   if (window.innerWidth > 1100) closeNavigationMenu();
 });
 $("#dispatch-team-list").addEventListener("click",event => { if (event.target.closest(".toggle-dispatch-teams")) { dispatchTeamsExpanded=!dispatchTeamsExpanded; renderDispatchTeams(); } });
+$("#central-team-list").addEventListener("toggle",event => { const group=event.target.closest(".central-team-group"); if (!group || event.target!==group) return; if (group.open) centralExpandedTeamCenters.add(group.dataset.centerId); else centralExpandedTeamCenters.delete(group.dataset.centerId); },true);
 $("#assignment-list").addEventListener("toggle",event => { const group=event.target.closest(".dispatch-center-group"); if (!group) return; if (group.open) dispatchExpandedCenters.add(group.dataset.centerId); else dispatchExpandedCenters.delete(group.dataset.centerId); },true);
 $("#assignment-list").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
 $("#subcenter-mission-content").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const teamButton=event.target.closest(".assign-subcenter-team"); if (teamButton) { assignSubcenterTeam(teamButton); return; } const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });

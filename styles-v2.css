@@ -278,7 +278,22 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 @media(max-width:720px){#dispatch-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#dispatch-kpis .kpi-card:last-child{grid-column:auto}.assigned-team-facts{grid-template-columns:1fr}.assigned-team-members ul{grid-template-columns:1fr}}
 @media(max-width:560px){.assignment-note{grid-column:1}.assigned-team-card{padding:14px}.assigned-team-heading{flex-direction:column}.assigned-team-members li{flex-direction:column;gap:3px}.assigned-team-members li small{text-align:left}}
 
-/* Central dispatch: five-team preview and clearly separated center queues */
+/* Central team groups and dispatch queues */
+.central-team-groups{display:grid;gap:11px}
+.central-team-group{min-width:0;overflow:hidden;border:1px solid #e5d7cb;border-radius:13px;background:#fffdfb}
+.central-team-group>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;cursor:pointer;list-style:none;background:#faf4ee}
+.central-team-group>summary>div{min-width:0;flex:1}
+.central-team-group>summary::-webkit-details-marker{display:none}
+.central-team-group>summary:focus-visible{outline:2px solid #8b4a2f;outline-offset:-3px}
+.central-team-group>summary h4{margin:3px 0 0;color:var(--navy);font-size:.95rem;line-height:1.4;overflow-wrap:anywhere}
+.central-team-group>summary p{margin:4px 0 0;color:var(--muted);font-size:.74rem;line-height:1.4}
+.central-team-group>summary::after{content:"⌄";align-self:center;color:#8b4a2f;font-size:1.1rem;line-height:1}
+.central-team-group[open]>summary::after{transform:rotate(180deg)}
+.central-team-count{flex:0 0 auto;padding:5px 10px;border-radius:99px;background:#f0e0d4;color:#78331e;font-size:.75rem;font-weight:800;white-space:nowrap}
+.central-team-group[open]>summary{border-bottom:1px solid #e5d7cb}
+.central-team-group-list{display:grid;gap:10px;padding:13px}
+.central-team-group-list .team-card{background:#fff}
+@media(max-width:560px){.central-team-group>summary{align-items:flex-start;padding:12px}.central-team-group-list{padding:9px}}
 .dispatch-center-overview{padding:15px;border:1px solid var(--line);border-radius:13px;background:#fcf7f2;min-width:0}
 .dispatch-center-overview-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .dispatch-center-overview h3{margin:3px 0 0;color:var(--navy);font-size:.9rem;line-height:1.4}
