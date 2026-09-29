@@ -255,6 +255,8 @@ async function logoutStaff() {
   shelterRecords = [];
   requestRows = [];
   dashboardRole = "public";
+  dashboardMap?.closePopup();
+  dashboardMapMarkers?.clearLayers();
   resetShelterForm();
   localStorage.removeItem(SESSION_KEY);
   applyAuthUi();
@@ -653,7 +655,7 @@ function renderDashboardMap() {
   const empty = $("#dashboard-map-empty");
   const caption = $("#dashboard-map-caption");
   const mapRows = dashboardRole === "public" ? [] : requestRows.map(row => ({row,location:requestLocation(row)})).filter(item => item.location.hasCoordinates);
-  caption.textContent = dashboardRole === "public" ? "พิกัดจุดปฏิบัติงานแสดงเฉพาะเจ้าหน้าที่" : `พบพิกัด ${mapRows.length.toLocaleString("th-TH")} คำร้องในขอบเขตที่รับผิดชอบ`;
+  caption.textContent = dashboardRole === "public" ? "พิกัดจุดปฏิบัติงานแสดงเฉพาะเจ้าหน้าที่" : `พบพิกัด ${mapRows.length.toLocaleString("th-TH")} คำร้อง · กดหมุดเพื่อดูรายละเอียดและเปิด Google Maps`;
   empty.hidden = mapRows.length > 0;
   empty.textContent = dashboardRole === "public" ? "เข้าสู่ระบบเจ้าหน้าที่เพื่อดูพิกัดคำร้องตามสิทธิ์" : "ยังไม่มีคำร้องที่ปักหมุดพิกัดในขอบเขตนี้";
   if (!window.L) { empty.hidden = false; empty.textContent = "ไม่สามารถโหลดแผนที่ได้ในขณะนี้"; return; }
@@ -677,6 +679,41 @@ function renderDashboardMap() {
     const count = items.length;
     const marker = L.circleMarker(coordinate,{radius:Math.min(20,10+Math.sqrt(count)*3),color:"#fff",weight:3,fillColor:"#8e4128",fillOpacity:.95});
     marker.bindTooltip(`${count} คำร้อง · ${items.map(item=>escapeHtml(item.row.location_name)).slice(0,3).join(" / ")}`,{direction:"top"});
+    const popup = document.createElement("div");
+    popup.className = "dashboard-map-popup";
+    const heading = document.createElement("strong");
+    heading.textContent = count === 1 ? "รายละเอียดคำร้อง ณ จุดนี้" : `คำร้องบริเวณนี้ ${count} รายการ`;
+    popup.append(heading);
+    const list = document.createElement("div");
+    list.className = "dashboard-map-popup-list";
+    items.forEach(({row,location}) => {
+      const item = document.createElement("div");
+      item.className = "dashboard-map-popup-item";
+      const title = document.createElement("span");
+      title.textContent = `${row.request_no} · ${row.location_name}`;
+      const actions = document.createElement("div");
+      actions.className = "dashboard-map-popup-actions";
+      const detail = document.createElement("button");
+      detail.type = "button";
+      detail.className = "dashboard-map-detail-button";
+      detail.textContent = "ดูรายละเอียด";
+      detail.addEventListener("click",() => {
+        if (!authSession || dashboardRole !== authSession.role || !requestRows.some(request => request.id === row.id)) return;
+        marker.closePopup();
+        openRequestDetails(row);
+      });
+      const google = document.createElement("a");
+      google.className = "dashboard-map-google-link";
+      google.href = location.mapUrl;
+      google.target = "_blank";
+      google.rel = "noopener noreferrer";
+      google.textContent = "เปิด Google Maps ↗";
+      actions.append(detail,google);
+      item.append(title,actions);
+      list.append(item);
+    });
+    popup.append(list);
+    marker.bindPopup(popup,{maxWidth:330,minWidth:230});
     marker.addTo(dashboardMapMarkers);
   });
   if (bounds.length) dashboardMap.fitBounds(bounds,{padding:[28,28],maxZoom:10});
