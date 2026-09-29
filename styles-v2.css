@@ -302,6 +302,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .dispatch-request-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .dispatch-assignment-state{padding:3px 8px;border-radius:99px;font-size:.68rem;font-weight:800}
 .dispatch-assignment-state.waiting{background:#fff0db;color:#935518}.dispatch-assignment-state.sent{background:#e3f1e7;color:#267151}
+.dispatch-priority{display:inline-flex;align-items:center;padding:3px 8px;border-radius:99px;font-size:.68rem;font-weight:800;white-space:nowrap}
+.dispatch-priority.normal{background:#f0ebe7;color:#67554b}
+.dispatch-priority.urgent{background:#fff0d6;color:#8d5109}
+.dispatch-priority.critical{background:#fde6e4;color:#a12f2b}
 .dispatch-center-group{overflow:hidden;border:1px solid #d9e5d9;border-radius:12px;background:#fff}
 .dispatch-center-group>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none;background:#f7fbf7}
 .dispatch-center-group>summary::-webkit-details-marker{display:none}
