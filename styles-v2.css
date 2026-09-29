@@ -546,3 +546,23 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 @media(max-width:1050px){.dashboard-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.dashboard-top-grid,.dashboard-bottom-grid{grid-template-columns:1fr 1.35fr}}
 @media(max-width:760px){.dashboard-heading{align-items:flex-start}.dashboard-heading .button{font-size:.78rem;padding:9px 11px}.dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-kpi:last-child{grid-column:1/-1}.dashboard-top-grid,.dashboard-bottom-grid{grid-template-columns:1fr}.dashboard-top-grid .status-chart{padding-top:0}.dashboard-table-panel .table-heading{flex-direction:column;align-items:stretch}.dashboard-table-panel .table-tools{justify-content:stretch}.dashboard-table-panel .search-box{flex:1 1 100%}.dashboard-table-panel .search-box input{width:100%}.dashboard-table-panel .table-tools select{flex:1 1 auto;max-width:none}#dashboard-map{height:285px}}
 @media(max-width:480px){.dashboard-heading{flex-direction:column}.dashboard-heading .button{width:100%}.dashboard-kpis{gap:9px}.dashboard-kpi{min-height:145px;padding:14px 11px}.dashboard-kpi-icon{left:12px;top:12px;width:34px;height:34px;font-size:1.05rem!important}.dashboard-kpi>span:not(.dashboard-kpi-icon),.dashboard-kpi strong{padding-left:42px}.dashboard-kpi>span:not(.dashboard-kpi-icon){font-size:.73rem}.dashboard-kpi strong{font-size:1.65rem}.dashboard-kpi small{font-size:.67rem}.dashboard-progress-grid{gap:10px}.dashboard-progress-grid>div+div{padding-left:10px}.dashboard-donut:before,.dashboard-gauge:before{inset:15px}.dashboard-donut strong,.dashboard-gauge strong{font-size:1.35rem}.dashboard-bottom-grid .urgent-item time{max-width:75px;font-size:.65rem}}
+
+/* Readable Thai body text while keeping the existing display style for headings. */
+:root{font-family:"Sarabun","Anuphan",system-ui,sans-serif}
+body{line-height:1.55}
+h1,h2,h3,h4,.brand strong{font-family:"Anuphan","Sarabun",system-ui,sans-serif}
+.hero-content .hero-quote,.leaflet-container,.dashboard-map-popup{font-family:"Sarabun","Anuphan",system-ui,sans-serif}
+button,input,select,textarea{font-family:inherit}
+
+/* Shared, accessible loading state for route changes. */
+.page-transition[hidden]{display:none!important}
+.page-transition{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgba(249,245,239,.94);backdrop-filter:blur(8px)}
+.page-transition-card{width:min(380px,100%);padding:32px 28px 26px;border:1px solid #e9d9cb;border-radius:24px;background:#fffdf9;box-shadow:0 24px 70px rgba(87,43,27,.15);text-align:center;color:#672513}
+.page-transition-logo{display:block;width:72px;height:72px;margin:0 auto 18px;border-radius:17px;animation:page-logo-pulse 1.6s ease-in-out infinite}
+.page-transition-card strong{display:block;font-family:"Anuphan","Sarabun",system-ui,sans-serif;font-size:1.1rem;line-height:1.45}
+.page-transition-card p{margin:8px 0 20px;color:#80675c;font-size:.95rem}
+.page-transition-progress{height:12px;overflow:hidden;border-radius:999px;background:#f0e5dc}
+.page-transition-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a85a37,#6f2817);transition:width .18s ease-out}
+.page-transition-card output{display:block;margin-top:11px;font-variant-numeric:tabular-nums;font-size:.9rem;font-weight:700;color:#7e331c}
+@keyframes page-logo-pulse{50%{transform:scale(1.055);filter:drop-shadow(0 7px 8px rgba(111,40,23,.18))}}
+@media(prefers-reduced-motion:reduce){.page-transition-logo{animation:none}.page-transition-progress span{transition:none}}

@@ -130,7 +130,50 @@ function routeInfo() {
   return {name:raw,raw};
 }
 
-function route() {
+const PAGE_TITLES = {
+  home:"หน้าหลัก", registry:"ลงทะเบียนโครงการ", dashboard:"Dashboard",
+  new:"แบบฟอร์มรับคำร้อง", login:"เข้าสู่ระบบเจ้าหน้าที่",
+  center:"ศูนย์ควบคุมและจัดชุดปฏิบัติการ", dispatch:"รับเรื่องและมอบหมายภารกิจ",
+  subcenter:"พื้นที่ปฏิบัติงานศูนย์ย่อย", "subcenter-mission":"รายละเอียดภารกิจ",
+  shelter:"ข้อมูลผู้พักพิง", manage:"ติดตามคำร้อง"
+};
+let pageTransitionId = 0;
+let pageTransitionTimer;
+
+function setPageTransitionProgress(percent) {
+  const value = Math.max(0, Math.min(100, Math.round(percent)));
+  $("#page-transition-fill").style.width = `${value}%`;
+  $("#page-transition-progress").setAttribute("aria-valuenow", String(value));
+  $("#page-transition-percent").value = `${value}%`;
+}
+
+function beginPageTransition(name) {
+  const id = ++pageTransitionId;
+  const started = performance.now();
+  clearInterval(pageTransitionTimer);
+  $("#page-transition-title").textContent = `กำลังเปิด${PAGE_TITLES[name] || "หน้าเว็บ"}...`;
+  setPageTransitionProgress(6);
+  $("#page-transition").hidden = false;
+  pageTransitionTimer = setInterval(() => {
+    if (id !== pageTransitionId) return;
+    const elapsed = performance.now() - started;
+    setPageTransitionProgress(Math.min(92, 6 + 86 * (1 - Math.exp(-elapsed / 850))));
+  }, 90);
+  return {id,started};
+}
+
+async function finishPageTransition({id,started}) {
+  if (id !== pageTransitionId) return;
+  clearInterval(pageTransitionTimer);
+  const remaining = Math.max(0, 360 - (performance.now() - started));
+  if (remaining) await new Promise(resolve => setTimeout(resolve, remaining));
+  if (id !== pageTransitionId) return;
+  setPageTransitionProgress(100);
+  await new Promise(resolve => setTimeout(resolve, 160));
+  if (id === pageTransitionId) $("#page-transition").hidden = true;
+}
+
+async function route() {
   const info = routeInfo();
   const allowed = ["home","registry","dashboard","new","login","center","dispatch","subcenter","subcenter-mission","shelter","manage"];
   let name = allowed.includes(info.name) ? info.name : "home";
@@ -150,23 +193,32 @@ function route() {
     location.hash = authSession.role === "central" ? "center" : "subcenter";
     return;
   }
-  $$(".view").forEach(view => { view.hidden = view.id !== `${name}-view`; });
-  $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.route === (name === "subcenter-mission" ? "subcenter" : name)));
-  if (name === "registry") loadRegistry();
-  if (name === "dashboard") loadDashboard();
-  if (name === "new") {
-    setRequestDefaults();
-    requestAnimationFrame(() => {
+  const transition = beginPageTransition(name);
+  try {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (transition.id !== pageTransitionId) return;
+    $$(".view").forEach(view => { view.hidden = view.id !== `${name}-view`; });
+    $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.route === (name === "subcenter-mission" ? "subcenter" : name)));
+    if (name === "registry") await loadRegistry();
+    if (name === "dashboard") await loadDashboard();
+    if (name === "new") {
+      setRequestDefaults();
+      await new Promise(resolve => setTimeout(resolve, 0));
       initializeOperationMap();
       operationMap?.invalidateSize();
-    });
+    }
+    if (["center","dispatch"].includes(name)) await loadCentral(name);
+    if (name === "subcenter") await loadSubcenter();
+    if (name === "subcenter-mission") await loadSubcenterMission(info.raw);
+    if (name === "shelter") await loadShelter();
+    if (name === "manage") await loadManage(info.raw);
+    if (transition.id === pageTransitionId) window.scrollTo({top:0,behavior:"instant"});
+  } catch (error) {
+    console.error("Page transition failed", error);
+    if (transition.id === pageTransitionId) showToast("เปิดหน้านี้ไม่สำเร็จ กรุณาลองอีกครั้ง", true);
+  } finally {
+    await finishPageTransition(transition);
   }
-  if (["center","dispatch"].includes(name)) loadCentral(name);
-  if (name === "subcenter") loadSubcenter();
-  if (name === "subcenter-mission") loadSubcenterMission(info.raw);
-  if (name === "shelter") loadShelter();
-  if (name === "manage") loadManage(info.raw);
-  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function applyAuthUi() {
