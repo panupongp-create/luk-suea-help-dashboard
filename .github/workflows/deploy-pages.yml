@@ -19,11 +19,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      - name: Prepare migration notice
+      - name: Prepare static site
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           mkdir -p _site
-          cp legacy/index.html _site/index.html
-          cp legacy/index.html _site/404.html
+          cp index.html styles.css styles-v2.css app.js server-client.js config.js _site/
+          cp -R assets _site/assets
+          node scripts/write-config.mjs _site/config.js
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
