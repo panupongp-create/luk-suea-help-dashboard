@@ -28,6 +28,7 @@ jobs:
           cp index.html styles.css styles-v2.css app.js server-client.js config.js _site/
           cp -R assets _site/assets
           node scripts/write-config.mjs _site/config.js
+          cp maintenance-pages.html _site/index.html
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
