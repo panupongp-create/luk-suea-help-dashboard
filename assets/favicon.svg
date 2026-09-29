@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#0b2f47"/><stop offset="1" stop-color="#087d82"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><path d="M32 14v36M14 32h36" stroke="#fff" stroke-width="9" stroke-linecap="round"/><circle cx="48" cy="16" r="7" fill="#f2b43a"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ตราลูกเสือ">
+  <rect width="64" height="64" rx="15" fill="#6f2817"/>
+  <g fill="#fff8ee">
+    <path d="M32 6c-6 8-9 15-8 21 0 4 3 8 6 11h4c3-3 6-7 6-11 1-6-2-13-8-21Z"/>
+    <path d="M27 34c-3-8-8-13-14-12-6 1-9 6-8 12 1 6 6 10 13 9-4-3-5-7-2-10 3-3 7-2 9 1l3 6h8l3-6c2-3 6-4 9-1 3 3 2 7-2 10 7 1 12-3 13-9 1-6-2-11-8-12-6-1-11 4-14 12Z"/>
+    <path d="M27 36h10v12c0 5-2 8-5 11-3-3-5-6-5-11V36Z"/>
+  </g>
+  <path d="M18 39h28v6H18z" fill="#e7b879"/>
+</svg>
