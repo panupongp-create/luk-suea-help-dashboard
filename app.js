@@ -96,6 +96,7 @@ const VOLUNTEERS_PER_PAGE = 5;
 let dispatchTeamsExpanded = false;
 const dispatchExpandedCenters = new Set();
 const centralExpandedTeamCenters = new Set();
+let dispatchCenterLayout = "grid";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -1045,17 +1046,43 @@ function renderDispatchTeams() {
   $("#dispatch-team-list").innerHTML = teams.length ? visible.map(team => `<article class="subcenter-card"><div><span>${escapeHtml(team.team_no)}</span><strong>${escapeHtml((TEAM_TYPES[team.team_type]||[team.team_type||"ชุดปฏิบัติการ"])[0])}</strong><small>${escapeHtml(team.center_name||"ยังไม่ระบุศูนย์ย่อย")} · ${escapeHtml(team.operation_area||"ยังไม่ระบุพื้นที่")}</small></div><div><span class="status-chip completed">พร้อมรับภารกิจ</span><small>หัวหน้าชุด ${escapeHtml(team.leader_name||"–")} · ${Number(team.member_count||0).toLocaleString("th-TH")} คน</small></div></article>`).join("") + `<div class="dispatch-team-footer"><span>แสดง ${visible.length.toLocaleString("th-TH")} จาก ${teams.length.toLocaleString("th-TH")} ชุด</span>${teams.length>5?`<button class="button button-ghost toggle-dispatch-teams" type="button" aria-expanded="${dispatchTeamsExpanded}">${dispatchTeamsExpanded?"แสดงเฉพาะ 5 ชุดล่าสุด":"ดูชุดปฏิบัติการทั้งหมด"}</button>`:""}</div>` : `<div class="empty-state compact-empty"><strong>ยังไม่มีชุดปฏิบัติการ</strong><span>ศูนย์ย่อยต้องจัดชุดปฏิบัติการก่อนจึงจะมอบหมายภารกิจได้</span></div>`;
 }
 
+function dispatchIcon(name) {
+  const paths = {
+    building:'<path d="M4 21V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v16M2 21h20M17 10h3a2 2 0 0 1 2 2v9M8 7h2m3 0h1M8 11h2m3 0h1M8 15h2m3 0h1M9 21v-3h3v3"/>',
+    calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-14 4h3m4 0h3m-10 4h3"/>',
+    person:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
+    send:'<path d="m22 2-7 20-4-9-9-4 20-7ZM11 13 22 2"/>',
+    map:'<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15"/>',
+    grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    list:'<path d="M9 6h12M9 12h12M9 18h12M3 6h1m-1 6h1m-1 6h1"/>'
+  };
+  return `<svg class="dispatch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]||""}</svg>`;
+}
+
+function compareRequestsNewestFirst(a,b) {
+  const aTime = Date.parse(a.received_at||"");
+  const bTime = Date.parse(b.received_at||"");
+  return (Number.isFinite(bTime)?bTime:0) - (Number.isFinite(aTime)?aTime:0) || String(b.request_no||"").localeCompare(String(a.request_no||""));
+}
+
 function dispatchRequestCard(request,centers) {
   const selectedCenter = request.assigned_center_id || "";
   const isAssigned = Boolean(selectedCenter);
   const availableCenters = centers.some(center => center.id === selectedCenter) || !selectedCenter ? centers : [...centers,{id:selectedCenter,name:request.assigned_center_name||"ศูนย์ย่อยเดิม (ปิดใช้งาน)"}];
   const assignmentNote = request.center_assignment_note ?? request.assignment_note ?? "";
   const priority = ["normal","urgent","critical"].includes(request.priority) ? request.priority : "normal";
-  return `<article class="assignment-card" data-request-id="${escapeHtml(request.id)}"><div class="assignment-main"><div class="dispatch-request-heading"><span class="team-no">${escapeHtml(request.request_no)}</span><span class="dispatch-assignment-state ${isAssigned?"sent":"waiting"}">${isAssigned?"ส่งต่อแล้ว":"ยังไม่ส่งต่อ"}</span>${isAssigned?"":`<span class="dispatch-priority ${priority}">ระดับความเร่งด่วน: ${PRIORITY[priority]}</span>`}</div><h3>${escapeHtml(request.location_name)}</h3><p>${escapeHtml(request.mission)}</p><small>${Number(request.personnel_required||0).toLocaleString("th-TH")} คน · ${formatDate(request.operation_start_at)} · ผู้ประสานงาน ${escapeHtml(request.coordinator_name||"–")} ${escapeHtml(request.coordinator_phone||"")}</small><button class="request-detail-link view-request-detail" type="button">ดูรายละเอียดทั้งหมดและแผนที่ →</button></div><div class="assignment-control"><label class="assignment-field"><span>ศูนย์ย่อยที่รับผิดชอบ *</span><select class="assignment-center" ${centers.length?"":"disabled"}><option value="">เลือกศูนย์ย่อย</option>${availableCenters.map(center=>`<option value="${escapeHtml(center.id)}" ${selectedCenter===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("")}</select></label><input class="assignment-note" placeholder="ข้อสั่งการ / หมายเหตุ" value="${escapeHtml(assignmentNote)}"><button class="button button-primary assign-request" type="button" ${centers.length?"":"disabled"}>${isAssigned?"เปลี่ยนศูนย์ย่อย":"ส่งต่อให้ศูนย์ย่อย"}</button>${isAssigned?`<small><strong>ศูนย์ย่อย:</strong> ${escapeHtml(request.assigned_center_name||availableCenters.find(center=>center.id===selectedCenter)?.name||"–")}<br><strong>สถานะชุดปฏิบัติการ:</strong> ${request.assigned_team_id?`เลือกชุด ${escapeHtml(request.assigned_team_no||"")} แล้ว`:"รอศูนย์ย่อยเลือกชุด"}</small>`:""}</div></article>`;
+  return `<article class="assignment-card dispatch-request-card" data-request-id="${escapeHtml(request.id)}">
+    <span class="dispatch-building-icon">${dispatchIcon("building")}</span>
+    <div class="assignment-main"><div class="dispatch-request-heading"><span class="team-no">${escapeHtml(request.request_no)}</span><span class="dispatch-assignment-state ${isAssigned?"sent":"waiting"}">${isAssigned?"ส่งต่อแล้ว":"ยังไม่ส่งต่อ"}</span>${isAssigned?"":`<span class="dispatch-priority ${priority}">ระดับความเร่งด่วน: ${PRIORITY[priority]}</span>`}</div>
+      <h3>${escapeHtml(request.location_name)}</h3><p>${escapeHtml(request.mission)}</p>
+      <div class="dispatch-request-meta"><span>${dispatchIcon("calendar")} ${Number(request.personnel_required||0).toLocaleString("th-TH")} คน · รับคำขอ <time datetime="${escapeHtml(request.received_at||"")}">${formatDate(request.received_at)}</time></span><span>${dispatchIcon("person")} ผู้ประสานงาน ${escapeHtml([request.coordinator_name||"–",request.coordinator_phone||""].filter(Boolean).join(" · "))}</span></div>
+      <button class="request-detail-link view-request-detail" type="button">ดูรายละเอียดทั้งหมดและแผนที่ →</button></div>
+    <div class="assignment-control"><label class="assignment-field"><span>ศูนย์ย่อยที่รับผิดชอบ *</span><select class="assignment-center" ${centers.length?"":"disabled"}><option value="">เลือกศูนย์ย่อย</option>${availableCenters.map(center=>`<option value="${escapeHtml(center.id)}" ${selectedCenter===center.id?"selected":""}>${escapeHtml(center.name)}</option>`).join("")}</select></label><input class="assignment-note" aria-label="ข้อสั่งการหรือหมายเหตุ" placeholder="ข้อสั่งการ / หมายเหตุ" value="${escapeHtml(assignmentNote)}"><button class="button button-primary assign-request" type="button" ${centers.length?"":"disabled"}>${dispatchIcon("send")}${isAssigned?"เปลี่ยนศูนย์ย่อย":"ส่งต่อให้ศูนย์ย่อย"}</button>${isAssigned?`<small><strong>ศูนย์ย่อย:</strong> ${escapeHtml(request.assigned_center_name||availableCenters.find(center=>center.id===selectedCenter)?.name||"–")}<br><strong>สถานะชุดปฏิบัติการ:</strong> ${request.assigned_team_id?`เลือกชุด ${escapeHtml(request.assigned_team_no||"")} แล้ว`:"รอศูนย์ย่อยเลือกชุด"}</small>`:""}</div>
+  </article>`;
 }
 
 function renderAssignments() {
-  const requests = centralState?.requests || [];
+  const requests = [...(centralState?.requests || [])].sort(compareRequestsNewestFirst);
   const allCenters = centralState?.centers || [];
   const activeCenters = allCenters.filter(center => center.active);
   const pending = requests.filter(request => !request.assigned_center_id);
@@ -1067,8 +1094,12 @@ function renderAssignments() {
   });
   const groups = [...byCenter.values()].filter(center => center.requests.length);
   const waitingHtml = pending.length ? pending.map(request => dispatchRequestCard(request,activeCenters)).join("") : `<div class="dispatch-queue-empty">ไม่มีคำร้องรอส่งต่อ</div>`;
-  const assignedHtml = groups.length ? groups.map(center => `<details class="dispatch-center-group" data-center-id="${escapeHtml(center.id)}" ${dispatchExpandedCenters.has(center.id)?"open":""}><summary><div><span class="team-no">${escapeHtml(center.center_code||"–")}</span><h4>${escapeHtml(center.name)}</h4><p>${center.requests.slice(0,2).map(request=>escapeHtml(request.location_name)).join(" · ")}${center.requests.length>2?` · และอีก ${center.requests.length-2} เรื่อง`:""}</p></div><span class="dispatch-center-count">${center.requests.length.toLocaleString("th-TH")} ภารกิจ</span></summary><div class="dispatch-center-request-list">${center.requests.map(request=>dispatchRequestCard(request,activeCenters)).join("")}</div></details>`).join("") : `<div class="dispatch-queue-empty">ยังไม่มีคำร้องที่ส่งต่อให้ศูนย์ย่อย</div>`;
-  $("#assignment-list").innerHTML = `<section class="dispatch-queue waiting"><div class="dispatch-queue-heading"><div><h3>รอส่งต่อศูนย์ย่อย</h3><p>คำร้องใหม่ที่ส่วนกลางยังไม่ได้เลือกศูนย์ผู้รับผิดชอบ</p></div><span>${pending.length.toLocaleString("th-TH")} รายการ</span></div><div class="dispatch-queue-list">${waitingHtml}</div></section><section class="dispatch-queue sent"><div class="dispatch-queue-heading"><div><h3>ส่งต่อแล้ว · แยกตามศูนย์ย่อย</h3><p>กดชื่อศูนย์เพื่อดูทุกภารกิจและเปลี่ยนศูนย์ผู้รับผิดชอบได้</p></div><span>${assigned.length.toLocaleString("th-TH")} รายการ</span></div><div class="dispatch-center-groups">${assignedHtml}</div></section>`;
+  const assignedHtml = groups.length ? groups.map(center => {
+    const preview = center.requests.slice(0,3).map(request=>escapeHtml(request.location_name)).join(" · ");
+    return `<details class="dispatch-center-group" data-center-id="${escapeHtml(center.id)}" ${dispatchExpandedCenters.has(center.id)?"open":""}><summary><span class="dispatch-center-icon">${dispatchIcon("building")}</span><span class="dispatch-center-copy"><span class="team-no">${escapeHtml(center.center_code||"–")}</span><strong>${escapeHtml(center.name)}</strong><small>${preview}${center.requests.length>3?` · และอีก ${center.requests.length-3} เรื่อง`:""}</small><span class="dispatch-center-count">${center.requests.length.toLocaleString("th-TH")} ภารกิจ</span></span><span class="dispatch-center-arrow" aria-hidden="true">›</span></summary><div class="dispatch-center-request-list">${center.requests.map(request=>dispatchRequestCard(request,activeCenters)).join("")}</div></details>`;
+  }).join("") : `<div class="dispatch-queue-empty">ยังไม่มีคำร้องที่ส่งต่อให้ศูนย์ย่อย</div>`;
+  $("#assignment-list").innerHTML = `<section class="dispatch-queue waiting" aria-labelledby="dispatch-waiting-title"><div class="dispatch-queue-heading"><div><div class="dispatch-queue-title"><h2 id="dispatch-waiting-title">รอส่งต่อศูนย์ย่อย</h2><span class="dispatch-queue-count">${pending.length.toLocaleString("th-TH")} รายการ</span></div><p>คำร้องที่ยังไม่ได้เลือกศูนย์ย่อยผู้รับผิดชอบ · เรียงจากวันรับคำขอล่าสุด</p></div><a class="dispatch-map-link" href="#dashboard" title="ดูแผนที่พิกัดคำร้องบน Dashboard">${dispatchIcon("map")} แผนที่คำร้อง</a></div><div class="dispatch-queue-list">${waitingHtml}</div></section>
+    <section class="dispatch-queue sent" aria-labelledby="dispatch-sent-title"><div class="dispatch-queue-heading"><div><div class="dispatch-queue-title"><h2 id="dispatch-sent-title">ส่งต่อแล้ว · แยกตามศูนย์ย่อย</h2><span class="dispatch-queue-count">${assigned.length.toLocaleString("th-TH")} รายการ</span></div><p>กดชื่อศูนย์เพื่อดูภารกิจทั้งหมด และเปลี่ยนศูนย์ผู้รับผิดชอบได้</p></div><div class="dispatch-layout-switch" role="group" aria-label="รูปแบบแสดงศูนย์ย่อย"><button class="dispatch-layout-button ${dispatchCenterLayout==="grid"?"active":""}" type="button" data-dispatch-layout="grid" aria-pressed="${dispatchCenterLayout==="grid"}">${dispatchIcon("grid")} แบบการ์ด</button><button class="dispatch-layout-button ${dispatchCenterLayout==="list"?"active":""}" type="button" data-dispatch-layout="list" aria-pressed="${dispatchCenterLayout==="list"}">${dispatchIcon("list")} แบบตาราง</button></div></div><div class="dispatch-center-groups ${dispatchCenterLayout==="list"?"list":""}">${assignedHtml}</div>${groups.length?`<p class="dispatch-sent-footnote">กดที่ศูนย์ย่อยเพื่อดูรายการทั้งหมดและจัดการคำร้องที่ส่งต่อแล้ว</p>`:""}</section>`;
 }
 
 async function assignRequest(button) {
@@ -1668,7 +1699,7 @@ window.addEventListener("resize",() => {
 $("#dispatch-team-list").addEventListener("click",event => { if (event.target.closest(".toggle-dispatch-teams")) { dispatchTeamsExpanded=!dispatchTeamsExpanded; renderDispatchTeams(); } });
 $("#central-team-list").addEventListener("toggle",event => { const group=event.target.closest(".central-team-group"); if (!group || event.target!==group) return; if (group.open) centralExpandedTeamCenters.add(group.dataset.centerId); else centralExpandedTeamCenters.delete(group.dataset.centerId); },true);
 $("#assignment-list").addEventListener("toggle",event => { const group=event.target.closest(".dispatch-center-group"); if (!group) return; if (group.open) dispatchExpandedCenters.add(group.dataset.centerId); else dispatchExpandedCenters.delete(group.dataset.centerId); },true);
-$("#assignment-list").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
+$("#assignment-list").addEventListener("click",event => { const layoutButton=event.target.closest(".dispatch-layout-button"); if (layoutButton) { dispatchCenterLayout=layoutButton.dataset.dispatchLayout; $(".dispatch-center-groups",$("#assignment-list")).classList.toggle("list",dispatchCenterLayout==="list"); $$(".dispatch-layout-button",$("#assignment-list")).forEach(option => { const active=option.dataset.dispatchLayout===dispatchCenterLayout; option.classList.toggle("active",active); option.setAttribute("aria-pressed",String(active)); }); return; } const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const button=event.target.closest(".assign-request"); if (button) assignRequest(button); });
 $("#subcenter-mission-content").addEventListener("click",event => { const detailButton=event.target.closest(".view-request-detail"); if (detailButton) { openRequestDetails(requestFromDetailButton(detailButton)); return; } const teamButton=event.target.closest(".assign-subcenter-team"); if (teamButton) { assignSubcenterTeam(teamButton); return; } const button=event.target.closest(".save-sub-step"); if (button) saveSubcenterStep(button); });
 $("#subcenter-mission-content").addEventListener("submit",event => { const form=event.target.closest(".sub-summary-form"); if (form) { event.preventDefault(); saveSubcenterSummary(form); } });
 $("#step-editor").addEventListener("click",event => { const button=event.target.closest(".save-step"); if (button) saveLegacyStep(button); });
