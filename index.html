@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="styles.css?v=2">
-  <link rel="stylesheet" href="styles-v2.css?v=26">
+  <link rel="stylesheet" href="styles-v2.css?v=27">
 </head>
 <body>
   <header class="app-header">
@@ -29,6 +29,7 @@
       <a class="nav-link public-nav" data-route="registry" href="#registry">ลงทะเบียนโครงการ</a>
       <a class="nav-link public-nav" data-route="dashboard" href="#dashboard">Dashboard</a>
       <a id="login-nav" class="nav-link public-nav" data-route="login" href="#login">เข้าสู่ระบบเจ้าหน้าที่</a>
+      <a id="staff-dashboard-nav" class="nav-link staff-nav" data-route="dashboard" href="#dashboard" hidden>Dashboard</a>
       <a id="central-operations-nav" class="nav-link staff-nav central-nav" data-route="center" href="#center" hidden>ศูนย์ควบคุมและจัดชุดปฏิบัติการ</a>
       <a id="central-dispatch-nav" class="nav-link staff-nav central-nav" data-route="dispatch" href="#dispatch" hidden>รับเรื่องและมอบหมายภารกิจ</a>
       <a id="subcenter-work-nav" class="nav-link staff-nav subcenter-nav" data-route="subcenter" href="#subcenter" hidden>พื้นที่ปฏิบัติงานศูนย์ย่อย</a>
@@ -150,31 +151,39 @@
 
     <section id="dashboard-view" class="view" hidden aria-labelledby="dashboard-title">
       <div class="page-heading dashboard-heading">
-        <div><p class="eyebrow">ระบบ 2</p><h1 id="dashboard-title">Dashboard คำร้องช่วยเหลือ</h1><p>ติดตามคำร้อง ชุดปฏิบัติการที่รับผิดชอบ และความคืบหน้า โดยไม่แสดงข้อมูลส่วนบุคคล</p></div>
-        <a class="button button-primary" href="#new">+ ส่งคำร้องใหม่</a>
+        <div><p class="eyebrow" id="dashboard-scope">ภาพรวมสาธารณะ</p><h1 id="dashboard-title">ระบบจัดการคำร้อง</h1><p id="dashboard-description">ติดตามสถานะคำร้องและผลการช่วยเหลือ โดยไม่แสดงข้อมูลส่วนบุคคล</p></div>
+        <a id="dashboard-primary-action" class="button button-primary" href="#new">+ สร้างคำร้องใหม่</a>
       </div>
-
-      <div class="kpi-grid" aria-label="ตัวเลขสรุป">
-        <article class="kpi-card kpi-accent"><span>คำร้องทั้งหมด</span><strong id="kpi-total">0</strong><small>รายการในระบบ</small></article>
-        <article class="kpi-card"><span>กำลังดำเนินการ</span><strong id="kpi-active">0</strong><small>ต้องติดตามต่อ</small></article>
-        <article class="kpi-card"><span>ติดปัญหา</span><strong id="kpi-blocked">0</strong><small>ควรเร่งประสานงาน</small></article>
-        <article class="kpi-card"><span>เสร็จสิ้น</span><strong id="kpi-done">0</strong><small>ปิดภารกิจแล้ว</small></article>
-        <article class="kpi-card"><span>กำลังพลที่ต้องการ</span><strong id="kpi-people">0</strong><small>คน รวมทุกคำร้อง</small></article>
-      </div>
-
-      <div class="dashboard-grid">
-        <section class="panel status-panel"><div class="panel-heading"><div><h2>สถานะคำร้อง</h2><p>สัดส่วนงานที่อยู่ในแต่ละช่วง</p></div></div><div id="status-chart" class="status-chart"></div></section>
-        <section class="panel urgency-panel"><div class="panel-heading"><div><h2>งานที่ต้องจับตา</h2><p>เรียงจากงานเร่งด่วนและใกล้ถึงกำหนด</p></div></div><div id="urgent-list" class="urgent-list"></div></section>
-      </div>
-
-      <section class="panel table-panel">
-        <div class="panel-heading table-heading">
-          <div><h2>รายการคำร้องล่าสุด</h2><p id="result-summary">กำลังโหลดข้อมูล</p></div>
-          <div class="table-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="ค้นหาเลขที่ สถานที่ หรือภารกิจ"></label><select id="status-filter"><option value="all">ทุกสถานะ</option><option value="pending">รอดำเนินการ</option><option value="in_progress">กำลังดำเนินการ</option><option value="blocked">ติดปัญหา</option><option value="completed">เสร็จสิ้น</option></select></div>
+      <div id="dashboard-loading" class="panel loading-panel">กำลังโหลด Dashboard…</div>
+      <div id="dashboard-content" hidden>
+        <div class="kpi-grid dashboard-kpis" aria-label="ตัวเลขสรุป">
+          <article class="kpi-card dashboard-kpi"><span class="dashboard-kpi-icon total" aria-hidden="true">▤</span><span>คำร้องทั้งหมด</span><strong id="kpi-total">0</strong><small>ทั้งหมดในขอบเขตที่เห็น</small></article>
+          <article class="kpi-card dashboard-kpi"><span class="dashboard-kpi-icon active" aria-hidden="true">⌛</span><span>กำลังดำเนินการ</span><strong id="kpi-active">0</strong><small>รวมงานรอดำเนินการ</small></article>
+          <article class="kpi-card dashboard-kpi"><span class="dashboard-kpi-icon blocked" aria-hidden="true">!</span><span>ติดปัญหา</span><strong id="kpi-blocked">0</strong><small>ควรเร่งประสานงาน</small></article>
+          <article class="kpi-card dashboard-kpi"><span class="dashboard-kpi-icon done" aria-hidden="true">✓</span><span>เสร็จสิ้น</span><strong id="kpi-done">0</strong><small>ปิดภารกิจแล้ว</small></article>
+          <article class="kpi-card dashboard-kpi"><span class="dashboard-kpi-icon people" aria-hidden="true">♙</span><span>กำลังพลที่ต้องการ</span><strong id="kpi-people">0</strong><small>คน รวมทุกคำร้อง</small></article>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>เลขที่คำร้อง</th><th>สถานที่ / ภารกิจ</th><th>ชุดปฏิบัติการ</th><th>วันปฏิบัติงาน</th><th>กำลังพล</th><th>ความคืบหน้า</th><th>สถานะ</th></tr></thead><tbody id="request-table-body"></tbody></table></div>
-        <div id="empty-state" class="empty-state" hidden><strong>ยังไม่พบคำร้อง</strong><span>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</span></div>
-      </section>
+
+        <div class="dashboard-grid dashboard-top-grid">
+          <section class="panel status-panel"><div class="panel-heading"><div><h2>สถานะคำร้อง</h2><p>สรุปจำนวนในแต่ละสถานะ</p></div></div><div id="status-chart" class="status-chart"></div><div class="dashboard-status-total">รวมทั้งหมด <strong id="status-total">0</strong> รายการ</div></section>
+          <section class="panel dashboard-map-panel"><div class="panel-heading"><div><h2>แผนที่แจ้งพิกัด</h2><p id="dashboard-map-caption">ตำแหน่งคำร้องที่อยู่ในความรับผิดชอบ</p></div><a id="dashboard-map-action" class="button button-ghost" href="#dispatch" hidden>ดูงานทั้งหมด →</a></div><div id="dashboard-map" role="img" aria-label="แผนที่คำร้องที่มีพิกัด"></div><p id="dashboard-map-empty" class="dashboard-map-empty" hidden></p></section>
+        </div>
+
+        <div class="dashboard-grid dashboard-bottom-grid">
+          <section class="panel urgency-panel"><div class="panel-heading"><div><h2>งานที่ต้องจับตา</h2><p>เรียงตามความเร่งด่วนและกำหนดปฏิบัติงาน</p></div></div><div id="urgent-list" class="urgent-list"></div><a id="dashboard-work-action" class="text-link" href="#dispatch" hidden>ดูภารกิจทั้งหมด →</a></section>
+          <section class="panel dashboard-progress-panel"><div class="panel-heading"><div><h2>ภาพรวมการดำเนินงาน</h2><p>สัดส่วนสถานะและความคืบหน้าของคำร้อง</p></div></div><div class="dashboard-progress-grid"><div><h3>สถานะคำร้อง</h3><div id="dashboard-donut" class="dashboard-donut" role="img" aria-label="สัดส่วนสถานะคำร้อง"><span><strong id="donut-total">0</strong><small>รายการ</small></span></div><div id="dashboard-legend" class="dashboard-legend"></div></div><div><h3>ความคืบหน้าการดำเนินงาน</h3><div id="dashboard-gauge" class="dashboard-gauge" role="img" aria-label="ความคืบหน้าเฉลี่ย"><span><strong id="gauge-value">0%</strong><small>ความคืบหน้าเฉลี่ย</small></span></div><div class="dashboard-gauge-scale"><span>0%</span><span>100%</span></div></div></div></section>
+        </div>
+
+        <section class="panel table-panel dashboard-table-panel">
+          <div class="panel-heading table-heading">
+            <div><h2>รายการคำร้องล่าสุด</h2><p id="result-summary">กำลังโหลดข้อมูล</p></div>
+            <div class="table-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="ค้นหาเลขที่ สถานที่ หรือภารกิจ"></label><select id="status-filter" aria-label="กรองตามสถานะ"><option value="all">ทุกสถานะ</option><option value="pending">รอดำเนินการ</option><option value="in_progress">กำลังดำเนินการ</option><option value="blocked">ติดปัญหา</option><option value="completed">เสร็จสิ้น</option></select><select id="date-filter" aria-label="กรองตามวันที่รับคำร้อง"><option value="all">ทุกวัน</option><option value="7">7 วันล่าสุด</option><option value="30">30 วันล่าสุด</option></select></div>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>เลขที่คำร้อง</th><th>รายละเอียด</th><th>สถานที่ / ชุดปฏิบัติการ</th><th>วันแจ้ง</th><th>กำลังพล</th><th>ความคืบหน้า</th><th>สถานะ</th></tr></thead><tbody id="request-table-body"></tbody></table></div>
+          <div id="empty-state" class="empty-state" hidden><strong>ยังไม่พบคำร้อง</strong><span>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</span></div>
+          <div class="dashboard-pagination"><span id="dashboard-page-summary">แสดง 0 รายการ</span><div><button id="dashboard-prev-page" class="button button-ghost" type="button" aria-label="หน้าก่อนหน้า">‹</button><span id="dashboard-page-number">1 / 1</span><button id="dashboard-next-page" class="button button-ghost" type="button" aria-label="หน้าถัดไป">›</button></div></div>
+        </section>
+      </div>
     </section>
 
     <section id="new-view" class="view" hidden aria-labelledby="form-title">
@@ -394,6 +403,6 @@
   <dialog id="volunteer-success-dialog" class="success-dialog"><div class="success-icon" aria-hidden="true">✓</div><h2>ลงทะเบียนเรียบร้อย</h2><p>เลขทะเบียนกำลัง</p><strong id="success-registration-no"></strong><p class="dialog-note">ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อจะใช้ข้อมูลเพื่อพิจารณาจัดชุดตามภารกิจ พื้นที่ และช่วงเวลาที่เหมาะสม</p><div class="dialog-actions"><button id="register-another" class="button button-ghost" type="button">ลงทะเบียนอีกคน</button><button id="go-home" class="button button-primary" type="button">กลับหน้าหลัก</button></div></dialog>
   <script src="config.js?v=2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script type="module" src="app.js?v=22"></script>
+  <script type="module" src="app.js?v=27"></script>
 </body>
 </html>

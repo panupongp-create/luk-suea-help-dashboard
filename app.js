@@ -68,6 +68,11 @@ const demoVolunteers = [
 ];
 
 let requestRows = [];
+let dashboardRole = "public";
+let dashboardPage = 0;
+let dashboardMap = null;
+let dashboardMapMarkers = null;
+const DASHBOARD_PAGE_SIZE = 5;
 let volunteerStats = [];
 let publicCenters = [...DEMO_CENTERS];
 let centralState = null;
@@ -168,6 +173,7 @@ function applyAuthUi() {
   $$(".public-nav").forEach(link => { link.hidden = Boolean(authSession); });
   $$(".central-nav").forEach(link => { link.hidden = !isCentral; });
   $$(".subcenter-nav").forEach(link => { link.hidden = !isSubcenter; });
+  $("#staff-dashboard-nav").hidden = !authSession;
   if (authSession) {
     logoutButton.hidden = false;
   } else {
@@ -247,6 +253,8 @@ async function logoutStaff() {
   centralState = null;
   subcenterSession = null;
   shelterRecords = [];
+  requestRows = [];
+  dashboardRole = "public";
   resetShelterForm();
   localStorage.removeItem(SESSION_KEY);
   applyAuthUi();
@@ -498,41 +506,120 @@ async function handleVolunteerSubmit(event) {
 }
 
 async function loadDashboard() {
+  const token = authSession?.session_token || null;
+  const role = authSession?.role || "public";
+  const loading = $("#dashboard-loading");
+  $("#dashboard-content").hidden = true;
+  loading.hidden = false;
+  loading.textContent = "กำลังโหลด Dashboard…";
   setConnectionState(online ? "connecting" : "demo");
-  if (online) {
-    const {data,error} = await supabase.from("public_requests").select("*").order("received_at", {ascending:false}).limit(500);
-    if (error) { showToast("โหลด Dashboard ไม่สำเร็จ: " + error.message, true); return; }
-    requestRows = data || [];
-    setConnectionState("connected");
-  } else {
-    requestRows = [...demoRows,...[...demoManage.values()].map(item => item.public)];
+  try {
+    let rows;
+    if (role === "central") {
+      const [workspaceResult, publicResult] = online
+        ? await Promise.all([
+          supabase.rpc("get_central_workspace_by_session", {p_session_token:token}),
+          supabase.from("public_requests").select("*").order("received_at", {ascending:false}).limit(500)
+        ])
+        : [{data:demoCentralWorkspace()}, {data:[...demoRows,...[...demoManage.values()].map(item => item.public)]}];
+      if (workspaceResult.error || publicResult.error) throw workspaceResult.error || publicResult.error;
+      if (!workspaceResult.data) throw new Error("บัญชีไม่มีสิทธิ์หรือเซสชันหมดอายุ");
+      centralState = workspaceResult.data;
+      const publicById = new Map((publicResult.data||[]).map(item => [item.id,item]));
+      rows = (centralState.requests||[]).map(item => ({
+        ...item,
+        overall_status:publicById.get(item.id)?.overall_status || item.overall_status || "pending",
+        completed_steps:publicById.get(item.id)?.completed_steps ?? item.completed_steps ?? 0,
+        current_step:publicById.get(item.id)?.current_step || item.current_step || "รับคำร้อง"
+      }));
+    } else if (role === "subcenter") {
+      const workspace = await fetchSubcenterWorkspace();
+      rows = (workspace.requests||[]).map(item => item.request).filter(Boolean);
+    } else if (online) {
+      const {data,error} = await supabase.from("public_requests").select("*").order("received_at", {ascending:false}).limit(500);
+      if (error) throw error;
+      rows = data || [];
+    } else {
+      rows = [...demoRows,...[...demoManage.values()].map(item => item.public)];
+    }
+    if (routeInfo().name !== "dashboard" || (authSession?.session_token || null) !== token) return;
+    dashboardRole = role;
+    requestRows = rows.sort((a,b) => new Date(b.received_at)-new Date(a.received_at));
+    dashboardPage = 0;
+    renderDashboard();
+    loading.hidden = true;
+    $("#dashboard-content").hidden = false;
+    requestAnimationFrame(renderDashboardMap);
+    if (online) setConnectionState("connected");
+  } catch (error) {
+    if (routeInfo().name !== "dashboard" || (authSession?.session_token || null) !== token) return;
+    loading.textContent = "โหลด Dashboard ไม่สำเร็จ: " + (error.message || error);
+    showToast(loading.textContent, true);
   }
-  renderDashboard();
+}
+
+function dashboardProgress(row) {
+  if (row.overall_status === "completed") return 100;
+  return Math.max(0,Math.min(100,Math.round(Number(row.completed_steps||0)/8*100)));
 }
 
 function renderDashboard() {
+  const isCentral = dashboardRole === "central";
+  const isSubcenter = dashboardRole === "subcenter";
+  const staff = isCentral || isSubcenter;
+  $("#dashboard-scope").textContent = isCentral ? "ภาพรวมศูนย์อำนวยการ" : isSubcenter ? "ภาพรวมศูนย์ย่อย" : "ภาพรวมสาธารณะ";
+  $("#dashboard-description").textContent = isCentral
+    ? "ติดตามคำร้องทุกศูนย์ย่อยและส่งต่อภารกิจตามพื้นที่รับผิดชอบ"
+    : isSubcenter
+      ? `เฉพาะคำร้องที่มอบหมายให้${subcenterSession?.data?.center?.name || "ศูนย์ของท่าน"}`
+      : "ติดตามสถานะคำร้องและผลการช่วยเหลือ โดยไม่แสดงข้อมูลส่วนบุคคลหรือพิกัด";
+  const action = $("#dashboard-primary-action");
+  action.href = isCentral ? "#dispatch" : isSubcenter ? "#subcenter" : "#new";
+  action.textContent = isCentral ? "จัดการคำร้อง →" : isSubcenter ? "ดูภารกิจของศูนย์ →" : "+ สร้างคำร้องใหม่";
+  for (const [selector,href] of [["#dashboard-map-action",isSubcenter?"#subcenter":"#dispatch"],["#dashboard-work-action",isSubcenter?"#subcenter":"#dispatch"]]) {
+    const link = $(selector);
+    link.hidden = !staff;
+    link.href = href;
+  }
   $("#kpi-total").textContent = requestRows.length.toLocaleString("th-TH");
   $("#kpi-active").textContent = requestRows.filter(row => ["pending","in_progress"].includes(row.overall_status)).length.toLocaleString("th-TH");
   $("#kpi-blocked").textContent = requestRows.filter(row => row.overall_status === "blocked").length.toLocaleString("th-TH");
   $("#kpi-done").textContent = requestRows.filter(row => row.overall_status === "completed").length.toLocaleString("th-TH");
   $("#kpi-people").textContent = requestRows.reduce((sum,row) => sum + Number(row.personnel_required||0),0).toLocaleString("th-TH");
+  const progress = requestRows.length ? Math.round(requestRows.reduce((sum,row) => sum + dashboardProgress(row),0)/requestRows.length) : 0;
+  $("#gauge-value").textContent = `${progress}%`;
+  $("#dashboard-gauge").style.setProperty("--gauge-progress",`${progress}%`);
+  $("#dashboard-gauge").setAttribute("aria-label",`ความคืบหน้าเฉลี่ย ${progress}%`);
+  $("#status-total").textContent = requestRows.length.toLocaleString("th-TH");
+  $("#donut-total").textContent = requestRows.length.toLocaleString("th-TH");
   renderStatusChart();
   renderUrgentList();
   renderRequestTable();
 }
 
 function renderStatusChart() {
+  const colors = {pending:"#d7bea3",in_progress:"#c4783d",blocked:"#c74d4a",completed:"#3d9b70"};
+  const counts = Object.fromEntries(Object.keys(STATUS).map(key => [key,requestRows.filter(row => row.overall_status === key).length]));
   $("#status-chart").innerHTML = Object.keys(STATUS).map(key => {
-    const count = requestRows.filter(row => row.overall_status === key).length;
+    const count = counts[key];
     const percent = requestRows.length ? Math.round((count/requestRows.length)*100) : 0;
     return `<div class="bar-row"><span>${STATUS[key][0]}</span><div class="bar-track"><div class="bar-fill ${key}" style="width:${percent}%"></div></div><strong>${count}</strong></div>`;
   }).join("");
+  let position = 0;
+  const segments = Object.keys(STATUS).map(key => {
+    const start = position;
+    position += requestRows.length ? counts[key]/requestRows.length*100 : 0;
+    return `${colors[key]} ${start}% ${position}%`;
+  });
+  $("#dashboard-donut").style.background = requestRows.length ? `conic-gradient(${segments.join(",")})` : "#ebe5e1";
+  $("#dashboard-donut").setAttribute("aria-label",Object.keys(STATUS).map(key=>`${STATUS[key][0]} ${counts[key]} รายการ`).join(" · "));
+  $("#dashboard-legend").innerHTML = Object.keys(STATUS).map(key => `<div><i style="background:${colors[key]}"></i><span>${STATUS[key][0]}</span><strong>${counts[key]} (${requestRows.length?Math.round(counts[key]/requestRows.length*100):0}%)</strong></div>`).join("");
 }
 
 function renderUrgentList() {
   const ordered = requestRows.filter(row => row.overall_status !== "completed").sort((a,b) => {
     const rank = {critical:0,urgent:1,normal:2};
-    return (rank[a.priority]-rank[b.priority]) || new Date(a.operation_start_at)-new Date(b.operation_start_at);
+    return (rank[a.priority]??2)-(rank[b.priority]??2) || new Date(a.operation_start_at)-new Date(b.operation_start_at);
   }).slice(0,4);
   $("#urgent-list").innerHTML = ordered.length ? ordered.map(row => `<article class="urgent-item"><i class="urgency-mark ${escapeHtml(row.priority)}"></i><div><strong>${escapeHtml(row.location_name)}</strong><span>${escapeHtml(row.mission)}</span></div><time>${formatDate(row.operation_start_at)}</time></article>`).join("") : `<div class="empty-state"><strong>ไม่มีงานค้าง</strong><span>ทุกภารกิจเสร็จสิ้นแล้ว</span></div>`;
 }
@@ -540,14 +627,61 @@ function renderUrgentList() {
 function renderRequestTable() {
   const query = $("#search-input").value.trim().toLowerCase();
   const status = $("#status-filter").value;
-  const filtered = requestRows.filter(row => (status === "all" || row.overall_status === status) && (!query || [row.request_no,row.location_name,row.organization,row.mission,row.assigned_team_name,row.assigned_center_name].some(value => String(value||"").toLowerCase().includes(query))));
-  $("#result-summary").textContent = `แสดง ${filtered.length.toLocaleString("th-TH")} จาก ${requestRows.length.toLocaleString("th-TH")} รายการ`;
+  const dateFilter = $("#date-filter").value;
+  const cutoff = dateFilter === "all" ? 0 : Date.now() - Number(dateFilter)*86400000;
+  const filtered = requestRows.filter(row => (status === "all" || row.overall_status === status) && (!cutoff || new Date(row.received_at).getTime() >= cutoff) && (!query || [row.request_no,row.location_name,row.organization,row.mission,row.assigned_team_name,row.assigned_center_name].some(value => String(value||"").toLowerCase().includes(query))));
+  const pages = Math.max(1,Math.ceil(filtered.length/DASHBOARD_PAGE_SIZE));
+  dashboardPage = Math.min(dashboardPage,pages-1);
+  const start = dashboardPage*DASHBOARD_PAGE_SIZE;
+  const pageRows = filtered.slice(start,start+DASHBOARD_PAGE_SIZE);
+  $("#result-summary").textContent = `แสดงข้อมูลตามสิทธิ์ ${requestRows.length.toLocaleString("th-TH")} รายการ`;
   $("#empty-state").hidden = Boolean(filtered.length);
-  $("#request-table-body").innerHTML = filtered.map(row => {
-    const percent = Math.round((Number(row.completed_steps||0)/8)*100);
+  $("#dashboard-page-summary").textContent = filtered.length ? `แสดง ${start+1}–${start+pageRows.length} จาก ${filtered.length} รายการ` : "ไม่พบรายการ";
+  $("#dashboard-page-number").textContent = `${dashboardPage+1} / ${pages}`;
+  $("#dashboard-prev-page").disabled = dashboardPage === 0;
+  $("#dashboard-next-page").disabled = dashboardPage >= pages-1;
+  $("#request-table-body").innerHTML = pageRows.map(row => {
+    const percent = dashboardProgress(row);
     const statusInfo = STATUS[row.overall_status] || STATUS.pending;
-    return `<tr><td><strong>${escapeHtml(row.request_no)}</strong><span class="cell-sub">รับเมื่อ ${formatDate(row.received_at)}</span></td><td><strong>${escapeHtml(row.location_name)}</strong><span class="cell-sub">${escapeHtml(row.mission)}</span></td><td>${escapeHtml(row.assigned_team_name||"ยังไม่มอบหมาย")}</td><td>${formatDate(row.operation_start_at)}</td><td><strong>${Number(row.personnel_required||0).toLocaleString("th-TH")} คน</strong><span class="cell-sub">${escapeHtml(PRIORITY[row.priority]||"ปกติ")}</span></td><td class="progress-cell"><span class="progress-label">${escapeHtml(row.current_step||"รับคำร้อง")} · ${percent}%</span><div class="mini-progress"><i style="width:${percent}%"></i></div></td><td><span class="status-chip ${statusInfo[1]}">${statusInfo[0]}</span></td></tr>`;
+    const requestNumber = dashboardRole === "public" ? `<strong>${escapeHtml(row.request_no)}</strong>` : `<button type="button" class="dashboard-request-link" data-request-id="${escapeHtml(row.id)}">${escapeHtml(row.request_no)}</button>`;
+    const teamName = dashboardRole === "public" ? "ข้อมูลชุดปฏิบัติการสำหรับเจ้าหน้าที่" : row.assigned_team_name || row.assigned_team_no || "ยังไม่มอบหมายชุด";
+    return `<tr><td>${requestNumber}<span class="cell-sub">ปฏิบัติงาน ${formatDate(row.operation_start_at)}</span></td><td><strong>${escapeHtml(row.location_name)}</strong><span class="cell-sub">${escapeHtml(row.mission)}</span></td><td><strong>${escapeHtml(row.organization||"–")}</strong><span class="cell-sub">${escapeHtml(teamName)}</span></td><td>${formatDate(row.received_at)}</td><td><strong>${Number(row.personnel_required||0).toLocaleString("th-TH")} คน</strong><span class="cell-sub">${escapeHtml(PRIORITY[row.priority]||"ปกติ")}</span></td><td class="progress-cell"><span class="progress-label">${percent}% · ${escapeHtml(row.current_step||"รับคำร้อง")}</span><div class="mini-progress"><i style="width:${percent}%"></i></div></td><td><span class="status-chip ${statusInfo[1]}">${statusInfo[0]}</span></td></tr>`;
   }).join("");
+}
+
+function renderDashboardMap() {
+  const empty = $("#dashboard-map-empty");
+  const caption = $("#dashboard-map-caption");
+  const mapRows = dashboardRole === "public" ? [] : requestRows.map(row => ({row,location:requestLocation(row)})).filter(item => item.location.hasCoordinates);
+  caption.textContent = dashboardRole === "public" ? "พิกัดจุดปฏิบัติงานแสดงเฉพาะเจ้าหน้าที่" : `พบพิกัด ${mapRows.length.toLocaleString("th-TH")} คำร้องในขอบเขตที่รับผิดชอบ`;
+  empty.hidden = mapRows.length > 0;
+  empty.textContent = dashboardRole === "public" ? "เข้าสู่ระบบเจ้าหน้าที่เพื่อดูพิกัดคำร้องตามสิทธิ์" : "ยังไม่มีคำร้องที่ปักหมุดพิกัดในขอบเขตนี้";
+  if (!window.L) { empty.hidden = false; empty.textContent = "ไม่สามารถโหลดแผนที่ได้ในขณะนี้"; return; }
+  if (!dashboardMap) {
+    dashboardMap = L.map("dashboard-map",{scrollWheelZoom:false}).setView([13.7563,100.5018],5);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}).addTo(dashboardMap);
+    dashboardMapMarkers = L.layerGroup().addTo(dashboardMap);
+  }
+  dashboardMapMarkers.clearLayers();
+  const groups = new Map();
+  mapRows.forEach(item => {
+    const key = `${item.location.latitude.toFixed(2)},${item.location.longitude.toFixed(2)}`;
+    if (!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(item);
+  });
+  const bounds = [];
+  groups.forEach(items => {
+    const {latitude,longitude} = items[0].location;
+    const coordinate = [latitude,longitude];
+    bounds.push(coordinate);
+    const count = items.length;
+    const marker = L.circleMarker(coordinate,{radius:Math.min(20,10+Math.sqrt(count)*3),color:"#fff",weight:3,fillColor:"#8e4128",fillOpacity:.95});
+    marker.bindTooltip(`${count} คำร้อง · ${items.map(item=>escapeHtml(item.row.location_name)).slice(0,3).join(" / ")}`,{direction:"top"});
+    marker.addTo(dashboardMapMarkers);
+  });
+  if (bounds.length) dashboardMap.fitBounds(bounds,{padding:[28,28],maxZoom:10});
+  else dashboardMap.setView([13.7563,100.5018],5);
+  dashboardMap.invalidateSize();
 }
 
 function requestPayload(form) {
@@ -1379,8 +1513,19 @@ $("#volunteer-form").addEventListener("change",event => {
 $("#request-form").addEventListener("submit",handleRequestSubmit);
 $("#use-current-location").addEventListener("click",useCurrentLocation);
 $("#clear-operation-pin").addEventListener("click",clearOperationPin);
-$("#search-input").addEventListener("input",renderRequestTable);
-$("#status-filter").addEventListener("change",renderRequestTable);
+$("#search-input").addEventListener("input",() => { dashboardPage=0; renderRequestTable(); });
+$("#status-filter").addEventListener("change",() => { dashboardPage=0; renderRequestTable(); });
+$("#date-filter").addEventListener("change",() => { dashboardPage=0; renderRequestTable(); });
+$("#dashboard-prev-page").addEventListener("click",() => { if (dashboardPage>0) { dashboardPage--; renderRequestTable(); } });
+$("#dashboard-next-page").addEventListener("click",() => { dashboardPage++; renderRequestTable(); });
+$("#request-table-body").addEventListener("click",event => {
+  const button=event.target.closest(".dashboard-request-link");
+  if (!button || !authSession) return;
+  const row=requestRows.find(item => String(item.id)===button.dataset.requestId);
+  if (!row) return;
+  if (authSession.role === "subcenter") location.hash=`subcenter/mission/${encodeURIComponent(row.id)}`;
+  else if (authSession.role === "central") openRequestDetails(row);
+});
 $("#volunteer-search").addEventListener("input",() => { volunteerPage=0; renderCentralVolunteers(); });
 $("#volunteer-group-filter").addEventListener("change",() => { volunteerPage=0; renderCentralVolunteers(); });
 $("#volunteer-prev-page").addEventListener("click",() => { if (volunteerPage>0) { volunteerPage--; renderCentralVolunteers(); } });
