@@ -17,7 +17,8 @@ const files = [
   "migration-009-allow-editing-legacy-volunteers.sql",
   "migration-010-shelter-residents.sql",
   "migration-011-optional-request-organization.sql",
-  "migration-012-delete-shelter-resident.sql"
+  "migration-012-delete-shelter-resident.sql",
+  "migration-013-hide-test-data-from-stats.sql"
 ];
 
 if (!process.env.PGPASSWORD || !process.env.APP_DB_PASSWORD) throw new Error("POSTGRES_PASSWORD and APP_DB_PASSWORD are required");
@@ -72,7 +73,7 @@ try {
     await client.query("grant usage on schema public to app_api");
     await client.query("grant select on public.public_requests to app_api");
     await client.query("drop policy if exists app_api_dashboard_read on public.public_requests");
-    await client.query("create policy app_api_dashboard_read on public.public_requests for select to app_api using (true)");
+    await client.query("create policy app_api_dashboard_read on public.public_requests for select to app_api using (not public.is_test_request(id))");
     for (const [name, spec] of Object.entries(rpc)) {
       const signature = `public.${name}(${spec.args.map(([, type]) => type).join(",")})`;
       const result = await client.query("select to_regprocedure($1) as routine", [signature]);

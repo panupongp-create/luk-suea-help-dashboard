@@ -10,6 +10,44 @@ const supabase = selfHosted
     : null;
 const CENTRAL_NAME = "ศูนย์อำนวยการลูกเสือช่วยเหลือผู้อื่นทุกเมื่อ";
 const normalizeCentralName = value => String(value ?? "").replaceAll("ศูนย์ส่วนกลาง", CENTRAL_NAME).replaceAll("ศูนย์กลาง", CENTRAL_NAME);
+const TEST_DATA_MARKER = /ทดสอบ|test/i;
+const TEST_DATA_RELATION_KEYS = new Set(["members", "assigned_team_members"]);
+
+function containsTestMarker(value, skipRelations = false) {
+  if (typeof value === "string") return TEST_DATA_MARKER.test(value);
+  if (Array.isArray(value)) return value.some(item => containsTestMarker(item, skipRelations));
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(([key, item]) =>
+    !(skipRelations && TEST_DATA_RELATION_KEYS.has(key)) && containsTestMarker(item, skipRelations)
+  );
+}
+
+function hideTestTeamMembers(record) {
+  if (!record || typeof record !== "object") return record;
+  const clean = {...record};
+  for (const key of TEST_DATA_RELATION_KEYS) {
+    if (Array.isArray(clean[key])) clean[key] = clean[key].filter(member => !containsTestMarker(member));
+  }
+  if (Array.isArray(record.members) && Number.isFinite(Number(record.member_count))) {
+    clean.member_count = clean.members.length;
+  }
+  if (typeof clean.leader_name === "string" && TEST_DATA_MARKER.test(clean.leader_name)) clean.leader_name = "ไม่ระบุ";
+  if (typeof clean.assigned_team_leader === "string" && TEST_DATA_MARKER.test(clean.assigned_team_leader)) clean.assigned_team_leader = "ไม่ระบุ";
+  return clean;
+}
+
+function filterTestWorkspace(workspace) {
+  if (!workspace || typeof workspace !== "object") return workspace;
+  return {
+    ...workspace,
+    volunteers: (workspace.volunteers || []).filter(item => !containsTestMarker(item)),
+    teams: (workspace.teams || []).filter(item => !containsTestMarker(item, true)).map(hideTestTeamMembers),
+    requests: (workspace.requests || []).filter(item => !containsTestMarker(item, true)).map(item => {
+      if (item?.request) return {...item, request:hideTestTeamMembers(item.request)};
+      return hideTestTeamMembers(item);
+    })
+  };
+}
 
 const GROUPS = [
   "บุคลากรสำนักงานลูกเสือแห่งชาติ",
@@ -395,7 +433,8 @@ async function loadRegistry() {
       volunteerStats = statsResult.data || [];
       publicCenters = centersResult.data || [];
     } else {
-      volunteerStats = GROUPS.map((_,index) => ({group_no:index+1,total:demoVolunteers.filter(item => item.group_no===index+1).length,available:demoVolunteers.filter(item => item.group_no===index+1 && item.active).length}));
+      const visibleVolunteers = demoVolunteers.filter(item => !containsTestMarker(item));
+      volunteerStats = GROUPS.map((_,index) => ({group_no:index+1,total:visibleVolunteers.filter(item => item.group_no===index+1).length,available:visibleVolunteers.filter(item => item.group_no===index+1 && item.active).length}));
       publicCenters = [...DEMO_CENTERS];
     }
     renderRegistryStats();
@@ -575,7 +614,7 @@ async function loadDashboard() {
         : [{data:demoCentralWorkspace()}, {data:[...demoRows,...[...demoManage.values()].map(item => item.public)]}];
       if (workspaceResult.error || publicResult.error) throw workspaceResult.error || publicResult.error;
       if (!workspaceResult.data) throw new Error("บัญชีไม่มีสิทธิ์หรือเซสชันหมดอายุ");
-      centralState = workspaceResult.data;
+      centralState = filterTestWorkspace(workspaceResult.data);
       const publicById = new Map((publicResult.data||[]).map(item => [item.id,item]));
       rows = (centralState.requests||[]).map(item => ({
         ...item,
@@ -595,7 +634,7 @@ async function loadDashboard() {
     }
     if (routeInfo().name !== "dashboard" || (authSession?.session_token || null) !== token) return;
     dashboardRole = role;
-    requestRows = rows.sort((a,b) => new Date(b.received_at)-new Date(a.received_at));
+    requestRows = rows.filter(row => !containsTestMarker(row, true)).sort((a,b) => new Date(b.received_at)-new Date(a.received_at));
     dashboardPage = 0;
     renderDashboard();
     loading.hidden = true;
@@ -852,7 +891,7 @@ async function loadCentral(viewName = "center") {
     if (online) {
       const {data,error} = await supabase.rpc("get_central_workspace_by_session", {p_session_token:authSession.session_token});
       if (error) throw error;
-      centralState = data;
+      centralState = filterTestWorkspace(data);
     } else {
       centralState = demoCentralWorkspace();
     }
@@ -1227,6 +1266,7 @@ async function fetchSubcenterWorkspace() {
     };
   }
   if (!data) throw new Error("บัญชีไม่มีสิทธิ์หรือศูนย์นี้ถูกปิดใช้งาน");
+  data = filterTestWorkspace(data);
   subcenterSession = {data};
   return data;
 }
@@ -1312,9 +1352,9 @@ async function loadShelter() {
     if (online) {
       const {data,error} = await supabase.rpc("get_shelter_residents_by_session",{p_session_token:authSession.session_token});
       if (error) throw error;
-      shelterRecords = Array.isArray(data) ? data : [];
+      shelterRecords = (Array.isArray(data) ? data : []).filter(item => !containsTestMarker(item));
     } else {
-      shelterRecords = demoShelterRecords.filter(item => item.center_id === authSession.center_id);
+      shelterRecords = demoShelterRecords.filter(item => item.center_id === authSession.center_id && !containsTestMarker(item));
     }
     $("#shelter-subtitle").textContent = `ศูนย์ย่อย: ${authSession.center_name || authSession.display_name}`;
     renderShelter();
