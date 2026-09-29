@@ -278,6 +278,42 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 @media(max-width:720px){#dispatch-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#dispatch-kpis .kpi-card:last-child{grid-column:auto}.assigned-team-facts{grid-template-columns:1fr}.assigned-team-members ul{grid-template-columns:1fr}}
 @media(max-width:560px){.assignment-note{grid-column:1}.assigned-team-card{padding:14px}.assigned-team-heading{flex-direction:column}.assigned-team-members li{flex-direction:column;gap:3px}.assigned-team-members li small{text-align:left}}
 
+/* Central dispatch: five-team preview and clearly separated center queues */
+.dispatch-center-overview{padding:15px;border:1px solid var(--line);border-radius:13px;background:#fcf7f2;min-width:0}
+.dispatch-center-overview-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.dispatch-center-overview h3{margin:3px 0 0;color:var(--navy);font-size:.9rem;line-height:1.4}
+.dispatch-center-count{display:inline-flex;flex:0 0 auto;align-items:center;padding:5px 9px;border-radius:99px;background:#f0e0d4;color:#78331e;font-size:.7rem;font-weight:800;white-space:nowrap}
+.dispatch-center-overview p,.dispatch-center-overview>small{display:block;margin:9px 0 0;color:var(--muted);font-size:.72rem}
+.dispatch-center-preview{display:grid;gap:5px;list-style:none;margin:11px 0 0;padding:0}
+.dispatch-center-preview li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;font-size:.72rem;color:#624e43}
+.dispatch-center-preview li strong{color:#8d3c26;white-space:nowrap}.dispatch-center-preview li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dispatch-team-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:11px;border-top:1px solid var(--line);color:var(--muted);font-size:.74rem}
+.dispatch-team-footer .button{min-height:36px;padding:6px 10px;font-size:.75rem}
+.dispatch-assignment-board{display:grid;gap:17px}
+.dispatch-queue{min-width:0;padding:18px;border:1px solid #e8d9cd;border-radius:14px;background:#fffdfb}
+.dispatch-queue.waiting{border-left:4px solid #c07a3b;background:#fffaf5}
+.dispatch-queue.sent{border-left:4px solid #4a936e;background:#fbfdfb}
+.dispatch-queue-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.dispatch-queue-heading h3{margin:0;color:var(--navy);font-size:1rem}.dispatch-queue-heading p{margin:3px 0 0;color:var(--muted);font-size:.76rem}
+.dispatch-queue-heading>span{flex:0 0 auto;padding:5px 10px;border-radius:99px;background:#f1e2d4;color:#81351f;font-size:.76rem;font-weight:800}
+.dispatch-queue.sent .dispatch-queue-heading>span{background:#e2f1e7;color:#267151}
+.dispatch-queue-list,.dispatch-center-request-list,.dispatch-center-groups{display:grid;gap:10px}
+.dispatch-queue-empty{padding:18px;border:1px dashed #ddcabc;border-radius:11px;color:var(--muted);text-align:center;font-size:.8rem}
+.dispatch-request-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dispatch-assignment-state{padding:3px 8px;border-radius:99px;font-size:.68rem;font-weight:800}
+.dispatch-assignment-state.waiting{background:#fff0db;color:#935518}.dispatch-assignment-state.sent{background:#e3f1e7;color:#267151}
+.dispatch-center-group{overflow:hidden;border:1px solid #d9e5d9;border-radius:12px;background:#fff}
+.dispatch-center-group>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none;background:#f7fbf7}
+.dispatch-center-group>summary::-webkit-details-marker{display:none}
+.dispatch-center-group>summary:focus-visible{outline:2px solid #8b4a2f;outline-offset:-3px}
+.dispatch-center-group>summary h4{margin:2px 0 0;color:var(--navy);font-size:.92rem}
+.dispatch-center-group>summary p{margin:4px 0 0;color:var(--muted);font-size:.73rem;line-height:1.4}
+.dispatch-center-group>summary .dispatch-center-count{background:#e4f2e8;color:#267151}
+.dispatch-center-group[open]>summary{border-bottom:1px solid #d9e5d9}
+.dispatch-center-request-list{padding:12px}
+.dispatch-center-request-list .assignment-card{background:#fffdfb}
+@media(max-width:720px){.dispatch-queue{padding:13px}.dispatch-center-overview-heading,.dispatch-queue-heading,.dispatch-center-group>summary{align-items:flex-start}.dispatch-center-preview li{grid-template-columns:1fr;gap:1px}.dispatch-center-group>summary{padding:12px}.dispatch-center-request-list{padding:8px}.dispatch-team-footer{flex-direction:column;align-items:stretch}.dispatch-team-footer .button{width:100%}}
+
 /* September 28 annotated workflow update */
 .home-system-grid .system-card-two{order:-1}
 .home-system-grid .system-card-two .system-features{grid-template-columns:minmax(220px,1fr);max-width:360px}
