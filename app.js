@@ -114,12 +114,6 @@ function showToast(message, error = false) {
   showToast.timer = setTimeout(() => { toast.hidden = true; }, 3800);
 }
 
-function setConnectionState(state) {
-  $$(".live-badge").forEach(badge => badge.classList.toggle("connected", state === "connected"));
-  const label = $("#live-label");
-  if (label) label.textContent = state === "connected" ? "เชื่อมต่อฐานข้อมูลแล้ว" : online ? "กำลังเชื่อมต่อ" : "ข้อมูลตัวอย่าง";
-}
-
 function routeInfo() {
   const raw = location.hash.replace(/^#/, "") || "home";
   if (raw === "center" || raw.startsWith("center/")) return {name:"center",raw};
@@ -570,7 +564,6 @@ async function loadDashboard() {
   $("#dashboard-content").hidden = true;
   loading.hidden = false;
   loading.textContent = "กำลังโหลด Dashboard…";
-  setConnectionState(online ? "connecting" : "demo");
   try {
     let rows;
     if (role === "central") {
@@ -608,7 +601,6 @@ async function loadDashboard() {
     loading.hidden = true;
     $("#dashboard-content").hidden = false;
     requestAnimationFrame(renderDashboardMap);
-    if (online) setConnectionState("connected");
   } catch (error) {
     if (routeInfo().name !== "dashboard" || (authSession?.session_token || null) !== token) return;
     loading.textContent = "โหลด Dashboard ไม่สำเร็จ: " + (error.message || error);
@@ -1635,7 +1627,7 @@ function subscribeRealtime() {
   if (!online) return;
   realtimeChannel = supabase.channel("public-dashboard-v2").on("postgres_changes",{event:"*",schema:"public",table:"public_requests"},() => {
     if (routeInfo().name === "dashboard") loadDashboard();
-  }).subscribe(status => { if (status === "SUBSCRIBED") setConnectionState("connected"); });
+  }).subscribe();
 }
 
 function registerWebMcpTools() {
