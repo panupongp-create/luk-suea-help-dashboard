@@ -1,4 +1,5 @@
 import { createServerClient } from "./server-client.js";
+import {parseMapInput} from "./map-search.js";
 
 const config = window.APP_CONFIG || {};
 const selfHosted = config.BACKEND_MODE === "server";
@@ -122,6 +123,9 @@ const demoShelterRecords = [];
 let realtimeChannel = null;
 let operationMap = null;
 let operationMarker = null;
+let operationSearchResults = [];
+let operationSearchSequence = 0;
+let operationSuggestionTimer = null;
 let requestDetailMap = null;
 let requestDetailMarker = null;
 let demoRequestCounter = 5;
@@ -375,7 +379,16 @@ function initializeOperationMap() {
     maxZoom:19,
     attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
   }).addTo(operationMap);
-  operationMap.on("click", event => setOperationPin(event.latlng.lat,event.latlng.lng,true));
+  operationMap.on("click", event => {
+    clearTimeout(operationSuggestionTimer);
+    operationSearchSequence++;
+    setOperationPin(event.latlng.lat,event.latlng.lng,true);
+    $("#map-search-status").textContent = "ปักหมุดจากแผนที่แล้ว โปรดตรวจสอบตำแหน่งก่อนส่งคำร้อง";
+    $$(".map-search-result.selected").forEach(button => {
+      button.classList.remove("selected");
+      button.setAttribute("aria-selected", "false");
+    });
+  });
 }
 
 function googleMapsUrl(latitude,longitude) {
@@ -399,6 +412,8 @@ function setOperationPin(latitude,longitude,focus=false) {
 }
 
 function clearOperationPin() {
+  clearTimeout(operationSuggestionTimer);
+  operationSearchSequence++;
   const form = $("#request-form");
   form.elements.operation_latitude.value = "";
   form.elements.operation_longitude.value = "";
@@ -407,6 +422,130 @@ function clearOperationPin() {
   $("#map-coordinate").textContent = "ยังไม่ได้ปักหมุด";
   $("#map-open-link").hidden = true;
   $("#clear-operation-pin").hidden = true;
+  $("#operation-map-search").value = "";
+  $("#map-search-results").hidden = true;
+  $("#map-search-results").replaceChildren();
+  $("#operation-map-search").setAttribute("aria-expanded", "false");
+  $("#map-google-search-link").href = "https://www.google.com/maps";
+  $("#map-search-status").textContent = "พิมพ์อย่างน้อย 3 ตัวอักษรเพื่อเลือกสถานที่ หรือวางลิงก์ Google Maps";
+  $("#map-search-status").classList.remove("error");
+  operationSearchResults = [];
+}
+
+function showMapSearchStatus(message, error = false) {
+  const status = $("#map-search-status");
+  status.textContent = message;
+  status.classList.toggle("error", error);
+}
+
+function renderOperationSearchResults(places) {
+  operationSearchResults = places;
+  const list = $("#map-search-results");
+  list.replaceChildren(...places.map((place,index) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "map-search-result";
+    option.dataset.index = String(index);
+    option.setAttribute("role", "option");
+    option.setAttribute("aria-selected", "false");
+    option.textContent = place.name;
+    return option;
+  }));
+  list.hidden = places.length === 0;
+  $("#operation-map-search").setAttribute("aria-expanded", String(places.length > 0));
+}
+
+function onOperationSearchInput() {
+  clearTimeout(operationSuggestionTimer);
+  const sequence = ++operationSearchSequence;
+  const parsed = parseMapInput($("#operation-map-search").value);
+  const googleLink = $("#map-google-search-link");
+  googleLink.href = parsed.kind === "search"
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parsed.query)}`
+    : "https://www.google.com/maps";
+  renderOperationSearchResults([]);
+  if (parsed.kind !== "search" || parsed.query.length < 3 || parsed.query.length > 140) {
+    showMapSearchStatus(parsed.kind === "search" ? "พิมพ์อย่างน้อย 3 ตัวอักษรเพื่อดูชื่อสถานที่แนะนำ" : "วางลิงก์หรือพิกัดแล้วกดค้นหาและปักหมุด");
+    return;
+  }
+  operationSuggestionTimer = setTimeout(async () => {
+    showMapSearchStatus("กำลังแนะนำสถานที่…");
+    try {
+      const response = await fetch(`/api/place-suggest?q=${encodeURIComponent(parsed.query)}`);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "แนะนำสถานที่ไม่ได้");
+      if (sequence !== operationSearchSequence) return;
+      const places = Array.isArray(result.data) ? result.data : [];
+      renderOperationSearchResults(places);
+      showMapSearchStatus(places.length
+        ? "เลือกชื่อสถานที่ด้านล่างเพื่อปักหมุด แล้วตรวจสอบตำแหน่งบนแผนที่"
+        : "ยังไม่พบชื่อสถานที่ ลองเพิ่มอำเภอ/จังหวัด หรือค้นหาใน Google Maps แล้ววางลิงก์");
+    } catch {
+      if (sequence === operationSearchSequence) showMapSearchStatus("แนะนำสถานที่ไม่พร้อมใช้งาน กดค้นหา หรือใช้ลิงก์ Google Maps แทน", true);
+    }
+  }, 600);
+}
+
+function selectOperationSearchResult(index) {
+  const place = operationSearchResults[index];
+  if (!place) return;
+  clearTimeout(operationSuggestionTimer);
+  operationSearchSequence++;
+  setOperationPin(place.latitude,place.longitude,true);
+  $$(".map-search-result", $("#map-search-results")).forEach((button,buttonIndex) => {
+    button.classList.toggle("selected",buttonIndex === index);
+    button.setAttribute("aria-selected", String(buttonIndex === index));
+  });
+  showMapSearchStatus(`ปักหมุดที่ ${place.name} แล้ว โปรดตรวจสอบตำแหน่งก่อนส่งคำร้อง`);
+}
+
+async function searchOperationPlace() {
+  const button = $("#search-operation-place");
+  if (button.disabled) return;
+  if (!operationMap) return showMapSearchStatus("แผนที่ยังไม่พร้อมใช้งาน กรุณาลองใหม่", true);
+  clearTimeout(operationSuggestionTimer);
+  const sequence = ++operationSearchSequence;
+  let parsed = parseMapInput($("#operation-map-search").value);
+  if (parsed.kind === "empty") return showMapSearchStatus("กรุณาพิมพ์ชื่อสถานที่ พิกัด หรือลิงก์ Google Maps", true);
+  if (parsed.kind === "invalid") return showMapSearchStatus(parsed.message, true);
+  button.disabled = true;
+  button.textContent = "กำลังค้นหา…";
+  showMapSearchStatus("กำลังค้นหาตำแหน่ง…");
+  try {
+    if (parsed.kind === "short-link") {
+      const response = await fetch(`/api/expand-map-link?url=${encodeURIComponent(parsed.url)}`);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "เปิดลิงก์ Google Maps ไม่ได้");
+      parsed = parseMapInput(result.data?.url);
+    }
+    if (parsed.kind === "coordinates") {
+      if (sequence !== operationSearchSequence) return;
+      renderOperationSearchResults([]);
+      setOperationPin(parsed.latitude,parsed.longitude,true);
+      showMapSearchStatus("ปักหมุดจากพิกัดแล้ว โปรดตรวจสอบตำแหน่งก่อนส่งคำร้อง");
+      return;
+    }
+    if (parsed.kind !== "search") throw new Error(parsed.message || "ลิงก์นี้ไม่มีพิกัดหรือชื่อสถานที่");
+    const response = await fetch(`/api/place-search?q=${encodeURIComponent(parsed.query)}`);
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "ค้นหาสถานที่ไม่ได้");
+    if (sequence !== operationSearchSequence) return;
+    let places = Array.isArray(result.data) ? result.data : [];
+    if (!places.length && parsed.query.length >= 3) {
+      const suggestionResponse = await fetch(`/api/place-suggest?q=${encodeURIComponent(parsed.query)}`);
+      const suggestionResult = await suggestionResponse.json();
+      if (suggestionResponse.ok && Array.isArray(suggestionResult.data)) places = suggestionResult.data;
+    }
+    if (sequence !== operationSearchSequence) return;
+    renderOperationSearchResults(places);
+    if (operationSearchResults.length) selectOperationSearchResult(0);
+    else showMapSearchStatus("ไม่พบสถานที่ ลองเพิ่มอำเภอ/จังหวัด หรือค้นหาใน Google Maps แล้ววางลิงก์", true);
+  } catch (error) {
+    if (sequence === operationSearchSequence) showMapSearchStatus(error.message || "ค้นหาสถานที่ไม่ได้ กรุณาลองใหม่", true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "ค้นหาและปักหมุด";
+  }
 }
 
 function useCurrentLocation() {
@@ -1706,6 +1845,32 @@ $("#volunteer-form").addEventListener("change",event => {
 $("#request-form").addEventListener("submit",handleRequestSubmit);
 $("#use-current-location").addEventListener("click",useCurrentLocation);
 $("#clear-operation-pin").addEventListener("click",clearOperationPin);
+$("#search-operation-place").addEventListener("click",searchOperationPlace);
+$("#operation-map-search").addEventListener("input",onOperationSearchInput);
+$("#operation-map-search").addEventListener("keydown",event => {
+  if (event.key === "ArrowDown" && operationSearchResults.length) {
+    event.preventDefault();
+    $("#map-search-results button")?.focus();
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    searchOperationPlace();
+  }
+});
+$("#map-search-results").addEventListener("keydown",event => {
+  const options = $$("button.map-search-result", event.currentTarget);
+  const index = options.indexOf(document.activeElement);
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    options[(index + (event.key === "ArrowDown" ? 1 : options.length - 1)) % options.length]?.focus();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    $("#operation-map-search").focus();
+  }
+});
+$("#map-search-results").addEventListener("click",event => {
+  const option = event.target.closest("button.map-search-result");
+  if (option) selectOperationSearchResult(Number(option.dataset.index));
+});
 $("#search-input").addEventListener("input",() => { dashboardPage=0; renderRequestTable(); });
 $("#status-filter").addEventListener("change",() => { dashboardPage=0; renderRequestTable(); });
 $("#date-filter").addEventListener("change",() => { dashboardPage=0; renderRequestTable(); });

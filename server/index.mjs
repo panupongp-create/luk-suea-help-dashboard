@@ -4,6 +4,7 @@ import {fileURLToPath} from "node:url";
 import {resolve, sep} from "node:path";
 import pg from "pg";
 import {rpc} from "./rpc.mjs";
+import {searchPlaces, suggestPlaces, expandGoogleMapsUrl} from "./place-search.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const port = Number(process.env.PORT || 3000);
@@ -18,7 +19,7 @@ const pool = new pg.Pool({
 });
 pool.on("error", error => console.error("Database pool connection lost:", error.message));
 
-const publicFiles = new Set(["index.html", "app.js", "server-client.js", "styles.css", "styles-v2.css", "assets/hero-scout-relief-v1.png", "assets/favicon.svg"]);
+const publicFiles = new Set(["index.html", "app.js", "server-client.js", "map-search.js", "styles.css", "styles-v2.css", "assets/hero-scout-relief-v1.png", "assets/favicon.svg"]);
 const mime = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png"};
 const streams = new Set();
 
@@ -75,6 +76,15 @@ async function handle(req, res) {
     if (req.method === "GET" && url.pathname === "/healthz") {
       await pool.query("select 1");
       return respond(res, 200, {status: "ok"});
+    }
+    if (req.method === "GET" && url.pathname === "/api/place-search") {
+      return respond(res, 200, {data: await searchPlaces(url.searchParams.get("q"))});
+    }
+    if (req.method === "GET" && url.pathname === "/api/place-suggest") {
+      return respond(res, 200, {data: await suggestPlaces(url.searchParams.get("q"))});
+    }
+    if (req.method === "GET" && url.pathname === "/api/expand-map-link") {
+      return respond(res, 200, {data: {url: await expandGoogleMapsUrl(url.searchParams.get("url"))}});
     }
     if (req.method === "GET" && url.pathname === "/api/public-requests") {
       const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 500, 1), 500);
