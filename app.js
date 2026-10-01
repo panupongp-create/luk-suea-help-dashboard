@@ -813,7 +813,10 @@ function renderDashboard() {
   $("#kpi-active").textContent = requestRows.filter(row => ["pending","in_progress"].includes(row.overall_status)).length.toLocaleString("th-TH");
   $("#kpi-blocked").textContent = requestRows.filter(row => row.overall_status === "blocked").length.toLocaleString("th-TH");
   $("#kpi-done").textContent = requestRows.filter(row => row.overall_status === "completed").length.toLocaleString("th-TH");
-  $("#kpi-people").textContent = requestRows.reduce((sum,row) => sum + Number(row.personnel_required||0),0).toLocaleString("th-TH");
+  $("#kpi-people").textContent = requestRows
+    .filter(row => row.overall_status === "in_progress")
+    .reduce((sum,row) => sum + Number(row.personnel_required||0),0)
+    .toLocaleString("th-TH");
   const progress = requestRows.length ? Math.round(requestRows.reduce((sum,row) => sum + dashboardProgress(row),0)/requestRows.length) : 0;
   $("#gauge-value").textContent = `${progress}%`;
   $("#dashboard-gauge").style.setProperty("--gauge-progress",`${progress}%`);
